@@ -2,6 +2,8 @@ import { NavBar } from "@/components/NavBar";
 import { VinSearchForm } from "@/components/VinSearchForm";
 import { VehicleResult } from "@/components/VehicleResult";
 import { AdvisorChat } from "@/components/AdvisorChat";
+import { BackgroundVideo } from "@/components/BackgroundVideo";
+import { LANDING_VIDEOS, LANDING_POSTER } from "@/lib/landingVideos";
 import { Card, CardContent } from "@/components/ui/card";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { getLoginUrl } from "@/const";
@@ -23,7 +25,10 @@ const FEATURES = [
 ];
 
 export default function Home() {
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, loading } = useAuth();
+  // Cinematic b-roll only for logged-out visitors; once signed in, the hero
+  // settles to a calm static background.
+  const showVideo = !isAuthenticated && !loading;
   const [result, setResult] = useState<DecodeResult | null>(null);
   const [saved, setSaved] = useState(false);
   const [showAdvisor, setShowAdvisor] = useState(false);
@@ -80,14 +85,23 @@ export default function Home() {
       <NavBar />
 
       {/* Hero */}
-      <section className="relative overflow-hidden border-b border-border/60">
-        <div
-          className="absolute inset-0 bg-cover bg-center opacity-60"
-          style={{ backgroundImage: `url(${HERO_IMG})` }}
-        />
-        <div className="absolute inset-0 bg-gradient-to-r from-background via-background/85 to-background/30" />
-        <div className="absolute inset-0 bg-gradient-to-t from-background via-transparent to-transparent" />
-        <div className="container relative py-20 sm:py-28">
+      <section className="relative isolate overflow-hidden border-b border-border/60">
+        {showVideo ? (
+          <BackgroundVideo
+            videos={LANDING_VIDEOS}
+            poster={LANDING_POSTER}
+            className="z-0"
+            overlayClassName="bg-transparent"
+          />
+        ) : (
+          <div
+            className="absolute inset-0 z-0 bg-cover bg-center opacity-60"
+            style={{ backgroundImage: `url(${HERO_IMG})` }}
+          />
+        )}
+        <div className="absolute inset-0 z-[1] bg-gradient-to-r from-background via-background/85 to-background/30" />
+        <div className="absolute inset-0 z-[1] bg-gradient-to-t from-background via-transparent to-transparent" />
+        <div className="container relative z-10 py-20 sm:py-28">
           <div className="max-w-2xl">
             <div className="inline-flex items-center gap-2 rounded-full border border-primary/30 bg-primary/10 px-3 py-1 text-xs text-primary">
               <Sparkles className="size-3.5" /> AI-powered used-car intelligence
