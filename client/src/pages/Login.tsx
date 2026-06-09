@@ -9,11 +9,21 @@ import { Label } from "@/components/ui/label";
 import { Gauge, Loader2, ShieldCheck, Sparkles } from "lucide-react";
 import { toast } from "sonner";
 
-// Drop b-roll clips here (see docs/landing-video-prompts.md). Until they exist,
-// the poster image is shown automatically.
-const VIDEO_SOURCES = [
-  { src: "/videos/bg-1.webm", type: "video/webm" },
-  { src: "/videos/bg-1.mp4", type: "video/mp4" },
+// Cinematic b-roll shuffled behind the landing page. Files live in
+// client/public/videos (see docs/landing-video-prompts.md). To add or swap a
+// clip, drop the .mp4 in that folder and edit this list. Until any exist, the
+// poster image is shown automatically.
+const LANDING_VIDEOS = [
+  "/videos/bg-01-headlight.mp4",
+  "/videos/bg-02-start-button.mp4",
+  "/videos/bg-03-dashboard.mp4",
+  "/videos/bg-04-wheel-brake.mp4",
+  "/videos/bg-05-light-tunnel.mp4",
+  "/videos/bg-06-charging.mp4",
+  "/videos/bg-07-canyon-drive.mp4",
+  "/videos/bg-08-interior.mp4",
+  "/videos/bg-09-rain-glass.mp4",
+  "/videos/bg-10-paint-macro.mp4",
 ];
 
 const HIGHLIGHTS = [
@@ -48,7 +58,7 @@ export default function Login() {
 
   return (
     <div className="relative flex min-h-screen flex-col text-foreground">
-      <BackgroundVideo sources={VIDEO_SOURCES} poster="/videos/poster.svg" />
+      <BackgroundVideo videos={LANDING_VIDEOS} poster="/videos/poster.svg" />
 
       {/* Brand bar */}
       <header className="container flex h-16 items-center justify-between">

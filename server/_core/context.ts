@@ -1,5 +1,4 @@
 import { COOKIE_NAME, ONE_YEAR_MS } from "@shared/const";
-import { serialize as serializeCookie } from "cookie";
 import type { User } from "../../drizzle/schema";
 import { sdk } from "./sdk";
 
@@ -46,6 +45,31 @@ function appendSetCookie(res: ResLike, cookieStr: string) {
       : [String(prev)];
   arr.push(cookieStr);
   res.setHeader("Set-Cookie", arr);
+}
+
+type CookieOptions = {
+  maxAge?: number;
+  path?: string;
+  expires?: Date;
+  httpOnly?: boolean;
+  sameSite?: "lax" | "strict" | "none";
+  secure?: boolean;
+};
+
+/** Build a Set-Cookie header value (small, dependency-free). */
+function serializeCookie(name: string, value: string, opts: CookieOptions = {}): string {
+  const parts = [`${name}=${encodeURIComponent(value)}`];
+  if (opts.maxAge != null) parts.push(`Max-Age=${Math.floor(opts.maxAge)}`);
+  if (opts.path) parts.push(`Path=${opts.path}`);
+  if (opts.expires) parts.push(`Expires=${opts.expires.toUTCString()}`);
+  if (opts.httpOnly) parts.push("HttpOnly");
+  if (opts.sameSite) {
+    parts.push(
+      `SameSite=${opts.sameSite.charAt(0).toUpperCase()}${opts.sameSite.slice(1)}`,
+    );
+  }
+  if (opts.secure) parts.push("Secure");
+  return parts.join("; ");
 }
 
 export async function createContext({
