@@ -105,4 +105,41 @@
 - [x] Region-flag warnings surfaced on cards and detail pages
 - [x] Tests updated for new schema + filters + ZIP distance (54 passing)
 - [x] End-to-end browser verification of all new features
-- [ ] Export full codebase to local @CARADVISOR directory with run instructions
+- [x] Export full codebase to local @CARADVISOR directory with run instructions
+
+## v4 — Vercel serverless, Neon, de-brand, landing video & gap features
+
+### Serverless refactor + database
+- [x] Move the tRPC router behind a single Vercel function (`api/trpc/[trpc].ts`, node-http adapter)
+- [x] Framework-agnostic `createContext({req,res})` shared by the Vercel function and the local Express dev server (cookies via `res.setHeader`, `SameSite=Lax`)
+- [x] Migrate Drizzle schema + driver from MySQL/TiDB to **Neon serverless Postgres** (`neon-http`, `onConflictDoUpdate`); regenerate migrations
+- [x] `vercel.json` (SPA rewrites, function config, daily monitor cron)
+- [x] Dependency-free cookie serialize/parse (avoids a duplicate `cookie` version's broken types)
+
+### Branding cleanup
+- [x] Remove every "Manus" reference (plugins, OAuth, storage proxy, heartbeat, notifications, Forge LLM, docs, config); repo grep is clean
+- [x] Delete the `.project-config.json` build artifact (contained live secrets — rotate them)
+- [x] Rename env vars `BUILT_IN_FORGE_*` → `LLM_API_*`; local Express dev kept for HMR
+
+### Landing page + video background
+- [x] New `/login` cinematic landing page with the demo sign-in card
+- [x] Rotating background video: shuffled order (no back-to-back repeat), crossfade between two preloaded `<video>` layers, error-skip, `prefers-reduced-motion` + poster fallback
+- [x] Wire up the 10 generated clips in `client/public/videos/` (renamed to clean slugs)
+- [x] 10 cinematic Gemini Omni Flash b-roll prompts (`docs/landing-video-prompts.md`)
+
+### Gap features (the three Manus had suggested)
+- [x] Contact seller — tailored private-owner vs. dealership templates (inquiry/offer/inspection/paperwork), copy + email, optional AI personalization
+- [x] New-car trim configurator — pick trim + options; price/MSRP/MPG/quality score recompute live
+- [x] Garage price-drop tracker (per-car sparkline) + saved-search alerts + in-app notifications center, fed by the monitor cron
+
+### Verification
+- [x] `pnpm check` clean · `pnpm test` 54 passing · `pnpm build` succeeds · `pnpm db:push` applied to Neon
+- [x] Live smoke test: demo login cookie → `auth.me`, find/save, monitor → price-drop notification
+
+### Follow-ups (not yet done)
+- [ ] Integrate a real licensed listings API behind the existing `InventoryProvider` boundary (replaces the static seed + price simulation)
+- [ ] Live Carfax/CarGurus history behind the premium tier
+- [ ] Email/SMS delivery for alerts (currently in-app only) — e.g. Resend + a `notifications` dispatcher
+- [ ] Encode WebM/AV1 variants of the landing clips for smaller transfers; consider lazy-loading non-first clips
+- [ ] Code-split the client bundle (the markdown/syntax-highlighter chunks make the initial JS large)
+- [ ] Replace the placeholder SVG poster with a real first-frame poster image
