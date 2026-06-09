@@ -1,0 +1,65 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1920 1080" preserveAspectRatio="xMidYMid slice" role="img" aria-label="GOGETTER night highway">
+  <defs>
+    <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#0a0c12"/>
+      <stop offset="0.55" stop-color="#0d1018"/>
+      <stop offset="1" stop-color="#05060a"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="50%" cy="62%" r="55%">
+      <stop offset="0" stop-color="#e9c97a" stop-opacity="0.35"/>
+      <stop offset="0.4" stop-color="#c9a24a" stop-opacity="0.12"/>
+      <stop offset="1" stop-color="#000000" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="trailWarm" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#f6d488" stop-opacity="0"/>
+      <stop offset="1" stop-color="#f6d488" stop-opacity="0.9"/>
+    </linearGradient>
+    <linearGradient id="trailCool" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#7fb8ff" stop-opacity="0"/>
+      <stop offset="1" stop-color="#7fb8ff" stop-opacity="0.85"/>
+    </linearGradient>
+  </defs>
+
+  <rect width="1920" height="1080" fill="url(#sky)"/>
+  <rect width="1920" height="1080" fill="url(#glow)"/>
+
+  <!-- horizon -->
+  <rect x="0" y="640" width="1920" height="2" fill="#e9c97a" opacity="0.18"/>
+
+  <!-- converging road edges (perspective) -->
+  <polygon points="960,642 720,1080 980,1080" fill="#11151f" opacity="0.9"/>
+  <polygon points="960,642 1200,1080 940,1080" fill="#0e121b" opacity="0.9"/>
+  <line x1="960" y1="648" x2="600" y2="1080" stroke="#e9c97a" stroke-width="3" opacity="0.25"/>
+  <line x1="960" y1="648" x2="1320" y2="1080" stroke="#e9c97a" stroke-width="3" opacity="0.25"/>
+
+  <!-- dashed lane line -->
+  <g stroke="#f6d488" stroke-width="5" opacity="0.5">
+    <line x1="960" y1="700" x2="960" y2="740"/>
+    <line x1="960" y1="800" x2="960" y2="860"/>
+    <line x1="960" y1="930" x2="960" y2="1010"/>
+  </g>
+
+  <!-- long-exposure light trails -->
+  <g stroke-linecap="round">
+    <line x1="120" y1="560" x2="900" y2="636" stroke="url(#trailWarm)" stroke-width="6" opacity="0.7"/>
+    <line x1="180" y1="600" x2="930" y2="650" stroke="url(#trailWarm)" stroke-width="3" opacity="0.5"/>
+    <line x1="1800" y1="560" x2="1020" y2="636" stroke="url(#trailCool)" stroke-width="6" opacity="0.7" transform="scale(-1,1) translate(-1920,0)"/>
+  </g>
+
+  <!-- distant city lights -->
+  <g fill="#f6d488" opacity="0.55">
+    <circle cx="430" cy="628" r="2.5"/><circle cx="520" cy="624" r="2"/><circle cx="640" cy="630" r="2.5"/>
+    <circle cx="1300" cy="628" r="2.5"/><circle cx="1420" cy="624" r="2"/><circle cx="1500" cy="631" r="2.5"/>
+  </g>
+  <g fill="#7fb8ff" opacity="0.4">
+    <circle cx="700" cy="626" r="2"/><circle cx="1240" cy="626" r="2"/><circle cx="880" cy="632" r="1.6"/>
+  </g>
+
+  <!-- vignette -->
+  <rect width="1920" height="1080" fill="#05060a" opacity="0.0"/>
+  <radialGradient id="vig" cx="50%" cy="50%" r="75%">
+    <stop offset="0.6" stop-color="#000" stop-opacity="0"/>
+    <stop offset="1" stop-color="#000" stop-opacity="0.55"/>
+  </radialGradient>
+  <rect width="1920" height="1080" fill="url(#vig)"/>
+</svg>

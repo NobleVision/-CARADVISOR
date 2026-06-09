@@ -1,0 +1,360 @@
+GOGETTER Selected Task Summary
+Executive Summary
+The GOGETTER project is currently in an early planning and validation phase, with all selected tasks still at 0% progress and unassigned. The selected work is well-aligned to the 30-day goal, but the critical path depends on quickly validating market demand, confirming data access feasibility, and defining the product and pricing narrative before deeper build work begins.
+
+The highest-priority near-term focus should be on de-risking the concept: research the AI used-car advisor market, assess Carfax/CarGurus partnership and data access constraints, and draft the pitch materials needed to test interest. In parallel, the team should define the VIN-based prototype flow, scoring logic, and premium pricing model so the project can move from concept validation into a credible demo and outreach package within the project window.
+
+Selected Tasks
+#7 Research AI used-car advisor market — Status: ready; Priority: medium; Progress: 0%; Assignees: unassigned
+
+Objective: Validate demand and review existing AI car-shopping tools and competitors for the premium used-car advisor concept.
+Acceptance: Concise market/competitive analysis documenting key competitors, target users, and demand signals.
+#8 Create Carfax and CarGurus pitch deck — Status: ready; Priority: medium; Progress: 0%; Assignees: unassigned
+
+Objective: Prepare partnership outreach materials positioning the AI used-car advisor as a white-label or premium offering.
+Acceptance: Pitch deck or outreach package with value proposition, partnership angle, and next-step CTA.
+#9 Spike Carfax and CarGurus data access — Status: ready; Priority: medium; Progress: 0%; Assignees: unassigned
+
+Objective: Investigate technical feasibility, API availability, licensing constraints, and legal terms for private vehicle history data access.
+Acceptance: Feasibility findings with access options, constraints, and recommended path forward.
+#10 Design VIN-based car search prototype — Status: ready; Priority: medium; Progress: 0%; Assignees: unassigned
+
+Objective: Define a conversational AI flow for used-car discovery using VIN lookup and public listing data.
+Acceptance: Prototype flow or wireframe showing user prompts, VIN lookup steps, and recommendation outputs.
+#11 Build used-car scoring engine — Status: ready; Priority: medium; Progress: 0%; Assignees: unassigned
+
+Objective: Create a recommendation scoring model weighing mileage, make/model reliability, and vehicle history signals.
+Acceptance: Scoring approach defined with inputs, weights, and output logic.
+#12 Define premium pricing model — Status: ready; Priority: medium; Progress: 0%; Assignees: unassigned
+
+Objective: Draft subscription tiers and pricing for the premium AI used-car advisor offering.
+Acceptance: Pricing tiers and subscription model documented with rationale.
+#13 Draft product brief and demo script — Status: ready; Priority: medium; Progress: 0%; Assignees: unassigned
+
+Objective: Write a one-page product brief and demo script to support the Carfax or CarGurus pitch.
+Acceptance: One-page brief and demo script completed and ready for outreach.
+Progress And Ownership
+Overall progress: 0% across all selected tasks.
+Ownership: No assignees are currently assigned to any selected task.
+Execution note: The task set is balanced between validation, partnership outreach, and prototype definition, but the lack of ownership means no work is currently moving toward completion.
+Risks And Blockers
+No assigned owners: Immediate execution risk due to all tasks being unassigned.
+Dependency on market validation: Without demand evidence, pitch and product decisions may be misaligned.
+Data access uncertainty: Carfax/CarGurus API, licensing, and legal constraints could block or reshape the product scope.
+Potential scope creep: Building scoring, prototype, pricing, and pitch materials in parallel may dilute focus unless sequenced tightly.
+30-day timeline pressure: The project goal requires rapid validation and packaging; delays in the first week will compress downstream work.
+Recommended Next Steps
+Assign a single owner for each task, or designate one lead for validation, one for product, and one for partnership outreach.
+Start with #7 and #9 immediately to validate demand and confirm feasibility, since these inform the rest of the plan.
+Draft #13 and #8 in parallel once the core value proposition is clear, so outreach can begin quickly.
+Define #10, #11, and #12 as lightweight working drafts to support the pitch and demo rather than full build efforts.
+Set a 7-day checkpoint with measurable outputs: market summary completed, data access findings documented, and first pitch/demo assets ready.
+
+OLLAB 
+
+Hi Noble Vision, this is the NobleVision Collab AI PM calling about ...
+
+0:00
+
+TTS
+399 ms
+
+
+Can you, can you hold on? Can you hold on a second? I'm gonna get Eric Custer on the line. Hold on one second, because I want him to be on this call. Give me a minute.
+
+0:04
+
+ASR
+124 ms
+
+
+COLLAB 
+
+Sure thing, take your time. I'll hold.
+
+0:16
+
+LLM
+855 ms
+TTS
+413 ms
+
+
+Kim, are you still on? So I got Eric Custer on the line. We're gonna brainstorm an idea that he has for AI.
+
+0:24
+
+ASR
+22 ms
+
+
+COLLAB 
+
+Great, I'm still here. Glad to have Eric on the call. What's the idea you'd like to brainstorm for GOGETTER?
+
+0:32
+
+LLM
+1.3 s
+TTS
+370 ms
+
+
+So the idea for GOGETTER actually comes from-- requires a background story. The background story is I was assisting my granddaughter in searching for a used car.We both ended up using AI to find used cars in the area to go look at. We evolved that search to asking AI about the, the benefits of each of the choices that were available in each of the models, getting recommendations, and AI was starting to become more and more helpful. A lot of the, a lot of the, um, postings for used cars in the area, especially from the local dealerships, include the VIN number. So AI was also able to pull informationusing the VIN number in helping us search for a used car. So AI was recommending things like cars to avoid, um, staying away from, like, um, high-mileage Toyotas and, and, and Hondas and going for something like Hyundai for, with low mileage or something like that. So, but AI was, was, you know, as we asked more and more questions of AI, AI was able to give us better and better results, and the more we searched, the more refined thesearch became with AI. And thinking about this and connecting the dots here, if AI had access to the, the private records using, um, um, what, what's that car app, Ian? Uh, Blue... Was it Blue Book? No, no, the, the one where you sear- um, Carfax, Carfax. If, if AI had access to the information in Carfax, it would have even provided even, even betteranswer for what used car to go look at. So, but currently, A- the, the public AI does not have access to Carfax or CarGuru details, those details. It has public information available from the VIN number. So since the VIN numbers are published, and AI typically does not have direct access into Carfax, my suggestion was, what if we were to offer Carfax a, a premium solution whereby we develop an AI solutionto, to assist people in finding a used car for a premium price, just like Carfax charges, but a, a little bit above, and using the private records that Carfax or CarGurus has to further refine the search and come up with a better result, providing a, a more confident solution for the car buyer? And, and in turn, develop, maybe develop a solution that we approach Carfax or CarGurus with as an opportunity for them to take advantage of AI and offer apremium service to their customers to go out and find a used car using those public records. So in general, that was my suggestion. Um, what'd you think, Ian? Yeah, that sounds good. We'll get Q to, um, recap. Can you recap the business idea and all the tasks it would take to do that?
+
+0:42
+
+ASR
+46 ms
+
+
+COLLAB 
+
+Got it, thanks for the detailed background. Let me play this back and break it into tasks for the GOGETTER Kanban board.
+
+The core idea is a premium AI-powered used car advisor that integrates with Carfax or CarGurus private vehicle history data, layered on top of public VIN data, to give buyers higher-confidence recommendations. We would pitch it to Carfax or CarGurus as a white-label or partnership offering.
+
+Here are the tasks I'd propose capturing. First, a market research and competitive analysis task to validate demand and look at existing AI car-shopping tools. Second, a partnership outreach plan and pitch deck targeting Carfax and CarGurus. Third, a technical feasibility spike on Carfax and CarGurus data access, covering APIs, licensing, and legal terms. Fourth, design a prototype conversational AI flow for used car discovery using VIN lookup and public listings. Fifth, build a scoring and recommendation engine that weighs mileage, make, model reliability, and history report signals. Sixth, define the premium pricing model and subscription tier. And seventh, draft a one-page product brief and demo script to support the Carfax pitch.
+
+Does that capture it, and who on the team should own the outreach and the feasibility spike? Also, any priority or due date you'd like on these?
+
+4:13
+
+LLM
+1.2 s
+TTS
+375 ms
+
+
+No, that's good. What I'll probably end up doing is creating another project to move these over to, but if you could save them on, on the sign, that would be good.
+
+5:46
+
+ASR
+56 ms
+
+
+COLLAB 
+
+Will do, I'll log all seven under GOGETTER so you can migrate them to a new project later. Anything else you and Eric want to brainstorm or add before we wrap, like documentation, legal review, or a demo milestone?
+
+5:59
+
+LLM
+1.6 s
+TTS
+334 ms
+
+
+What do you think, Eric?
+
+6:15
+
+ASR
+97 ms
+
+
+COLLAB 
+
+Take your moment. I'll wait to hear if Eric has anything to add.
+
+6:18
+
+LLM
+1.0 s
+TTS
+321 ms
+
+
+Eric, you there?
+
+6:26
+
+ASR
+43 ms
+
+
+COLLAB 
+
+Still here with you both. Any other ideas from Eric,...
+
+6:29
+
+LLM
+1.3 s
+TTS
+385 ms
+
+
+Oh, oh, I'm sorry. My, my, my phone went to mute. I'm sorry. No, that, that's good. I don't have any, any other suggestions. Roger that. I think we're done.
+
+6:31
+
+ASR
+69 ms
+
+
+COLLAB 
+
+Perfect. To recap, I captured seven tasks for the premium AI used car advisor concept: market and competitive research, partnership outreach and pitch deck for Carfax and CarGurus, technical feasibility spike on their data access, prototype conversational AI flow with VIN lookup, scoring and recommendation engine, premium pricing model definition, and a product brief with demo script. I'll log these under GOGETTER for you to migrate later. Thanks Noble and Eric, have a great day!
+
+6:43
+
+TTS
+304 ms
+
+
+Agent ended the call
+
+Can you create an application - with vin lookups - this is the conversation - 
+Summary
+
+The conversation centered on brainstorming a new AI-powered used car advisor concept for GOGETTER, involving the user and Eric Custer. The core idea is to develop a premium AI solution that integrates with private vehicle history data from Carfax or CarGurus, layered on public VIN data, to offer more confident used car recommendations. The agent proposed seven key tasks for this initiative: market research, partnership outreach and pitch deck creation for Carfax/CarGurus, a technical feasibility spike on data access, designing a conversational AI prototype, building a scoring and recommendation engine, defining a premium pricing model, and drafting a product brief with a demo script. The user agreed to these tasks, intending to migrate them to a new project.
+
+Call status
+
+Successful
+
+How the call ended
+
+Agent ended call
+
+User ID
+Can you create a login of admin/admin to demo as a demo account instead of having to have a separate platform account;  some feedback, on what the car buy is willing to spend, find to have the VIN number, actually looking for a result that is under.  There is going to be a budget, what is your budget, how far out are you looking for a car, humv, sports car, things like that, once you get a profile what the customer is looking for then you scrape everything within 25 miles, is reliability more important or is price more important. The list looking at is price range that the customer is looking for, distance from location, style, price vs. reliability, fuel efficiency, under car style would be EV/gas/hybrid, millage of the car, etc. more of a lookup the best solution that meet your criteria, sense dealerships use VIN number to proved in the advertisements, somewhere they have the vin number.  Each car has a webpage with 200 cars with 200 car dealers, this by-passes the whole deal instead of going through all the websites, scrape all the dealers in the area that are under 100,000 miles (example), looking for reliability, nothing on life support, only emphasized the vin number because of car fax or car gurus, Gemini was able to scrape the dealerships in the area and see all the cars.  If had all the information would be more accurately give a valuation of the car. Goal is to finding a car that can test drive and find criteria, taking what the deal says on the private websites, if paid for, per car, want $49, need a way around this.  6 cars instead of 4000 cars would be a deal could distinguish what are reliable ones what are the good deals.  VIN number is not the solution it is a tool.  A lot of used card dealers take a picture of the state inspection on the form it will have the VIN number, Gemini was able to scrape that.  Have this program like Gemini to scrape everything within the area, go to all the car dealerships and scrape their sites in sections, and if also had the information, was using Gemini of the car models , not the history of the car, with car fax and guru would have both the history of the car and the actual car history and answer even more and if Gemini was able to scrabe and get it all together.  I.E. know that the car some one brought was called a roach because it was a tank. 
+
+Add the three features that you recommended, and save the codebase locally in the @CARADVISOR directory  so I can run it locally, also add some new features to use actual pictures from the dealer (non AI, non stock, etc.) to give credibility to the car, add separate functionality for new cars (may need different screens, views, etc. different from used cars because no history, just reputation of the model, etc.), ability to find private dealers/owners not just dealerships, etc. and any other functionality that may make this application more useful, thanks
+
+
+AI-Powered Used Car Advisor with VIN Integration - GOGETTER AI
+continue
+Max
+Continuing. Reading the schema, DB helpers, and vehicle router to add the save-to-Garage backend (single match + whole shortlist).
+Max
+I can reuse the existing saveVehicle DB helper. I'll add a find.saveMatch (and bulk find.saveShortlist) procedure that converts an inventory listing into the saved-vehicle shape via the adapter, plus return the saved list so the UI can show "Saved" state. Let me read the adapter and find router to wire this in.
+
+
+Max
+Backend save-to-Garage (single + whole shortlist) is wired and type-checks. The "compare my matches" feature can reuse the existing Compare page by passing VINs via URL — no new backend needed. Now I'll update the FindMyCar page to add the ZIP input, condition (New/Used/Any) toggle, seller-type filters, save buttons, save-shortlist, and a "Compare my matches" button. Let me read the current page.
+Max
+Now I'll rewrite FindMyCar to add: condition (New/Used/Any) selector that adapts the form (hides mileage for New), a ZIP input, seller-type filters, per-card save buttons, a sticky results action bar with "Save all to Garage" and "Compare my matches," and graceful auth prompts. Writing the new page.
+Max
+FindMyCar page is rewritten with the ZIP input, condition selector, seller filters, per-card save, save-all, and compare-top actions. Now I'll update the MatchCard to accept the new onSave/saved/saving props, then update the Compare page to read VINs from the URL. Let me re-read MatchCard and the client inventory types since context was compacted.
+
+Max
+MatchCard already supports all the new props (onSave, saved, saving), provenance photos, seller badge, new-car warranty/reputation block, and region-flag warnings — it's fully aligned. Now I'll update the Compare page to read VINs from the URL query, and check the client inventory types export the helpers I'm using.
+Max
+Client types are complete and export everything FindMyCar and MatchCard use. Now updating the Compare page to read VINs from the ?vins= URL query (for the "Compare my matches" handoff) while preserving its manual VIN entry. Let me read the current Compare page.
+Max
+Now I'll update Compare to (1) read VINs from ?vins= on mount, (2) use the inventory-aware reportByVin first and fall back to live NHTSA decode (so the seeded match VINs resolve), and (3) auto-decode the prefilled slots. This makes "Compare my matches" work end to end.
+
+Max
+ZIP distance, save-to-Garage (single + all), and compare-my-matches are wired and type-clean. The new-car data already flows through Find My Car (condition toggle, warranty/reputation on cards). Now I'll add a dedicated New Cars browse experience — a model-reputation-focused page (browse new inventory by model, with MSRP, warranty, efficiency, and reputation) distinct from the used-car history framing. Let me add a newCars procedure to the find router first.
+
+Max
+The newCars browse procedure is in. Now I'll build the New Cars page — a model-reputation-focused browse grid with body/fuel filters and reputation/price/efficiency sorting, each card showing MSRP/from-price, warranty, efficiency, the quality score, and a link into the full report. Then I'll register the route and add it to the nav.
+Max
+New Cars page is built. Now I'll register the /new-cars route and add the nav entry. Let me re-read App.tsx and NavBar since context was compacted.
+
+
+Max
+New Cars experience is complete and type-clean. The seller-type foundation (Franchise / Independent / Private) is already in the data model, matching filters, and card badges. To complete the private-seller experience I'll add seller-specific trust guidance to the AI advisor — so when a car is from a private seller, the advisor adds private-sale tips (escrow, title/lien check, independent inspection, test-drive paperwork). Let me re-read the advisor and recommend services.
+
+Max
+The recommendation service already handles seller-type guidance comprehensively in both the LLM prompt and the deterministic fallback (private-sale title/lien/inspection tips, new-car warranty negotiation, independent-dealer as-is checks). The advisor chat also needs the listing's seller context. Let me check the advisor service and the VehicleDetail listing context to ensure private-seller guidance flows into the chat too.
+Max
+The advisor accepts an optional context string I can extend with seller/listing info. I'll add an optional listingContext parameter (condition, seller type, price, dealer, warranty, region flags) and fold it into the advisor's context and system rules — so the chat gives new-car vs. used-car and private-seller-specific guidance. Then I'll thread it through the find router's report/advisor path.
+Max
+Now I'll thread the listing/seller context through the advisor tRPC procedure so the chat picks it up for inventory cars. Let me check the vehicle router's advisor procedure to wire the optional listing context (looked up by VIN from the provider).
+
+
+Max
+All four feature phases are built and type-clean. Now I'll update the test suite for the new logic (seller-type/condition filters, ZIP distance, save-to-Garage, new-car browse), run all tests, then verify the full experience in the browser before checkpointing.
+
+Max
+The matching test failures are expected — the test's BuyerCriteria mocks predate the new condition/sellerTypes fields, so c.sellerTypes is undefined. I'll make passesHardFilters defensive (treat missing arrays as "no filter") and update the test fixtures to the new schema. Let me re-read the matching test and the criteria shape.
+Max
+I'll make passesHardFilters defensive against missing optional criteria arrays and update the test fixtures (makeListing + baseCriteria) to the new schema, then add fresh tests for condition/seller filters and ZIP distance. Let me check the current matching.ts filter code and the geo helper exports.
+
+Max
+Now I'll rewrite the matching test fixtures to the new schema (add condition, sellerType, photos, zip) and add coverage for condition + seller-type filters and the ZIP-distance helper. Writing the updated test file.
+
+
+Max
+Now I'll check the adapt test (it likely uses the old listing shape too) and the find router save procedure, then run the full suite.
+Max
+All 54 tests pass and the project type-checks cleanly. Now I'll verify the new experience end to end in the browser. Restarting the server first to clear any stale vite cache, then checking the New Cars page and the upgraded Find My Car flow.
+
+Max
+The New Cars page looks excellent — a reputation/warranty/value framing (not history), with body/fuel filters, reputation/price/efficiency sorting, "Stock image" provenance labels, trims, MSRP, warranty, and quality grades. The nav now includes New Cars. Now I'll verify the upgraded Find My Car flow (ZIP, condition, seller filters, save + compare actions) and the dealer-photo credibility badge on used cars.
+
+Max
+The upgraded Find My Car intake is all there: Condition (Used/New/Any), a ZIP code input ("improves distance"), seller-type filters (Franchise/Independent/Private), plus the existing budget/distance/mileage/body/fuel/priority controls, and the scan banner now reads "90 local listings · 60 used · 30 new." Let me run a search with a ZIP and a private-seller filter to verify the shortlist, save buttons, and compare action.
+Max
+The ZIP input works — the helper text updated from "Optional — improves distance" to "Distances from your ZIP" once a valid ZIP was entered. I'll raise the budget so private-seller cars qualify, select the Private Seller filter, then run the search.
+
+Max
+This is working beautifully. The shortlist now shows all the new capabilities at once:
+Seller variety — Franchise Dealer (CPO badge), Independent Dealer ("22 yrs in business"), and Private Seller ("Individual owner", "Private Seller — Tom B.") all surfaced and labeled.
+ZIP distances — "Distances from your ZIP," with per-car distances (1 mi, 6 mi, 8 mi…).
+Provenance badges — most cars show "Stock image," while the Tesla shows the green "Dealer photos" credibility badge.
+Region-flag warnings — visible "Heads up" notes (hail, fleet/rental, coastal/flood).
+New + used mixed — a 2025 Honda Civic (new) ranked alongside used cars.
+New actions — a results action bar with "Save all to Garage" and "Compare top 3," plus a Save button on every card.
+Let me verify the save-to-Garage action, then the "Compare top 3" handoff.
+
+Max
+Save-to-Garage works: a toast confirmed "Saved 2025 Honda Civic to your Garage" and the card's button changed to "Saved." Now I'll test the "Compare top 3" handoff into the Compare view.
+Max
+"Compare top 3" works end to end — it navigated to /compare?vins=... with the three top picks pre-filled and auto-decoded via the inventory-aware path, rendering score gauges, a "Top score" badge on the Corolla (95/A+), and the full parallel spec table. All three recommended features are verified.
+Now I'll do a final quick check that a private-seller car's full report loads (inventory-backed decode for a private VIN), then save the checkpoint and export the codebase locally.
+Max
+The private-seller report loads perfectly: dealer context bar shows "$13,750 · 25,000 mi · Private Seller — Tom B. · Springfield, VA," accurate "Local dealer listing · specs estimated" provenance, full specs, a 95/A+ GOGETTER Score with the "Why this score" breakdown, the safety suite, and the Carfax/CarGurus premium teaser. Every new feature is verified.
+I'll now update todo.md, save the delivery checkpoint, then export the full codebase to your local @CARADVISOR directory with run instructions.
+
+Max
+Checkpoint saved. All in-app features are built and verified: ZIP-based distance, save match/shortlist to Garage, compare-my-matches, real-photo provenance with a "Dealer photos" credibility badge, a dedicated New Cars experience, and private-seller/independent-dealer support with seller-specific advisor guidance — 54 tests passing, type-clean. The one remaining task is exporting the full codebase to your local @CARADVISOR directory with run instructions. Doing that now.
+
+Max
+The local @CARADVISOR directory is mounted and writable. I'll write a comprehensive LOCAL_SETUP guide and a sample env file, then copy the full codebase (excluding node_modules, build output, logs, and git) into it.
+
+
+Max
+The copy completed — the "failed to preserve ownership" lines are harmless FUSE-mount warnings (files were still copied; only the chown metadata step isn't supported on the mount). I'll use cp -r (no ownership preservation) to be safe and then verify the contents landed correctly.
+
+Max
+The full codebase is now in your local @CARADVISOR directory — all top-level files plus the client, server, drizzle, shared, scripts, patches, and references folders, along with LOCAL_SETUP.md, .env.local.example, package.json, and the lockfile. Let me verify the key nested files (server inventory, client pages) and the inventory dataset copied correctly.
+Max
+Verified — all source landed correctly in @CARADVISOR: the full server/inventory module (provider, matching, geo, adapt, recommend, types + tests, and the 75 KB seeded data.json), and all client pages including the new FindMyCar and NewCars. The export is complete.
+Now I'll mark the final todo item complete and deliver.
+
+Max
+Monday
+All requested work is done and verified. Since the last version I added: a ZIP code input for accurate distance, save match / save-all to Garage, and "Compare my matches" into the side-by-side view. I also added provenance-tagged photos with a "Dealer photos" credibility badge, a dedicated New Cars experience (model reputation, MSRP, warranty, efficiency — no history framing), and private-seller / independent-dealer support with seller-specific advisor guidance. The full codebase is exported to your local @CARADVISOR folder with LOCAL_SETUP.md + .env.local.example. 54 tests passing, type-clean.
+Suggested next steps:
+Per-seller contact flow — add a "Contact seller" action with different templates for dealer vs. private owner (offer, inspection scheduling, paperwork checklist).
+New-car trim configurator — let users pick a trim/options and recompute MSRP, efficiency, and the quality score.
+Saved-search alerts — let signed-in users save a Find My Car profile and get notified when a new matching listing appears.
+GOGETTER AI Used Car Advisor
+Not published
+10 hours ago
+
+Task completed
+How was this result?
+Suggested follow-ups
+# GOGETTER AI Used Car Advisor — Project TODO
+
+## Foundation
+- [x] Establish elegant design system (typography, color palette, theming) in index.css + index.html
+- [x] Define database schema (vehicles cache, search history, saved vehicles)
+- [x] Push DB migration
+
+
+
+GitHub
+
+Noble Vision's Cloud Computer
+
+todo.md
+123456789101112131415161718192021222324252627282930313233343536373839
+
+
