@@ -1,5 +1,4 @@
 import { COOKIE_NAME, ONE_YEAR_MS } from "@shared/const";
-import { parse as parseCookieHeader } from "cookie";
 import { SignJWT, jwtVerify } from "jose";
 import type { User } from "../../drizzle/schema";
 import * as db from "../db";
@@ -7,6 +6,20 @@ import { ENV } from "./env";
 
 const isNonEmptyString = (value: unknown): value is string =>
   typeof value === "string" && value.length > 0;
+
+/** Parse a raw Cookie header into a name→value map (small, dependency-free). */
+function parseCookies(header: string | undefined): Record<string, string> {
+  const out: Record<string, string> = {};
+  if (!header) return out;
+  for (const part of header.split(";")) {
+    const idx = part.indexOf("=");
+    if (idx < 0) continue;
+    const key = part.slice(0, idx).trim();
+    if (!key || key in out) continue;
+    out[key] = decodeURIComponent(part.slice(idx + 1).trim());
+  }
+  return out;
+}
 
 export type SessionPayload = {
   openId: string;
@@ -75,7 +88,7 @@ class SessionService {
   async authenticateByCookieHeader(
     cookieHeader: string | undefined
   ): Promise<User | null> {
-    const cookies = cookieHeader ? parseCookieHeader(cookieHeader) : {};
+    const cookies = parseCookies(cookieHeader);
     const session = await this.verifySession(cookies[COOKIE_NAME]);
     if (!session) return null;
     const user = await db.getUserByOpenId(session.openId);
