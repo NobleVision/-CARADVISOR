@@ -1,11 +1,11 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
-import { runMonitor } from "../../server/monitor";
-import { ENV } from "../../server/_core/env";
+import { runMonitor } from "../monitor";
+import { ENV } from "../_core/env";
 
 /**
- * Vercel Cron entry for the price-drop / new-match monitor. Vercel includes
- * `Authorization: Bearer ${CRON_SECRET}` on scheduled invocations; we reject
- * anything else when a secret is configured. Schedule is set in vercel.json.
+ * Source for the Vercel Cron monitor entry. Bundled by esbuild into
+ * `api/cron/monitor.js`. Vercel includes `Authorization: Bearer ${CRON_SECRET}`
+ * on scheduled invocations; we reject anything else when a secret is set.
  */
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (ENV.cronSecret && req.headers.authorization !== `Bearer ${ENV.cronSecret}`) {
@@ -17,6 +17,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const result = await runMonitor();
     res.status(200).json({ ok: true, ...result });
   } catch (error) {
+    console.error("[cron/monitor] failed:", error);
     res.status(500).json({ ok: false, error: String(error) });
   }
 }

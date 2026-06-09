@@ -1,10 +1,10 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
-  "buildCommand": "vite build",
+  "buildCommand": "pnpm build",
   "outputDirectory": "dist/public",
   "framework": null,
   "functions": {
-    "api/**/*.ts": {
+    "api/**/*.js": {
       "maxDuration": 30
     }
   },
