@@ -4,6 +4,7 @@ import { protectedProcedure, publicProcedure, router } from "../_core/trpc";
 import { decodeVin, isValidVin } from "../vin";
 import { scoreVehicle } from "../scoring";
 import { getAdvisorReply } from "../advisor";
+import { fetchRecalls } from "../recalls";
 import { inventoryProvider } from "../inventory/provider";
 import {
   addSearchHistory,
@@ -43,6 +44,21 @@ const decodedVehicleSchema = z.object({
   raw: z.record(z.string(), z.string()),
 }) as z.ZodType<DecodedVehicle>;
 
+// Mirrors ScoreAdvisory — without these fields zod would silently strip the
+// curated advisories whenever a score round-trips through save/advisor/rescore.
+const scoreAdvisorySchema = z.object({
+  id: z.string(),
+  severity: z.enum(["avoid", "caution", "value-pick"]),
+  title: z.string(),
+  detail: z.string(),
+  watchFor: z.array(z.string()),
+  whyBuy: z.array(z.string()).optional(),
+  transmissionNote: z.string().optional(),
+  waivedByManual: z.boolean().optional(),
+  appliedDelta: z.number(),
+  source: z.string(),
+});
+
 const scoreSchema = z.object({
   overall: z.number(),
   grade: z.string(),
@@ -51,6 +67,8 @@ const scoreSchema = z.object({
   ageMileage: z.number(),
   efficiency: z.number(),
   notes: z.array(z.string()),
+  advisories: z.array(scoreAdvisorySchema).optional(),
+  riskLevel: z.enum(["clear", "caution", "high"]).optional(),
 }) as z.ZodType<ScoreBreakdown>;
 
 export const vehicleRouter = router({
@@ -107,6 +125,21 @@ export const vehicleRouter = router({
   rescore: publicProcedure
     .input(z.object({ vehicle: decodedVehicleSchema, mileage: z.number().int().positive().max(1_000_000).optional() }))
     .query(({ input }) => scoreVehicle(input.vehicle, input.mileage)),
+
+  /**
+   * Free NHTSA recall lookup (public records, no key). Queried by
+   * make/model/year so it works for real VINs and demo listings alike.
+   * Returns null when NHTSA can't be reached — the UI says "couldn't check".
+   */
+  recalls: publicProcedure
+    .input(
+      z.object({
+        make: z.string().min(1),
+        model: z.string().min(1),
+        modelYear: z.union([z.string().min(2), z.number().int()]),
+      }),
+    )
+    .query(({ input }) => fetchRecalls(input.make, input.model, input.modelYear)),
 
   /** Conversational advisor reply. */
   advisor: publicProcedure

@@ -67,6 +67,27 @@ export type DecodedVehicle = {
   raw: Record<string, string>;
 };
 
+/**
+ * A curated model-year-specific advisory from the GOGETTER Reliability Index
+ * (known defects like the Nissan Jatco CVT or proven budget value picks).
+ * Persisted inside ScoreBreakdown jsonb so saved vehicles keep their warnings.
+ */
+export type ScoreAdvisory = {
+  id: string; // e.g. "nissan-sentra-cvt"
+  severity: "avoid" | "caution" | "value-pick";
+  title: string;
+  detail: string;
+  watchFor: string[];
+  whyBuy?: string[]; // value picks only
+  /** Present when the issue only affects automatics and the transmission is unverified. */
+  transmissionNote?: string;
+  /** True when a confirmed manual transmission neutralized an automatic-only defect. */
+  waivedByManual?: boolean;
+  /** Reliability-subscore delta actually applied (0 when waived). */
+  appliedDelta: number;
+  source: string; // knowledge-base version marker
+};
+
 export type ScoreBreakdown = {
   overall: number; // 0-100
   grade: string; // e.g. "A", "B+"
@@ -75,6 +96,10 @@ export type ScoreBreakdown = {
   ageMileage: number;
   efficiency: number;
   notes: string[];
+  /** Curated model-specific advisories that affected this score (optional, additive). */
+  advisories?: ScoreAdvisory[];
+  /** Headline risk classification derived from advisories. */
+  riskLevel?: "clear" | "caution" | "high";
 };
 
 /** Persisted Find-My-Car buyer criteria for saved searches (kept structural to

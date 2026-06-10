@@ -189,3 +189,118 @@ describe("rankInventory", () => {
     expect(ranked.map((r) => r.listing.id)).not.toContain("u1");
   });
 });
+
+// ─── GOGETTER Reliability Index integration ───────────────────────────────
+
+/** A classic trap car: CVT-era Nissan Sentra, suspiciously cheap for its mileage. */
+function trapListing(overrides: Partial<Listing> = {}): Listing {
+  return makeListing({
+    id: "trap",
+    make: "Nissan",
+    model: "Sentra",
+    year: 2015,
+    price: 5500,
+    mileage: 90000,
+    ...overrides,
+  });
+}
+
+/** A curated value pick: SkyActiv-era Mazda3. */
+function valuePickListing(overrides: Partial<Listing> = {}): Listing {
+  return makeListing({
+    id: "pick",
+    make: "Mazda",
+    model: "Mazda3",
+    year: 2013,
+    price: 6200,
+    mileage: 95000,
+    ...overrides,
+  });
+}
+
+describe("scoreListingFit — knowledge advisories", () => {
+  it("flags a known-defect model with high risk and a hammered reliability fit", () => {
+    const m = scoreListingFit(trapListing(), baseCriteria());
+    expect(m.riskLevel).toBe("high");
+    expect(m.advisories?.some((a) => a.id === "nissan-jatco-cvt")).toBe(true);
+    expect(m.fit.reliability).toBeLessThanOrEqual(40);
+    expect(m.reasons.some((r) => r.startsWith("Known issue:"))).toBe(true);
+    expect(m.qualityGrade).toMatch(/^(D|F)$/); // catastrophic defect caps quality at D
+  });
+
+  it("leads with the value-pick reason and keeps risk clear for curated picks", () => {
+    const m = scoreListingFit(valuePickListing(), baseCriteria());
+    expect(m.riskLevel).toBe("clear");
+    expect(m.reasons[0]).toContain("GOGETTER value pick");
+    expect(m.fit.reliability).toBeGreaterThanOrEqual(95);
+  });
+
+  it("attaches no advisories to ordinary cars", () => {
+    const m = scoreListingFit(makeListing(), baseCriteria());
+    expect(m.advisories).toBeUndefined();
+    expect(m.riskLevel).toBeUndefined();
+  });
+});
+
+describe("trust signals", () => {
+  it("flags a trap car as a suspicious deal", () => {
+    const m = scoreListingFit(trapListing(), baseCriteria());
+    expect(m.trust?.level).toBe("flagged");
+    expect(m.trust?.suspiciousDeal).toBe(true);
+  });
+
+  it("marks a well-evidenced franchise listing as approved", () => {
+    const m = scoreListingFit(
+      makeListing({
+        sellerType: "Franchise Dealer",
+        sellerTenure: "Certified Pre-Owned available",
+        photos: [{ url: "x", source: "dealer" }],
+      }),
+      baseCriteria(),
+    );
+    expect(m.trust?.level).toBe("approved");
+    expect(m.trust?.reasons.length).toBeGreaterThan(0);
+  });
+});
+
+describe("Budget Buyer Mode", () => {
+  const budgetInventory: Listing[] = [
+    trapListing(),
+    valuePickListing(),
+    makeListing({ id: "neutral", make: "Hyundai", model: "Sonata", year: 2013, price: 6000, mileage: 98000 }),
+  ];
+
+  it("includes the trap car in the baseline shortlist (transparency without the mode)", () => {
+    const ranked = rankInventory(budgetInventory, baseCriteria(), 5);
+    expect(ranked.map((r) => r.listing.id)).toContain("trap");
+  });
+
+  it("excludes known-defect models from the shortlist when enabled", () => {
+    const ranked = rankInventory(budgetInventory, baseCriteria({ budgetMode: true }), 5);
+    const ids = ranked.map((r) => r.listing.id);
+    expect(ids).not.toContain("trap");
+    expect(ids).toContain("pick");
+  });
+
+  it("ranks the curated value pick above a comparable neutral car when enabled", () => {
+    const ranked = rankInventory(budgetInventory, baseCriteria({ budgetMode: true }), 5);
+    const pick = ranked.findIndex((r) => r.listing.id === "pick");
+    const neutral = ranked.findIndex((r) => r.listing.id === "neutral");
+    expect(pick).toBeGreaterThanOrEqual(0);
+    expect(pick).toBeLessThan(neutral);
+  });
+
+  it("filters by preferred makes when provided and ignores the filter when absent", () => {
+    expect(passesHardFilters(makeListing({ make: "Toyota" }), baseCriteria({ makes: ["Mazda", "Honda"] }))).toBe(false);
+    expect(passesHardFilters(makeListing({ make: "Honda" }), baseCriteria({ makes: ["Mazda", "Honda"] }))).toBe(true);
+    expect(passesHardFilters(makeListing({ make: "Toyota" }), baseCriteria({ makes: [] }))).toBe(true);
+    expect(passesHardFilters(makeListing({ make: "Toyota" }), baseCriteria())).toBe(true);
+  });
+
+  it("ranks a legacy criteria object (no new fields) identically to before", () => {
+    const legacy = baseCriteria(); // no budgetMode/makes/searchText/useCase keys
+    const ranked = rankInventory(budgetInventory, legacy, 5);
+    expect(ranked.length).toBe(3);
+    expect(ranked.map((r) => r.listing.id)).toContain("trap");
+  });
+});

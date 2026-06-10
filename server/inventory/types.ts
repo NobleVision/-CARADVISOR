@@ -9,6 +9,8 @@
  * needed anywhere else in the app.
  */
 
+import type { RiskLevel, VehicleAdvisory } from "../knowledge/types";
+
 export type BodyStyle =
   | "Sedan"
   | "SUV"
@@ -123,6 +125,31 @@ export type BuyerCriteria = {
   priceVsReliability: number;
   /** How much fuel efficiency matters, 0-100. */
   efficiencyPriority: number;
+
+  // --- Optional buyer-first extensions (all additive; absent in legacy saved searches) ---
+  /** Raw natural-language description of what the buyer needs (hybrid search). */
+  searchText?: string;
+  /** Detected buying scenario (e.g. "teen-driver") used to personalize narratives. */
+  useCase?: string;
+  /**
+   * Budget Buyer Mode: hide known-defect models, boost proven value picks,
+   * and weight reliability heavily (productizes the budget golden rules).
+   */
+  budgetMode?: boolean;
+  /** Preferred makes extracted from natural language; empty/absent = any. */
+  makes?: string[];
+};
+
+/** Rule-based seller/listing trust assessment shown alongside each match. */
+export type TrustSignal = {
+  /** "approved" = strong trust cues; "flagged" = red-flag combination. */
+  level: "approved" | "neutral" | "flagged";
+  reasons: string[];
+  /**
+   * The classic trap: a known-defect model priced suspiciously low for how new
+   * or low-mileage it is — the seller may know what's coming.
+   */
+  suspiciousDeal?: boolean;
 };
 
 /** A listing enriched with the engine's fit assessment. */
@@ -143,6 +170,12 @@ export type RankedMatch = {
   };
   /** Short machine-generated reasons (pre-LLM, deterministic). */
   reasons: string[];
+  /** Curated model-year advisories from the GOGETTER Reliability Index (optional, additive). */
+  advisories?: VehicleAdvisory[];
+  /** Headline risk classification derived from advisories. */
+  riskLevel?: RiskLevel;
+  /** Rule-based seller/listing trust assessment. */
+  trust?: TrustSignal;
 };
 
 export interface InventoryProvider {

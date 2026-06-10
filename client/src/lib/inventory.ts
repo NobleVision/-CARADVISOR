@@ -47,6 +47,32 @@ export type CarNarrative = {
   watchFor: string[];
 };
 
+/** Curated model-year advisory from the GOGETTER Reliability Index. */
+export type VehicleAdvisory = {
+  id: string;
+  severity: "avoid" | "caution" | "value-pick";
+  title: string;
+  detail: string;
+  watchFor: string[];
+  whyBuy?: string[];
+  transmissionNote?: string;
+  waivedByManual?: boolean;
+  appliedDelta: number;
+  source: string;
+};
+
+export type RiskLevel = "clear" | "caution" | "high";
+
+/** Buying scenario detected from the natural-language description. */
+export type UseCase = "teen-driver" | "student" | "commuter" | "family" | "first-car" | "budget";
+
+/** Rule-based seller/listing trust assessment. */
+export type TrustSignal = {
+  level: "approved" | "neutral" | "flagged";
+  reasons: string[];
+  suspiciousDeal?: boolean;
+};
+
 export type RankedMatch = {
   listing: Listing;
   matchScore: number;
@@ -61,6 +87,23 @@ export type RankedMatch = {
   };
   reasons: string[];
   narrative: CarNarrative | null;
+  advisories?: VehicleAdvisory[];
+  riskLevel?: RiskLevel;
+  trust?: TrustSignal;
+};
+
+/** A validated "loosen this criterion" suggestion for zero-result searches. */
+export type SearchSuggestion = {
+  label: string;
+  patch: Partial<BuyerCriteria>;
+  unlocks: number;
+};
+
+export type ValuePickAlternative = {
+  listingId: string;
+  vin: string;
+  label: string;
+  price: number;
 };
 
 export type SearchResult = {
@@ -68,6 +111,9 @@ export type SearchResult = {
   eligible: number;
   shortlisted: number;
   zipApplied: boolean;
+  hiddenAvoidCount: number;
+  suggestions: SearchSuggestion[];
+  valuePickAlternatives: ValuePickAlternative[];
   matches: RankedMatch[];
 };
 
@@ -84,6 +130,10 @@ export type BuyerCriteria = {
   priceVsReliability: number;
   efficiencyPriority: number;
   limit?: number;
+  searchText?: string;
+  useCase?: string;
+  budgetMode?: boolean;
+  makes?: string[];
 };
 
 export const ALL_BODY_STYLES: BodyStyle[] = [

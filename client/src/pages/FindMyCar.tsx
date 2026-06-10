@@ -7,6 +7,8 @@ import { Label } from "@/components/ui/label";
 import { Slider } from "@/components/ui/slider";
 import { Spinner } from "@/components/ui/spinner";
 import { Badge } from "@/components/ui/badge";
+import { Textarea } from "@/components/ui/textarea";
+import { Switch } from "@/components/ui/switch";
 import { trpc } from "@/lib/trpc";
 import { useAuth } from "@/_core/hooks/useAuth";
 import {
@@ -15,18 +17,24 @@ import {
   ALL_SELLER_TYPES,
   formatUSD,
   type BodyStyle,
+  type BuyerCriteria,
   type FuelKind,
   type SellerType,
   type RankedMatch,
   type SearchResult,
+  type SearchSuggestion,
+  type UseCase,
 } from "@/lib/inventory";
 import {
   Car,
   Compass,
   Gauge,
+  Gem,
   MapPin,
+  PiggyBank,
   Scale,
   Search,
+  ShieldAlert,
   Sparkles,
   Leaf,
   Store,
@@ -34,9 +42,11 @@ import {
   GitCompareArrows,
   Tag,
   BellPlus,
+  Wand2,
+  X,
 } from "lucide-react";
 import { useMemo, useState } from "react";
-import { useLocation } from "wouter";
+import { Link, useLocation } from "wouter";
 import { toast } from "sonner";
 
 const BODY_HINTS: Record<BodyStyle, string> = {
@@ -67,6 +77,13 @@ export default function FindMyCar() {
   const [priceVsReliability, setPriceVsReliability] = useState(50);
   const [efficiencyPriority, setEfficiencyPriority] = useState(50);
 
+  // Hybrid natural-language search + Budget Buyer Mode
+  const [searchText, setSearchText] = useState("");
+  const [interpreted, setInterpreted] = useState<string[]>([]);
+  const [useCase, setUseCase] = useState<UseCase | undefined>(undefined);
+  const [makes, setMakes] = useState<string[]>([]);
+  const [budgetMode, setBudgetMode] = useState(false);
+
   const [result, setResult] = useState<SearchResult | null>(null);
   const [savedIds, setSavedIds] = useState<Set<string>>(new Set());
 
@@ -78,6 +95,54 @@ export default function FindMyCar() {
     },
     onError: (e) => toast.error(e.message || "Search failed"),
   });
+
+  /** Apply a parsed criteria patch onto the visible filter controls. */
+  const applyPatch = (patch: Partial<BuyerCriteria>): number => {
+    let applied = 0;
+    const clampN = (n: number, min: number, max: number) => Math.max(min, Math.min(max, Math.round(n)));
+    if (patch.condition) { setCondition(patch.condition); applied++; }
+    if (typeof patch.maxPrice === "number") { setMaxPrice(clampN(patch.maxPrice, 4000, 70000)); applied++; }
+    if (patch.zip) { setZip(patch.zip); applied++; }
+    if (typeof patch.maxDistance === "number") { setMaxDistance(clampN(patch.maxDistance, 5, 150)); applied++; }
+    if (typeof patch.maxMileage === "number") { setMaxMileage(clampN(patch.maxMileage, 20000, 150000)); applied++; }
+    if (patch.bodyStyles) { setBodyStyles(patch.bodyStyles); applied++; }
+    if (patch.fuels) { setFuels(patch.fuels); applied++; }
+    if (patch.sellerTypes) { setSellerTypes(patch.sellerTypes); applied++; }
+    if (patch.makes) { setMakes(patch.makes); applied++; }
+    if (typeof patch.priceVsReliability === "number") { setPriceVsReliability(clampN(patch.priceVsReliability, 0, 100)); applied++; }
+    if (typeof patch.efficiencyPriority === "number") { setEfficiencyPriority(clampN(patch.efficiencyPriority, 0, 100)); applied++; }
+    if (patch.budgetMode === true) { setBudgetMode(true); applied++; }
+    return applied;
+  };
+
+  const parseIntent = trpc.find.parseIntent.useMutation({
+    onSuccess: (r) => {
+      const applied = applyPatch(r.criteriaPatch as Partial<BuyerCriteria>);
+      setUseCase(r.useCase ?? undefined);
+      setInterpreted(r.interpreted);
+      if (applied > 0) {
+        toast.success(`Set ${applied} filter${applied === 1 ? "" : "s"} from your description — review and adjust below.`);
+      } else {
+        toast.info("Couldn't extract filters from that — try mentioning a budget, distance, or body style.");
+      }
+    },
+    onError: (e) => toast.error(e.message || "Couldn't interpret that"),
+  });
+
+  const onInterpret = () => {
+    const text = searchText.trim();
+    if (text.length < 3) {
+      toast.error("Describe what you need first — budget, who it's for, how far you'll travel…");
+      return;
+    }
+    parseIntent.mutate({ text });
+  };
+
+  const clearInterpretation = () => {
+    setInterpreted([]);
+    setUseCase(undefined);
+    setMakes([]);
+  };
 
   const saveMatch = trpc.find.saveMatch.useMutation({
     onError: (e) => toast.error(e.message || "Could not save"),
@@ -114,7 +179,17 @@ export default function FindMyCar() {
     priceVsReliability,
     efficiencyPriority,
     limit: 5,
+    searchText: searchText.trim() ? searchText.trim() : undefined,
+    useCase,
+    budgetMode: budgetMode || undefined,
+    makes: makes.length ? makes : undefined,
   });
+
+  /** Apply a zero-result suggestion and immediately re-run the search. */
+  const applySuggestion = (s: SearchSuggestion) => {
+    applyPatch(s.patch);
+    search.mutate({ ...buildCriteria(), ...(s.patch as Partial<ReturnType<typeof buildCriteria>>) });
+  };
 
   const runSearch = () => {
     if (zip.length > 0 && !zipValid) {
@@ -215,6 +290,52 @@ export default function FindMyCar() {
         <aside className="lg:sticky lg:top-20 lg:self-start">
           <Card className="border-border/60 bg-card/60 backdrop-blur">
             <CardContent className="space-y-6 p-5">
+              {/* Hybrid natural-language search */}
+              <div>
+                <Label className="mb-2 flex items-center gap-1.5 text-sm">
+                  <Wand2 className="size-4 text-primary" /> Describe what you need
+                  <span className="text-xs font-normal text-muted-foreground">(optional)</span>
+                </Label>
+                <Textarea
+                  value={searchText}
+                  onChange={(e) => setSearchText(e.target.value.slice(0, 600))}
+                  rows={3}
+                  placeholder={'e.g. "A safe, efficient car under $7k for my 15-year-old new driver within 30 miles of 22030 — prefer Mazda or Honda"'}
+                  className="resize-none text-sm"
+                />
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  className="mt-2 w-full gap-1.5 bg-transparent"
+                  disabled={parseIntent.isPending}
+                  onClick={onInterpret}
+                >
+                  {parseIntent.isPending ? <Spinner className="size-3.5" /> : <Sparkles className="size-3.5" />}
+                  {parseIntent.isPending ? "Interpreting…" : "Interpret & set filters"}
+                </Button>
+                {interpreted.length > 0 && (
+                  <div className="mt-2 flex flex-wrap items-center gap-1.5">
+                    {interpreted.map((chip) => (
+                      <Badge
+                        key={chip}
+                        variant="outline"
+                        className="border-primary/30 bg-primary/10 text-[10px] font-normal text-primary"
+                      >
+                        {chip}
+                      </Badge>
+                    ))}
+                    <button
+                      type="button"
+                      onClick={clearInterpretation}
+                      className="text-[10px] text-muted-foreground underline-offset-2 hover:underline"
+                    >
+                      clear
+                    </button>
+                  </div>
+                )}
+              </div>
+
               {/* Condition: New / Used / Any */}
               <div>
                 <Label className="mb-2 flex items-center gap-1.5 text-sm">
@@ -261,6 +382,45 @@ export default function FindMyCar() {
                   onValueChange={(v) => setMaxPrice(v[0])}
                 />
               </div>
+
+              {/* Budget Buyer Mode — productizes the budget golden rules */}
+              {!isNew && (
+                <div className="rounded-lg border border-border/60 bg-secondary/30 p-3">
+                  <div className="flex items-center justify-between gap-3">
+                    <Label htmlFor="budget-mode" className="flex items-center gap-1.5 text-sm">
+                      <PiggyBank className="size-4 text-primary" /> Budget Buyer Mode
+                    </Label>
+                    <Switch id="budget-mode" checked={budgetMode} onCheckedChange={setBudgetMode} />
+                  </div>
+                  <p className="mt-1.5 text-[11px] leading-snug text-muted-foreground">
+                    Hides models with documented serious defects, boosts proven value picks, and weights
+                    reliability heavily — because at budget prices, maintenance history beats brand name.
+                  </p>
+                </div>
+              )}
+
+              {/* Makes (set via the description above) */}
+              {makes.length > 0 && (
+                <div>
+                  <Label className="mb-2 flex items-center gap-1.5 text-sm">
+                    <Car className="size-4 text-primary" /> Makes
+                    <span className="text-xs font-normal text-muted-foreground">(from your description)</span>
+                  </Label>
+                  <div className="flex flex-wrap gap-1.5">
+                    {makes.map((mk) => (
+                      <button
+                        key={mk}
+                        type="button"
+                        onClick={() => setMakes((prev) => prev.filter((x) => x !== mk))}
+                        className="inline-flex items-center gap-1 rounded-full border border-primary bg-primary/15 px-3 py-1 text-xs text-primary transition-colors hover:border-destructive hover:text-destructive"
+                        title="Remove this make filter"
+                      >
+                        {mk} <X className="size-3" />
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
 
               {/* ZIP + distance */}
               <div>
@@ -479,12 +639,18 @@ export default function FindMyCar() {
           {result && !search.isPending && (
             <>
               <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-border/60 bg-card/50 px-4 py-3">
-                <div className="flex items-center gap-2 text-sm">
+                <div className="flex flex-wrap items-center gap-2 text-sm">
                   <Sparkles className="size-4 text-primary" />
                   <span className="font-medium">{result.shortlisted} best matches</span>
                   <span className="text-muted-foreground">
                     from {result.eligible} eligible · {result.scanned} scanned
                   </span>
+                  {result.hiddenAvoidCount > 0 && (
+                    <span className="inline-flex items-center gap-1 rounded-full border border-amber-400/40 bg-amber-400/10 px-2 py-0.5 text-[11px] font-medium text-amber-300">
+                      <ShieldAlert className="size-3.5" />
+                      {result.hiddenAvoidCount} known-trouble car{result.hiddenAvoidCount === 1 ? "" : "s"} hidden by Budget Buyer Mode
+                    </span>
+                  )}
                 </div>
                 <span className="text-xs text-muted-foreground">
                   {result.zipApplied ? "Distances from your ZIP · " : ""}Ranked by your priorities ({tradeoffLabel.toLowerCase()})
@@ -493,11 +659,58 @@ export default function FindMyCar() {
 
               {result.matches.length === 0 ? (
                 <Card className="border-dashed border-border/60 bg-card/30">
-                  <CardContent className="flex flex-col items-center justify-center gap-3 py-16 text-center">
+                  <CardContent className="flex flex-col items-center justify-center gap-4 py-12 text-center">
                     <h3 className="font-serif text-xl font-semibold">No cars matched those filters</h3>
-                    <p className="max-w-md text-sm text-muted-foreground">
-                      Try widening your budget, distance, or mileage — or clearing a body-style, fuel, or seller filter.
-                    </p>
+                    {result.suggestions.length > 0 ? (
+                      <>
+                        <p className="max-w-md text-sm text-muted-foreground">
+                          One change would unlock real matches — each button below applies the change and
+                          re-runs your search:
+                        </p>
+                        <div className="flex flex-wrap justify-center gap-2">
+                          {result.suggestions.map((s) => (
+                            <Button
+                              key={s.label}
+                              size="sm"
+                              variant="outline"
+                              className="gap-1.5 bg-transparent"
+                              disabled={search.isPending}
+                              onClick={() => applySuggestion(s)}
+                            >
+                              {s.label}
+                              <span className="text-[10px] text-emerald-400">+{s.unlocks}</span>
+                            </Button>
+                          ))}
+                        </div>
+                      </>
+                    ) : (
+                      <p className="max-w-md text-sm text-muted-foreground">
+                        Try widening your budget, distance, or mileage — or clearing a body-style, fuel, or seller filter.
+                      </p>
+                    )}
+                    {result.valuePickAlternatives.length > 0 && (
+                      <div className="w-full max-w-md rounded-lg border border-emerald-500/30 bg-emerald-500/5 p-3 text-left">
+                        <div className="mb-2 flex items-center gap-1.5 text-xs font-semibold text-emerald-300">
+                          <Gem className="size-3.5" /> Curated value picks near your budget
+                        </div>
+                        <ul className="space-y-1.5">
+                          {result.valuePickAlternatives.map((v) => (
+                            <li key={v.listingId}>
+                              <Link
+                                href={`/vehicle/${v.vin}`}
+                                className="flex items-center justify-between gap-2 text-xs text-foreground/90 underline-offset-2 hover:text-primary hover:underline"
+                              >
+                                <span>{v.label}</span>
+                                <span className="font-medium">{formatUSD(v.price)}</span>
+                              </Link>
+                            </li>
+                          ))}
+                        </ul>
+                        <p className="mt-2 text-[10px] text-muted-foreground">
+                          Proven budget choices from the GOGETTER Reliability Index, slightly outside your current filters.
+                        </p>
+                      </div>
+                    )}
                   </CardContent>
                 </Card>
               ) : (

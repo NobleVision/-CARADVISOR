@@ -2660,6 +2660,346 @@ var data_default = [
   }
 ];
 
+// server/inventory/data.curated.json
+var data_curated_default = [
+  {
+    id: "lst_091",
+    vin: "3N1AB7AP5FY2K8M41",
+    condition: "Used",
+    year: 2015,
+    make: "Nissan",
+    model: "Sentra",
+    trim: "SV",
+    bodyStyle: "Sedan",
+    fuel: "Gas",
+    price: 5500,
+    msrp: 18e3,
+    mileage: 88e3,
+    mpg: 33,
+    exteriorColor: "Gun Metallic",
+    sellerType: "Independent Dealer",
+    dealerName: "Beltway Budget Autos",
+    sellerTenure: "6 yrs in business",
+    city: "Springfield",
+    state: "VA",
+    distanceMiles: 5,
+    zip: "22150",
+    _photoKind: "stock",
+    _photoCount: 1,
+    photos: [],
+    dealerBlurb: "2015 Nissan Sentra SV \u2014 the newest car on our lot at this price! Low miles, cold A/C, drives smooth. Priced to sell this week.",
+    regionFlags: []
+  },
+  {
+    id: "lst_092",
+    vin: "1FADP3K28EL45B7N9",
+    condition: "Used",
+    year: 2014,
+    make: "Ford",
+    model: "Focus",
+    trim: "SE",
+    bodyStyle: "Hatchback",
+    fuel: "Gas",
+    price: 4800,
+    msrp: 18500,
+    mileage: 96e3,
+    mpg: 31,
+    exteriorColor: "Oxford White",
+    sellerType: "Private Seller",
+    dealerName: "Private Seller \u2014 Derek M.",
+    sellerTenure: "Individual owner",
+    city: "Falls Church",
+    state: "VA",
+    distanceMiles: 9,
+    zip: "22042",
+    _photoKind: "stock",
+    _photoCount: 1,
+    photos: [],
+    dealerBlurb: "2014 Ford Focus SE hatchback, automatic. Well-kept commuter, new tires last year. Selling because we upgraded.",
+    regionFlags: []
+  },
+  {
+    id: "lst_093",
+    vin: "KMHDH4AE3DU79C2X5",
+    condition: "Used",
+    year: 2013,
+    make: "Hyundai",
+    model: "Elantra",
+    trim: "GLS",
+    bodyStyle: "Sedan",
+    fuel: "Gas",
+    price: 4300,
+    msrp: 17500,
+    mileage: 102e3,
+    mpg: 32,
+    exteriorColor: "Shimmering Silver",
+    sellerType: "Independent Dealer",
+    dealerName: "Capital Auto Mart",
+    sellerTenure: "11 yrs in business",
+    city: "Hyattsville",
+    state: "MD",
+    distanceMiles: 17,
+    zip: "20782",
+    _photoKind: "dealer",
+    _photoCount: 3,
+    photos: [],
+    dealerBlurb: "2013 Hyundai Elantra GLS in silver. Clean inside and out, great on gas. Easy financing available.",
+    regionFlags: []
+  },
+  {
+    id: "lst_094",
+    vin: "1G1PC5SB2D71M4K83",
+    condition: "Used",
+    year: 2013,
+    make: "Chevrolet",
+    model: "Cruze",
+    trim: "1LT",
+    bodyStyle: "Sedan",
+    fuel: "Gas",
+    price: 3900,
+    msrp: 19e3,
+    mileage: 109e3,
+    mpg: 30,
+    exteriorColor: "Summit White",
+    sellerType: "Independent Dealer",
+    dealerName: "Route 1 Motors",
+    sellerTenure: "9 yrs in business",
+    city: "Alexandria",
+    state: "VA",
+    distanceMiles: 13,
+    zip: "22301",
+    _photoKind: "stock",
+    _photoCount: 1,
+    photos: [],
+    dealerBlurb: "2013 Chevy Cruze 1LT turbo. Peppy and efficient, recent state inspection. Cash price special.",
+    regionFlags: ["Hail-prone area \u2014 check panels for filler/repaint."]
+  },
+  {
+    id: "lst_095",
+    vin: "3VWDP7AJ4CM38R6T2",
+    condition: "Used",
+    year: 2012,
+    make: "Volkswagen",
+    model: "Jetta",
+    trim: "SE 2.5L",
+    bodyStyle: "Sedan",
+    fuel: "Gas",
+    price: 5200,
+    msrp: 21e3,
+    mileage: 98e3,
+    mpg: 26,
+    exteriorColor: "Platinum Gray",
+    sellerType: "Private Seller",
+    dealerName: "Private Seller \u2014 Anika S.",
+    sellerTenure: "Individual owner",
+    city: "Arlington",
+    state: "VA",
+    distanceMiles: 9,
+    zip: "22201",
+    _photoKind: "stock",
+    _photoCount: 1,
+    photos: [],
+    dealerBlurb: "2012 VW Jetta SE with the 2.5L five-cylinder. Feels premium for the price, all records since new.",
+    regionFlags: []
+  },
+  {
+    id: "lst_096",
+    vin: "JM1BL1M72D17N5W94",
+    condition: "Used",
+    year: 2013,
+    make: "Mazda",
+    model: "Mazda3",
+    trim: "i Touring",
+    bodyStyle: "Hatchback",
+    fuel: "Gas",
+    price: 6400,
+    msrp: 2e4,
+    mileage: 88e3,
+    mpg: 33,
+    exteriorColor: "Sky Blue Mica",
+    sellerType: "Independent Dealer",
+    dealerName: "Olde Towne Imports",
+    sellerTenure: "24 yrs in business",
+    city: "Alexandria",
+    state: "VA",
+    distanceMiles: 12,
+    zip: "22304",
+    _photoKind: "dealer",
+    _photoCount: 4,
+    photos: [],
+    dealerBlurb: "2013 Mazda3 i Touring hatchback with the SkyActiv engine. One owner, full service history, fun to drive and sips gas.",
+    regionFlags: []
+  },
+  {
+    id: "lst_097",
+    vin: "JHMGE8H52BC04T7L6",
+    condition: "Used",
+    year: 2011,
+    make: "Honda",
+    model: "Fit",
+    trim: "Sport",
+    bodyStyle: "Hatchback",
+    fuel: "Gas",
+    price: 5900,
+    msrp: 16500,
+    mileage: 105e3,
+    mpg: 31,
+    exteriorColor: "Milano Red",
+    sellerType: "Private Seller",
+    dealerName: "Private Seller \u2014 Gloria P.",
+    sellerTenure: "Individual owner",
+    city: "Rockville",
+    state: "MD",
+    distanceMiles: 21,
+    zip: "20850",
+    _photoKind: "dealer",
+    _photoCount: 2,
+    photos: [],
+    dealerBlurb: "2011 Honda Fit Sport, garage kept. The Magic Seats swallow everything \u2014 moved a bookshelf in it last month. All maintenance records.",
+    regionFlags: []
+  },
+  {
+    id: "lst_098",
+    vin: "5Y2SP6E08AZ41H9D3",
+    condition: "Used",
+    year: 2010,
+    make: "Pontiac",
+    model: "Vibe",
+    trim: "1.8L",
+    bodyStyle: "Hatchback",
+    fuel: "Gas",
+    price: 4200,
+    msrp: 17500,
+    mileage: 118e3,
+    mpg: 29,
+    exteriorColor: "Carbon Gray",
+    sellerType: "Independent Dealer",
+    dealerName: "Fairfax City Used Cars",
+    sellerTenure: "15 yrs in business",
+    city: "Fairfax",
+    state: "VA",
+    distanceMiles: 12,
+    zip: "22030",
+    _photoKind: "dealer",
+    _photoCount: 3,
+    photos: [],
+    dealerBlurb: "2010 Pontiac Vibe with the 1.8L \u2014 same bones as a Toyota Matrix at a friendlier price. Runs out great.",
+    regionFlags: []
+  },
+  {
+    id: "lst_099",
+    vin: "JTLZE4FE2C10G6Y58",
+    condition: "Used",
+    year: 2012,
+    make: "Scion",
+    model: "xB",
+    trim: "Base",
+    bodyStyle: "Wagon",
+    fuel: "Gas",
+    price: 5700,
+    msrp: 17800,
+    mileage: 96e3,
+    mpg: 24,
+    exteriorColor: "Classic Silver",
+    sellerType: "Franchise Dealer",
+    dealerName: "Springfield Toyota",
+    sellerTenure: "Certified Pre-Owned available",
+    city: "Springfield",
+    state: "VA",
+    distanceMiles: 8,
+    zip: "22150",
+    _photoKind: "dealer",
+    _photoCount: 3,
+    photos: [],
+    dealerBlurb: "2012 Scion xB traded in by its original owner. Toyota powertrain, huge interior, dealer inspected with records on file.",
+    regionFlags: []
+  },
+  {
+    id: "lst_100",
+    vin: "1FAHP3GN1AW19Z3J7",
+    condition: "Used",
+    year: 2010,
+    make: "Ford",
+    model: "Focus",
+    trim: "SES",
+    bodyStyle: "Sedan",
+    fuel: "Gas",
+    price: 4e3,
+    msrp: 17e3,
+    mileage: 114e3,
+    mpg: 27,
+    exteriorColor: "Sangria Red",
+    sellerType: "Private Seller",
+    dealerName: "Private Seller \u2014 Hank R.",
+    sellerTenure: "Individual owner",
+    city: "Silver Spring",
+    state: "MD",
+    distanceMiles: 27,
+    zip: "20910",
+    _photoKind: "stock",
+    _photoCount: 1,
+    photos: [],
+    dealerBlurb: "2010 Ford Focus SES, the dependable Duratec engine with a traditional automatic. Oil changed every 5k, folder of receipts.",
+    regionFlags: ["Salt-belt winters \u2014 inspect underbody for corrosion."]
+  },
+  {
+    id: "lst_101",
+    vin: "KMHDU4ADXAU52E916",
+    condition: "Used",
+    year: 2010,
+    make: "Hyundai",
+    model: "Elantra",
+    trim: "GLS",
+    bodyStyle: "Sedan",
+    fuel: "Gas",
+    price: 3995,
+    msrp: 16e3,
+    mileage: 115800,
+    mpg: 29,
+    exteriorColor: "Quicksilver",
+    sellerType: "Independent Dealer",
+    dealerName: "Bayview Auto Sales",
+    sellerTenure: "12 yrs in business",
+    city: "Arlington",
+    state: "VA",
+    distanceMiles: 10,
+    zip: "22203",
+    _photoKind: "dealer",
+    _photoCount: 3,
+    photos: [],
+    dealerBlurb: "2010 Hyundai Elantra GLS \u2014 timing belt recently replaced, state inspections on file, one-owner trade-in. Clean and honest.",
+    regionFlags: []
+  },
+  {
+    id: "lst_102",
+    vin: "2T1KU4EE9AC31F7P4",
+    condition: "Used",
+    year: 2009,
+    make: "Toyota",
+    model: "Matrix",
+    trim: "S 1.8L",
+    bodyStyle: "Hatchback",
+    fuel: "Gas",
+    price: 6800,
+    msrp: 17500,
+    mileage: 101e3,
+    mpg: 28,
+    exteriorColor: "Nautical Blue",
+    sellerType: "Independent Dealer",
+    dealerName: "Commuter Cars of Vienna",
+    sellerTenure: "18 yrs in business",
+    city: "Tysons",
+    state: "VA",
+    distanceMiles: 13,
+    zip: "22182",
+    _photoKind: "stock",
+    _photoCount: 1,
+    photos: [],
+    dealerBlurb: "2009 Toyota Matrix S with the 1.8L. Corolla mechanicals in a practical hatch \u2014 hard to kill and cheap to keep.",
+    regionFlags: []
+  }
+];
+
 // server/inventory/provider.ts
 var BODY_PHOTOS = {
   Sedan: "https://d2xsxph8kpxj0f.cloudfront.net/87827969/VXB2U7r7hK3nj9XKQgRt2L/body-sedan-5aSF5pY8aCw4HWu2rzTFvV.webp",
@@ -2693,7 +3033,8 @@ function buildPhotos(row) {
 var _cache = null;
 function loadListings() {
   if (_cache) return _cache;
-  const listings = data_default.map((row) => {
+  const rows = [...data_default, ...data_curated_default];
+  const listings = rows.map((row) => {
     const { _photoKind, _photoCount, ...rest } = row;
     return { ...rest, photos: buildPhotos(row) };
   });
@@ -2713,6 +3054,467 @@ var seededInventoryProvider = {
   }
 };
 var inventoryProvider = seededInventoryProvider;
+
+// server/knowledge/data.ts
+var KNOWLEDGE_VERSION = "GOGETTER Reliability Index v1";
+var KNOWLEDGE_ENTRIES = [
+  // ───────────────────────── VALUE PICKS ─────────────────────────
+  {
+    id: "mazda3-skyactiv",
+    make: "Mazda",
+    models: ["Mazda3", "Mazda 3"],
+    yearFrom: 2012,
+    yearTo: 2014,
+    severity: "value-pick",
+    categories: ["value", "rust"],
+    title: "SkyActiv-era Mazda3 \u2014 Corolla reliability without the Toyota tax",
+    detail: "The 2012\u20132014 Mazda3 matches a Corolla for reliability but avoids the pricing premium. SkyActiv engines are excellent on gas and mechanically bulletproof, and it comes in sedan and versatile hatchback styles.",
+    whyBuy: [
+      "Fun to drive with sharp styling \u2014 rare at this price.",
+      "SkyActiv engine: efficient and mechanically bulletproof.",
+      "Avoids the inflated 'Toyota/Honda tax' on used prices."
+    ],
+    watchFor: [
+      "Check the underbody for rust if it lived in the rust belt (2012+ is much better protected than older Mazdas)."
+    ],
+    scoreDelta: 8,
+    checklistItems: ["Inspect the underbody and wheel arches for rust, especially on rust-belt cars."]
+  },
+  {
+    id: "honda-fit-magic-seats",
+    make: "Honda",
+    models: ["Fit"],
+    yearFrom: 2009,
+    yearTo: 2013,
+    severity: "value-pick",
+    categories: ["value", "maintenance"],
+    title: "Second-gen Honda Fit \u2014 small-SUV cargo space in a tiny footprint",
+    detail: "Honda's 'Magic Seats' fold flat or flip up, creating cargo room that rivals small SUVs. Stellar gas mileage and incredibly easy to park. Basic interior and highway noise are the honest trade-offs.",
+    whyBuy: [
+      "Magic Seats: cargo flexibility that rivals small SUVs.",
+      "Stellar gas mileage; easy to park and maneuver."
+    ],
+    watchFor: [
+      "Confirm the spark plugs have been serviced \u2014 they are known to loosen over time on this generation.",
+      "Basic interior and noticeable highway noise \u2014 judge on a highway test drive."
+    ],
+    scoreDelta: 8,
+    checklistItems: ["Ask when the spark plugs were last serviced (known to loosen on this generation)."]
+  },
+  {
+    id: "pontiac-vibe-toyota-twin",
+    make: "Pontiac",
+    models: ["Vibe"],
+    yearFrom: 2009,
+    yearTo: 2010,
+    severity: "value-pick",
+    categories: ["value", "engine"],
+    title: "Pontiac Vibe \u2014 a Toyota Matrix at a dead-brand discount",
+    detail: "Under the Pontiac badge, the Vibe is entirely a Toyota Matrix \u2014 same frame, engine, and transmission. Because the Pontiac brand no longer exists, it often sells for thousands less than the identical Toyota.",
+    whyBuy: [
+      "Mechanically identical to the Toyota Matrix \u2014 same frame, engine, transmission.",
+      "Dead-brand discount: often thousands cheaper than the Toyota twin."
+    ],
+    watchFor: ["Prefer the 1.8L engine \u2014 the optional 2.4L in some trims is known to consume oil."],
+    engineRules: [
+      {
+        displacements: ["2.4"],
+        severityOverride: "caution",
+        deltaOverride: -12,
+        note: "This one has the 2.4L, which is known to consume oil \u2014 check the dipstick and service records."
+      }
+    ],
+    scoreDelta: 12,
+    checklistItems: ["Confirm which engine it has \u2014 prefer the 1.8L; the 2.4L is known to consume oil."]
+  },
+  {
+    id: "toyota-matrix-twin",
+    make: "Toyota",
+    models: ["Matrix", "Corolla Matrix"],
+    yearFrom: 2009,
+    yearTo: 2010,
+    severity: "value-pick",
+    categories: ["value", "engine"],
+    title: "Toyota Matrix \u2014 practical Corolla-based hatch (the Vibe's twin)",
+    detail: "The Matrix shares its frame, engine, and transmission with the Pontiac Vibe. Toyota reliability in a practical hatchback body; the Vibe twin is often even cheaper if you can find one.",
+    whyBuy: [
+      "Toyota powertrain reliability in a practical hatchback.",
+      "Check the identical Pontiac Vibe too \u2014 usually thousands cheaper."
+    ],
+    watchFor: ["Prefer the 1.8L engine \u2014 the optional 2.4L is known to consume oil."],
+    engineRules: [
+      {
+        displacements: ["2.4"],
+        severityOverride: "caution",
+        deltaOverride: -12,
+        note: "This one has the 2.4L, which is known to consume oil \u2014 check the dipstick and service records."
+      }
+    ],
+    scoreDelta: 8,
+    checklistItems: ["Confirm which engine it has \u2014 prefer the 1.8L; the 2.4L is known to consume oil."]
+  },
+  {
+    id: "scion-xb-toyota-bargain",
+    make: "Scion",
+    models: ["xB"],
+    yearFrom: 2010,
+    yearTo: 2014,
+    severity: "value-pick",
+    categories: ["value", "engine"],
+    title: "Scion xB \u2014 Toyota powertrain, discontinued-brand depreciation",
+    detail: "Scion was Toyota's youth sub-brand; because it was discontinued, these depreciate faster than Toyotas, making them used bargains. Standard Toyota powertrains keep them reliable and cheap to fix, and the boxy shape offers massive headroom and cargo space.",
+    whyBuy: [
+      "Standard Toyota powertrain \u2014 reliable and cheap to fix.",
+      "Boxy shape = massive headroom and cargo space.",
+      "Discontinued-brand depreciation makes it a genuine bargain."
+    ],
+    watchFor: [
+      "The 2.4L engine can burn oil \u2014 check the dipstick and ask for oil-change records."
+    ],
+    scoreDelta: 8,
+    checklistItems: ["Check the dipstick level and ask for oil-change records (2.4L can burn oil)."]
+  },
+  {
+    id: "ford-focus-duratec",
+    make: "Ford",
+    models: ["Focus"],
+    yearFrom: 2008,
+    yearTo: 2011,
+    severity: "value-pick",
+    categories: ["value"],
+    title: "2008\u20132011 Ford Focus \u2014 plain, durable, and underpriced",
+    detail: "This generation uses the highly resilient 2.0L Duratec engine and a traditional, durable automatic \u2014 NOT the later PowerShift. Without a Japanese badge, these often have far lower mileage than a Civic or Corolla at the same price.",
+    whyBuy: [
+      "Resilient 2.0L Duratec engine and a traditional, durable automatic.",
+      "Often much lower mileage than a same-price Civic or Corolla."
+    ],
+    watchFor: [
+      "This value applies ONLY to 2008\u20132011 \u2014 the 2012+ automatic Focus has the defective PowerShift transmission."
+    ],
+    scoreDelta: 6
+  },
+  // ───────────────────────── HARD AVOIDS ─────────────────────────
+  {
+    id: "ford-focus-powershift",
+    make: "Ford",
+    models: ["Focus"],
+    yearFrom: 2012,
+    yearTo: 2018,
+    severity: "avoid",
+    categories: ["transmission"],
+    title: "PowerShift dual-clutch transmission failure (automatic)",
+    detail: "The automatic 'PowerShift' dual-clutch in 2012\u20132018 Focuses is fundamentally defective: it shudders, stalls, loses power on the highway, and fails completely. Ford faced massive class-action lawsuits. A $3,000\u2013$4,000 replacement tends to fail again.",
+    watchFor: [
+      "If it's the automatic, walk away \u2014 replacements fail again.",
+      "On any test drive: shuddering, hesitation, or clunky low-speed shifts are the failure starting."
+    ],
+    transmissionCaveat: {
+      manualIsFine: true,
+      note: "The manual-transmission versions are actually great and highly reliable \u2014 this warning only applies to the automatic. Verify the transmission before you go."
+    },
+    scoreDelta: -45,
+    checklistItems: ["Verify the transmission type FIRST \u2014 automatic PowerShift is a dealbreaker; manual is fine."]
+  },
+  {
+    id: "ford-fiesta-powershift",
+    make: "Ford",
+    models: ["Fiesta"],
+    yearFrom: 2011,
+    yearTo: 2018,
+    severity: "avoid",
+    categories: ["transmission"],
+    title: "PowerShift dual-clutch transmission failure (automatic)",
+    detail: "Automatic 2011\u20132018 Fiestas use the same defective 'PowerShift' dual-clutch as the Focus: shuddering, stalling, total failure, and class-action lawsuits. These cars are incredibly cheap for a reason.",
+    watchFor: [
+      "If it's the automatic, walk away \u2014 replacements fail again.",
+      "On any test drive: shuddering or hesitation at low speed is the failure starting."
+    ],
+    transmissionCaveat: {
+      manualIsFine: true,
+      note: "The manual-transmission versions are actually great and highly reliable \u2014 this warning only applies to the automatic. Verify the transmission before you go."
+    },
+    scoreDelta: -45,
+    checklistItems: ["Verify the transmission type FIRST \u2014 automatic PowerShift is a dealbreaker; manual is fine."]
+  },
+  {
+    id: "nissan-jatco-cvt",
+    make: "Nissan",
+    models: ["Sentra", "Versa", "Altima"],
+    yearFrom: 2007,
+    yearTo: 2017,
+    severity: "avoid",
+    categories: ["transmission"],
+    title: "Jatco CVT transmission failure (automatic)",
+    detail: "Nissan's early CVT automatics in this era are notoriously fragile: overheating, whining, slipping, and sudden death \u2014 frequently before 120,000 miles. Replacement costs upwards of $4,000, often more than the car is worth.",
+    watchFor: [
+      "CVTs in this era frequently fail before 120k miles \u2014 a $4,000+ repair.",
+      "On a test drive: whining, rubber-band acceleration, or shuddering means the CVT is dying."
+    ],
+    transmissionCaveat: {
+      manualIsFine: true,
+      note: "Manual-transmission versions are fine \u2014 this warning applies to every automatic Nissan of this era. Verify the transmission before you go."
+    },
+    scoreDelta: -45,
+    checklistItems: [
+      "Verify the transmission type FIRST \u2014 automatic (CVT) is a dealbreaker; manual is fine.",
+      "If you still test drive it: listen for CVT whine and feel for slipping under acceleration."
+    ]
+  },
+  {
+    id: "chevy-cruze-cooling",
+    make: "Chevrolet",
+    models: ["Cruze"],
+    yearFrom: 2011,
+    yearTo: 2016,
+    severity: "avoid",
+    categories: ["cooling", "engine"],
+    title: "Chronic coolant leaks, head gaskets, and 1.4L turbo failures",
+    detail: "First-generation Cruzes are notorious money pits: cracked plastic coolant housings, blown head gaskets, failing water pumps, and turbocharger failures on the 1.4L. You fix one leak just to find another the next week.",
+    watchFor: [
+      "Check for coolant smell, low coolant, or white exhaust smoke \u2014 endemic cooling failures.",
+      "1.4L turbo failures are common; listen for whining or check for oil in the intake."
+    ],
+    scoreDelta: -45,
+    checklistItems: ["Have the PPI pressure-test the cooling system \u2014 cracked coolant housings are endemic."]
+  },
+  {
+    id: "chevy-sonic-cooling",
+    make: "Chevrolet",
+    models: ["Sonic"],
+    yearFrom: 2012,
+    yearTo: 2018,
+    severity: "avoid",
+    categories: ["cooling", "engine"],
+    title: "Chronic fluid leaks and cooling-system failures",
+    detail: "The Sonic shares the Cruze's failure patterns: cracked coolant housings, water pumps, head gaskets, and 1.4L turbo trouble. Cheap to buy, expensive to keep alive.",
+    watchFor: [
+      "Check for coolant smell, low coolant, or crusty residue around plastic cooling parts.",
+      "Budget for repeated small leaks even if it passes inspection today."
+    ],
+    scoreDelta: -45,
+    checklistItems: ["Have the PPI pressure-test the cooling system \u2014 cracked coolant housings are endemic."]
+  },
+  {
+    id: "hyundai-elantra-theta",
+    make: "Hyundai",
+    models: ["Elantra"],
+    yearFrom: 2011,
+    yearTo: 2016,
+    severity: "avoid",
+    categories: ["engine", "theft"],
+    title: "Theta II/Nu engine failure + extreme theft risk",
+    detail: "This generation's engines are prone to piston slap and sudden seizure from manufacturing debris blocking oil flow. Worse, these years lack an engine immobilizer ('Kia Boys' era) \u2014 they're trivially easy to steal, so insurance is astronomically expensive if you can get covered at all.",
+    watchFor: [
+      "Engine can seize without warning \u2014 listen for ticking/knocking at startup.",
+      "No immobilizer: prime theft target, so get an insurance quote BEFORE buying.",
+      "Check for severe oil consumption between changes."
+    ],
+    scoreDelta: -45,
+    checklistItems: [
+      "Get an insurance quote BEFORE buying \u2014 no-immobilizer years are theft magnets and can be brutal to insure.",
+      "Ask whether the engine was ever replaced under Hyundai's Theta II recall/extended warranty."
+    ]
+  },
+  {
+    id: "kia-forte-theta",
+    make: "Kia",
+    models: ["Forte"],
+    yearFrom: 2011,
+    yearTo: 2016,
+    severity: "avoid",
+    categories: ["engine", "theft"],
+    title: "Theta II/Nu engine failure + extreme theft risk",
+    detail: "Same story as the sibling Elantra: engines prone to rod-bearing failure and seizure, plus no engine immobilizer in these years \u2014 a favorite of the 'Kia Boys' theft trend, which makes insurance astronomically expensive.",
+    watchFor: [
+      "Engine can seize without warning \u2014 listen for ticking/knocking at startup.",
+      "No immobilizer: prime theft target, so get an insurance quote BEFORE buying."
+    ],
+    scoreDelta: -45,
+    checklistItems: [
+      "Get an insurance quote BEFORE buying \u2014 no-immobilizer years are theft magnets and can be brutal to insure.",
+      "Ask whether the engine was ever replaced under Kia's engine recall/extended warranty."
+    ]
+  },
+  {
+    id: "dodge-dart-electrical",
+    make: "Dodge",
+    models: ["Dart"],
+    yearFrom: 2013,
+    yearTo: 2016,
+    severity: "avoid",
+    categories: ["electrical", "parts"],
+    title: "Electrical gremlins, stalling, and vanishing parts supply",
+    detail: "Fiat-Chrysler's Italian-architecture compacts were disastrous: severe electrical glitches, random stalling, and premature suspension failure. The Dart was discontinued quickly, so parts are getting harder to find.",
+    watchFor: [
+      "Electrical glitches and random stalling are the signature failures.",
+      "Parts availability is shrinking \u2014 repairs take longer and cost more."
+    ],
+    scoreDelta: -45
+  },
+  {
+    id: "chrysler-200-electrical",
+    make: "Chrysler",
+    models: ["200"],
+    yearFrom: 2011,
+    yearTo: 2017,
+    severity: "avoid",
+    categories: ["electrical", "parts"],
+    title: "Electrical nightmares and poor build quality",
+    detail: "The Chrysler 200 shares the Dart's disastrous reliability record: electrical faults, stalling, and premature suspension wear, with a shrinking parts supply after its quick discontinuation.",
+    watchFor: [
+      "Electrical glitches and random stalling are the signature failures.",
+      "Premature suspension wear \u2014 listen for clunks over bumps."
+    ],
+    scoreDelta: -45
+  },
+  // ───────────────────────── CAUTION ─────────────────────────
+  {
+    id: "vw-jetta-golf-budget",
+    make: "Volkswagen",
+    models: ["Jetta", "Golf"],
+    yearFrom: 2006,
+    yearTo: 2013,
+    severity: "caution",
+    categories: ["engine", "maintenance", "parts"],
+    title: "German maintenance costs \u2014 and turbo timing-chain roulette",
+    detail: "A $6,500 Jetta feels premium but requires strict, expensive upkeep: German parts and labor cost roughly double a Japanese car. The 2.5L 5-cylinder is genuinely reliable; the 2.0T/1.4T turbos are not \u2014 skipped oil changes stretch the timing chain and destroy the engine.",
+    watchFor: [
+      "Demand complete oil-change records \u2014 skipped changes on turbo engines stretch the timing chain.",
+      "Budget roughly double for parts and labor versus a Japanese rival.",
+      "The 2.5L 5-cylinder is the reliable engine choice in this era."
+    ],
+    engineRules: [
+      {
+        displacements: ["2.0", "1.4"],
+        severityOverride: "avoid",
+        deltaOverride: -45,
+        note: "This one has the turbo engine \u2014 timing-chain stretch destroys these engines when oil changes were skipped. Walk away without complete service records."
+      }
+    ],
+    scoreDelta: -15,
+    checklistItems: ["Require complete oil-change records \u2014 turbo timing chains die from skipped maintenance."]
+  }
+];
+
+// server/knowledge/lookup.ts
+function normalizeModelKey(s) {
+  return s.toUpperCase().replace(/[^A-Z0-9]/g, "");
+}
+function makeMatches(queryMake, entryMake) {
+  const q = normalizeModelKey(queryMake);
+  const e = normalizeModelKey(entryMake);
+  return q === e || q.includes(e);
+}
+function modelMatches(queryModel, aliases) {
+  const q = normalizeModelKey(queryModel);
+  if (!q) return false;
+  return aliases.some((a) => {
+    const alias = normalizeModelKey(a);
+    return q === alias || q.startsWith(alias);
+  });
+}
+function isManual(transmissionStyle) {
+  return /manual/i.test(transmissionStyle ?? "");
+}
+function displacementMatches(queryDisp, ruleDisps) {
+  const q = parseFloat(queryDisp ?? "");
+  if (!Number.isFinite(q)) return false;
+  return ruleDisps.some((d) => {
+    const r = parseFloat(d);
+    return Number.isFinite(r) && q.toFixed(1) === r.toFixed(1);
+  });
+}
+function toAdvisory(entry, q) {
+  let severity = entry.severity;
+  let delta = entry.scoreDelta;
+  let detail = entry.detail;
+  const engineRule = entry.engineRules?.find((r) => displacementMatches(q.engineDisplacementL, r.displacements));
+  if (engineRule) {
+    severity = engineRule.severityOverride ?? severity;
+    delta = engineRule.deltaOverride ?? delta;
+    detail = `${detail} ${engineRule.note}`;
+  }
+  let waivedByManual = false;
+  let transmissionNote;
+  if (entry.transmissionCaveat?.manualIsFine && delta < 0) {
+    if (isManual(q.transmissionStyle)) {
+      waivedByManual = true;
+      delta = 0;
+    } else {
+      transmissionNote = entry.transmissionCaveat.note;
+    }
+  }
+  return {
+    id: entry.id,
+    severity,
+    title: entry.title,
+    detail,
+    watchFor: entry.watchFor,
+    ...entry.whyBuy ? { whyBuy: entry.whyBuy } : {},
+    ...transmissionNote ? { transmissionNote } : {},
+    ...waivedByManual ? { waivedByManual: true } : {},
+    appliedDelta: delta,
+    source: KNOWLEDGE_VERSION
+  };
+}
+function findAdvisories(q) {
+  if (!q.make || !q.model || !Number.isFinite(q.year)) return [];
+  return KNOWLEDGE_ENTRIES.filter(
+    (e) => makeMatches(q.make, e.make) && modelMatches(q.model, e.models) && q.year >= e.yearFrom && q.year <= e.yearTo
+  ).map((e) => toAdvisory(e, q));
+}
+function riskLevelFor(advisories) {
+  if (advisories.some((a) => a.severity === "avoid" && !a.waivedByManual)) return "high";
+  if (advisories.some((a) => a.severity === "caution" && !a.waivedByManual)) return "caution";
+  return "clear";
+}
+function hasAvoidAdvisory(advisories) {
+  return advisories.some((a) => a.severity === "avoid" && !a.waivedByManual);
+}
+
+// server/inventory/trust.ts
+var CURRENT_YEAR = 2026;
+function roughExpectedPrice(listing) {
+  const age = Math.max(0, CURRENT_YEAR - listing.year);
+  return Math.max(2500, 24e3 * Math.pow(0.84, age));
+}
+function isSuspiciousDeal(listing, advisories) {
+  if (!hasAvoidAdvisory(advisories)) return false;
+  if (listing.condition !== "Used") return false;
+  const age = Math.max(0, CURRENT_YEAR - listing.year);
+  const lowMileageForAge = listing.mileage < age * 11e3;
+  const newish = age <= 13;
+  const dramaticallyCheap = listing.price <= roughExpectedPrice(listing) * 0.75;
+  return newish && (lowMileageForAge || dramaticallyCheap);
+}
+function trustForListing(listing, advisories) {
+  const reasons = [];
+  const avoid = hasAvoidAdvisory(advisories);
+  const suspicious = isSuspiciousDeal(listing, advisories);
+  if (avoid) {
+    reasons.push("This model year range has a documented serious defect (GOGETTER Reliability Index).");
+    if (suspicious) {
+      reasons.push(
+        "Priced suspiciously well for its age/mileage on a known-defect model \u2014 the seller may know what's coming."
+      );
+    }
+    return { level: "flagged", reasons, ...suspicious ? { suspiciousDeal: true } : {} };
+  }
+  const hasDealerPhotos = listing.photos.some((p) => p.source === "dealer");
+  const hasTenure = Boolean(listing.sellerTenure && listing.sellerTenure.trim());
+  const isCpo = /certified|cpo/i.test(listing.sellerTenure ?? "");
+  const isFranchise = listing.sellerType === "Franchise Dealer";
+  if (hasDealerPhotos) reasons.push("Real seller-supplied photos of this exact car.");
+  if (isCpo) reasons.push("Certified Pre-Owned availability noted.");
+  else if (hasTenure) reasons.push(`Established seller \u2014 ${listing.sellerTenure}.`);
+  if (isFranchise) reasons.push("Franchise dealer \u2014 recourse and reconditioning standards.");
+  const positives = [hasDealerPhotos, hasTenure || isCpo, isFranchise].filter(Boolean).length;
+  if (positives >= 2) return { level: "approved", reasons };
+  if (listing.sellerType === "Private Seller") {
+    reasons.push("Private sale \u2014 verify title and get a pre-purchase inspection.");
+  }
+  return { level: "neutral", reasons };
+}
 
 // server/inventory/matching.ts
 var MAKE_RELIABILITY = {
@@ -2748,10 +3550,12 @@ var MAKE_RELIABILITY = {
   CADILLAC: 73,
   LINCOLN: 76,
   MITSUBISHI: 76,
-  FIAT: 64
+  FIAT: 64,
+  SCION: 90
+  // Toyota sub-brand — Toyota powertrains throughout
 };
 var DEFAULT_RELIABILITY = 75;
-var CURRENT_YEAR = 2026;
+var CURRENT_YEAR2 = 2026;
 function clamp(n, min = 0, max = 100) {
   return Math.max(min, Math.min(max, n));
 }
@@ -2772,9 +3576,20 @@ function reliabilityForMake(make) {
   const key = make.trim().toUpperCase();
   return MAKE_RELIABILITY[key] ?? Object.entries(MAKE_RELIABILITY).find(([k]) => key.includes(k))?.[1] ?? DEFAULT_RELIABILITY;
 }
+function advisoriesForListing(listing) {
+  return findAdvisories({ make: listing.make, model: listing.model, year: listing.year });
+}
+function applyAdvisoryDeltas(reliability, advisories, floor) {
+  let r = reliability;
+  for (const a of advisories) {
+    r = a.appliedDelta < 0 ? Math.max(floor, Math.min(100, r + a.appliedDelta)) : clamp(r + a.appliedDelta);
+  }
+  return r;
+}
 function qualityScoreForListing(listing) {
-  const reliability = reliabilityForMake(listing.make);
-  const age = Math.max(0, CURRENT_YEAR - listing.year);
+  const advisories = advisoriesForListing(listing);
+  const reliability = applyAdvisoryDeltas(reliabilityForMake(listing.make), advisories, 15);
+  const age = Math.max(0, CURRENT_YEAR2 - listing.year);
   const expectedMiles = Math.max(1, age * 12e3);
   const ratio = listing.mileage / expectedMiles;
   const mileScore = clamp(100 - (ratio - 1) * 55 - age * 2.2);
@@ -2783,9 +3598,10 @@ function qualityScoreForListing(listing) {
   else if (listing.fuel === "Hybrid") efficiency = 88;
   else if (listing.fuel === "Diesel") efficiency = 74;
   else efficiency = clamp(40 + listing.mpg * 1.1);
-  const overall = clamp(
+  let overall = clamp(
     Math.round(reliability * 0.45 + mileScore * 0.33 + efficiency * 0.22)
   );
+  if (hasAvoidAdvisory(advisories)) overall = Math.min(overall, 50);
   return { score: overall, grade: letterGrade(overall) };
 }
 function scoreListingFit(listing, c) {
@@ -2807,6 +3623,19 @@ function scoreListingFit(listing, c) {
   let reliabilityFit = reliabilityForMake(listing.make);
   if (reliabilityFit >= 90) reasons.push(`${listing.make} is known for excellent dependability.`);
   else if (reliabilityFit < 68) reasons.push(`${listing.make} carries higher repair risk \u2014 weigh carefully.`);
+  const advisories = advisoriesForListing(listing);
+  reliabilityFit = applyAdvisoryDeltas(reliabilityFit, advisories, 10);
+  const isValuePick = advisories.some((a) => a.severity === "value-pick");
+  for (const a of advisories) {
+    if (a.severity === "avoid" && !a.waivedByManual) {
+      reasons.push(`Known issue: ${a.title} \u2014 see the risk callout before visiting.`);
+    }
+  }
+  if (isValuePick) {
+    const pick = advisories.find((a) => a.severity === "value-pick");
+    reasons.unshift(`GOGETTER value pick: ${pick?.title ?? "proven budget choice"}.`);
+    if (c.budgetMode === true) reliabilityFit = clamp(reliabilityFit + 4);
+  }
   if (isNew) reliabilityFit = clamp(reliabilityFit + 6);
   else if (listing.sellerType === "Franchise Dealer") reliabilityFit = clamp(reliabilityFit + 2);
   else if (listing.sellerType === "Private Seller") {
@@ -2819,7 +3648,7 @@ function scoreListingFit(listing, c) {
   else efficiencyFit = clamp(35 + listing.mpg * 1.3);
   if (listing.fuel === "EV") reasons.push("Electric \u2014 lowest running costs.");
   else if (listing.fuel === "Hybrid") reasons.push("Hybrid efficiency keeps fuel costs down.");
-  const relW = c.priceVsReliability / 100;
+  const relW = Math.max(c.priceVsReliability, c.budgetMode === true ? 70 : 0) / 100;
   const priceW = 1 - relW;
   const effPriority = c.efficiencyPriority / 100;
   const wPrice = 0.3 * (0.5 + priceW);
@@ -2846,7 +3675,9 @@ function scoreListingFit(listing, c) {
       distance: Math.round(distanceFit),
       mileage: Math.round(mileageFit)
     },
-    reasons
+    reasons,
+    ...advisories.length > 0 ? { advisories, riskLevel: riskLevelFor(advisories) } : {},
+    trust: trustForListing(listing, advisories)
   };
 }
 function passesHardFilters(listing, c) {
@@ -2859,11 +3690,21 @@ function passesHardFilters(listing, c) {
   if (c.bodyStyles?.length > 0 && !c.bodyStyles.includes(listing.bodyStyle)) return false;
   if (c.fuels?.length > 0 && !c.fuels.includes(listing.fuel)) return false;
   if (c.sellerTypes && c.sellerTypes.length > 0 && listing.sellerType && !c.sellerTypes.includes(listing.sellerType)) return false;
+  if (c.makes && c.makes.length > 0 && !c.makes.some((mk) => normalizeModelKey(mk) === normalizeModelKey(listing.make))) {
+    return false;
+  }
   return true;
+}
+function isHighRiskMatch(m) {
+  return m.riskLevel === "high";
 }
 function rankInventory(inventory, criteria, limit = 5) {
   const eligible = inventory.filter((l) => passesHardFilters(l, criteria));
-  const ranked = eligible.map((l) => scoreListingFit(l, criteria)).sort((a, b) => {
+  let ranked = eligible.map((l) => scoreListingFit(l, criteria));
+  if (criteria.budgetMode === true) {
+    ranked = ranked.filter((m) => !isHighRiskMatch(m));
+  }
+  ranked.sort((a, b) => {
     if (b.matchScore !== a.matchScore) return b.matchScore - a.matchScore;
     if (b.qualityScore !== a.qualityScore) return b.qualityScore - a.qualityScore;
     return a.listing.price - b.listing.price;

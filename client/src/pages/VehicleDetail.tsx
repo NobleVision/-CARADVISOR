@@ -1,7 +1,9 @@
 import { NavBar } from "@/components/NavBar";
 import { VehicleResult } from "@/components/VehicleResult";
 import { AdvisorChat } from "@/components/AdvisorChat";
+import { ChecklistCard } from "@/components/ChecklistCard";
 import { ContactSellerDialog } from "@/components/ContactSellerDialog";
+import { PublicRecords } from "@/components/PublicRecords";
 import { Button } from "@/components/ui/button";
 import { Spinner } from "@/components/ui/spinner";
 import { Badge } from "@/components/ui/badge";
@@ -185,6 +187,31 @@ export default function VehicleDetail() {
               isSaved={saved}
               isSaving={saveMutation.isPending}
             />
+
+            {/* Free public records + the personalized pre-purchase action plan */}
+            <div className="mt-6 space-y-6">
+              <PublicRecords
+                make={result.vehicle.make}
+                model={result.vehicle.model}
+                modelYear={result.vehicle.modelYear}
+              />
+              <ChecklistCard
+                listingId={listing?.id}
+                vehicle={
+                  !listing && Number.isFinite(parseInt(result.vehicle.modelYear, 10))
+                    ? {
+                        year: parseInt(result.vehicle.modelYear, 10),
+                        make: result.vehicle.make,
+                        model: result.vehicle.model,
+                        mileage: result.mileage ?? undefined,
+                        transmissionStyle: result.vehicle.transmissionStyle || undefined,
+                        engineDisplacementL: result.vehicle.engineDisplacementL || undefined,
+                      }
+                    : undefined
+                }
+              />
+            </div>
+
             {showAdvisor && (
               <div ref={advisorRef} className="mt-10 scroll-mt-20">
                 <h3 className="mb-4 font-serif text-2xl font-semibold">AI Advisor</h3>

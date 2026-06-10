@@ -4,6 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { ContactSellerDialog } from "@/components/ContactSellerDialog";
+import { AdvisoryCallout } from "@/components/AdvisoryCallout";
 import { Link } from "wouter";
 import {
   Accordion,
@@ -113,6 +114,16 @@ export function MatchCard({ match, rank, isTop, onSave, saved, saving }: MatchCa
                 <Badge variant="outline" className={`text-[10px] ${seller.tone}`}>
                   {seller.label}
                 </Badge>
+                {match.trust?.level === "approved" && (
+                  <Badge className="gap-1 border-primary/40 bg-primary/15 text-[10px] text-primary" variant="outline">
+                    <BadgeCheck className="size-3" /> GOGETTER Approved
+                  </Badge>
+                )}
+                {match.advisories?.some((a) => a.severity === "value-pick") && (
+                  <Badge className="gap-1 border-emerald-500/40 bg-emerald-500/15 text-[10px] text-emerald-300" variant="outline">
+                    <Trophy className="size-3" /> Value Pick
+                  </Badge>
+                )}
                 {l.sellerTenure && (
                   <span className="text-[10px] text-muted-foreground">{l.sellerTenure}</span>
                 )}
@@ -194,6 +205,14 @@ export function MatchCard({ match, rank, isTop, onSave, saved, saving }: MatchCa
               ))}
             </div>
           )}
+
+          {/* Curated knowledge: known defects, cautions, value picks */}
+          <AdvisoryCallout
+            advisories={match.advisories}
+            riskLevel={match.riskLevel}
+            trust={match.trust}
+            className="mt-3"
+          />
 
           {/* Fit bars */}
           <div className="mt-4 grid grid-cols-2 gap-x-5 gap-y-2 sm:grid-cols-3">

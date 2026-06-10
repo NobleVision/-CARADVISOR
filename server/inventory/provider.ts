@@ -1,5 +1,8 @@
 import type { BodyStyle, InventoryProvider, Listing, ListingPhoto } from "./types";
 import rawData from "./data.json" with { type: "json" };
+// Curated "buyer story" listings (reliability traps + proven value picks) live
+// in their own file so regenerating data.json never wipes them.
+import curatedData from "./data.curated.json" with { type: "json" };
 
 /**
  * Body-style -> representative studio image. Used as the honest fallback when a
@@ -69,7 +72,8 @@ let _cache: Listing[] | null = null;
 
 function loadListings(): Listing[] {
   if (_cache) return _cache;
-  const listings = (rawData as SeedRow[]).map((row) => {
+  const rows = [...(rawData as SeedRow[]), ...(curatedData as SeedRow[])];
+  const listings = rows.map((row) => {
     const { _photoKind, _photoCount, ...rest } = row;
     return { ...rest, photos: buildPhotos(row) } as Listing;
   });

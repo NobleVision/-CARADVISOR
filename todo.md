@@ -143,3 +143,49 @@
 - [ ] Encode WebM/AV1 variants of the landing clips for smaller transfers; consider lazy-loading non-first clips
 - [ ] Code-split the client bundle (the markdown/syntax-highlighter chunks make the initial JS large)
 - [ ] Replace the placeholder SVG poster with a real first-frame poster image
+
+## v5 — Buyer-First Co-Pilot (GOGETTER Reliability Index, hybrid search, trust & checklists)
+
+Built from the June 9, 2026 strategy meeting + the real-world car-search research notes ("Eric's playbook"). Theme: *Empowering Car Buyers via Intelligent Decision Support* · Feature: *Dual-Layer AI Scoring & Recommendation Engine* (macro layer live; micro/VIN-history layer remains the premium Tier-2 path).
+
+### Knowledge base (the proprietary macro layer)
+- [x] `server/knowledge/` — GOGETTER Reliability Index v1: 16 curated model-year entries (hard avoids: Nissan Jatco CVT 2007–17, Ford PowerShift 2011/12–18, Chevy Cruze/Sonic cooling, Hyundai/Kia Theta II + theft, Dodge Dart / Chrysler 200; caution: VW Jetta/Golf 2006–13 w/ 2.0T/1.4T escalation; value picks: Mazda3 SkyActiv, Honda Fit, Pontiac Vibe, Toyota Matrix, Scion xB, Ford Focus Duratec)
+- [x] Lookup with model-alias normalization ("MAZDA3"/"Mazda 3"), inclusive year ranges, engine-displacement rules (2.4L oil-burner downgrade, VW turbo escalation), and the manual-transmission exception (PowerShift/CVT warnings waive on a decoded manual)
+- [x] Golden rules + the three smart dealer questions exported for checklists and AI context
+- [x] Guard: knowledge entries must never match generic test-fixture models (Camry/Corolla/Accord) — pinned by tests
+
+### Scoring & matching integration
+- [x] `scoreVehicle` applies advisory deltas to the reliability subscore (floor 15), pushes plain-English notes, returns optional `advisories[]` + `riskLevel`; a non-waived hard avoid caps the overall score at D
+- [x] `matching.ts`: advisory-adjusted reliability fit + quality grade (same D cap), "Known issue:" / "GOGETTER value pick:" reasons, trust signal attached to every match
+- [x] `trust.ts`: rule-based GOGETTER Approved / flagged levels + the suspicious-deal detector (known-defect model priced too well for its age/mileage)
+- [x] Budget Buyer Mode: reliability-dial floor (70), value-pick boost, hard-avoid exclusion from the shortlist with an honest `hiddenAvoidCount`
+- [x] Optional `makes[]` hard filter (set via natural language), backward compatible with legacy saved-search criteria jsonb
+
+### Hybrid natural-language search
+- [x] `server/search/intent.ts` — LLM structured-output extraction with an always-on deterministic rules parser (price/$7k forms, ZIP vs. price disambiguation, distance, mileage caps, body/fuel/seller/makes, use cases, priority dials, auto Budget-Mode at ≤$10k)
+- [x] `find.parseIntent` procedure + FindMyCar textarea: "Interpret & set filters" visibly moves the existing controls, shows interpreted-as chips, removable make chips
+- [x] `searchText`/`useCase` flow into narratives ("Chosen with your situation in mind — a new/teen driver…")
+
+### Narratives, checklist, recalls, advisor
+- [x] LLM narrative prompt + deterministic fallback both consume advisories, trust, and use case (knowledge leads advantages/watchFor)
+- [x] `server/checklist.ts` + `find.checklist` + ChecklistCard — personalized pre-purchase action plan (history report, $150 PPI, 3 dealer questions + evasion rule, private-sale title/lien/payment, model-specific checks, insurance-quote-first for theft targets, high-mileage/regional items), copy-to-clipboard
+- [x] `server/recalls.ts` + `vehicle.recalls` + PublicRecords card — live NHTSA recall campaigns by make/model/year (verified live: 5 recalls for a 2014 Sentra), defensive parsing, 6h cache, null-safe
+- [x] Advisor chat context includes KNOWN MODEL ISSUES so answers cite the exact trap/value story for real decoded VINs too
+
+### UI
+- [x] AdvisoryCallout — "Don't walk away — RUN." banner (role=alert, motion-safe pulse) / amber caution / emerald value pick / manual-waiver good news; rendered on MatchCard and VehicleResult (incl. Compare)
+- [x] GOGETTER Approved + Value Pick badges on MatchCard; hidden-trouble-cars chip in the results summary bar
+- [x] Zero-result intelligence: validated one-click relaxations ("+N unlocks") that apply-and-rerun, plus curated value-pick alternatives linking to full reports
+- [x] Dual-layer caption under the score gauge (Layer 1 live · Layer 2 Premium coming soon)
+- [x] 12 curated demo listings (`data.curated.json`, concatenated by the provider so `genInventory.mjs` can't wipe them): the $5,500 low-mile Sentra trap, PowerShift Focus, Theta-II Elantra, Cruze, VW 2.5L, and the value picks — plus the "good ending" 2010 Elantra
+
+### Verification
+- [x] `pnpm check` clean · `pnpm test` 118 passing (54 existing + 64 new) · `pnpm build` succeeds (client + serverless bundles)
+- [x] Live HTTP smoke through the dev server: parseIntent (kitchen-sink teen-driver sentence) → search w/ Budget Mode (4 traps hidden, value picks ranked top, trust approved) → trap shortlist shows RUN + suspicious-deal → checklist for the Sentra (3 dealer questions) → live NHTSA recalls → demo login → Garage save round-trips advisories through jsonb (score capped 50/D)
+
+### Tier-2 follow-ups (deliberately deferred from the meeting)
+- [ ] Micro layer: real per-VIN history (Carfax/AutoCheck partnership or validated alternative sourcing) behind the premium tier — the acknowledged critical bottleneck (~$29–40/report retail)
+- [ ] Live licensed listings API behind the existing `InventoryProvider` boundary
+- [ ] Monetization: premium subscriptions (deep history, exports, priority alerts), non-conflicting affiliates (financing/insurance/warranty/repair), dealer "Trust Stamp" program, B2B auction/clearinghouse tooling
+- [ ] Crowdsourced prior-owner feedback ("Private Investigator") — opt-in, anonymized, consented
+- [ ] Marketing: problem→solution micro-drama commercial, shareable "My AI Car Find" cards, social engagement pipeline

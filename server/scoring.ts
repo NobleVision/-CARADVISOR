@@ -1,4 +1,5 @@
 import type { DecodedVehicle, ScoreBreakdown } from "../drizzle/schema";
+import { advisoryNote, findAdvisories, hasAvoidAdvisory, riskLevelFor } from "./knowledge/lookup";
 
 /**
  * Make-level reliability heuristics (0-100), derived from widely reported
@@ -40,6 +41,7 @@ const MAKE_RELIABILITY: Record<string, number> = {
   MITSUBISHI: 76,
   FIAT: 64,
   ALFA: 62,
+  SCION: 90, // Toyota sub-brand — Toyota powertrains throughout
 };
 
 const DEFAULT_RELIABILITY = 75;
@@ -74,13 +76,34 @@ export function scoreVehicle(vehicle: DecodedVehicle, mileage?: number): ScoreBr
 
   // 1. Reliability (make-based heuristic)
   const makeKey = vehicle.make.trim().toUpperCase();
-  const reliability =
+  let reliability =
     MAKE_RELIABILITY[makeKey] ??
     Object.entries(MAKE_RELIABILITY).find(([k]) => makeKey.includes(k))?.[1] ??
     DEFAULT_RELIABILITY;
   if (reliability >= 90) notes.push(`${vehicle.make} has an excellent long-term dependability reputation.`);
   else if (reliability >= 80) notes.push(`${vehicle.make} is generally considered above-average for reliability.`);
   else if (reliability < 68) notes.push(`${vehicle.make} historically carries higher ownership and repair risk.`);
+
+  // 1b. Curated model-year knowledge (GOGETTER Reliability Index): known
+  // defects pull the reliability subscore into failing territory; proven
+  // value picks earn a bonus. Negative deltas floor at 15 so the subscore
+  // stays meaningful rather than pinning to zero.
+  const advisories = Number.isFinite(year)
+    ? findAdvisories({
+        make: vehicle.make,
+        model: vehicle.model,
+        year,
+        transmissionStyle: vehicle.transmissionStyle,
+        engineDisplacementL: vehicle.engineDisplacementL,
+      })
+    : [];
+  for (const a of advisories) {
+    reliability =
+      a.appliedDelta < 0
+        ? Math.max(15, Math.min(100, reliability + a.appliedDelta))
+        : clamp(reliability + a.appliedDelta);
+    notes.push(advisoryNote(a));
+  }
 
   // 2. Safety (count of decoded driver-assist & airbag features)
   const safetyCount = vehicle.safetyFeatures.length;
@@ -133,10 +156,13 @@ export function scoreVehicle(vehicle: DecodedVehicle, mileage?: number): ScoreBr
     }
   }
 
-  // Weighted overall
-  const overall = clamp(
+  // Weighted overall. A documented catastrophic defect (non-waived "avoid"
+  // advisory) caps the overall at D territory — fresh tires and low miles
+  // can't outweigh a transmission that's known to die.
+  let overall = clamp(
     Math.round(reliability * 0.4 + safety * 0.2 + ageMileage * 0.28 + efficiency * 0.12),
   );
+  if (hasAvoidAdvisory(advisories)) overall = Math.min(overall, 50);
 
   return {
     overall,
@@ -146,5 +172,8 @@ export function scoreVehicle(vehicle: DecodedVehicle, mileage?: number): ScoreBr
     ageMileage: Math.round(ageMileage),
     efficiency: Math.round(efficiency),
     notes,
+    ...(advisories.length > 0
+      ? { advisories, riskLevel: riskLevelFor(advisories) }
+      : {}),
   };
 }

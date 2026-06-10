@@ -82,3 +82,63 @@ describe("scoreVehicle", () => {
     expect(result.notes.some((n) => n.toLowerCase().includes("mileage was not provided"))).toBe(true);
   });
 });
+
+describe("scoreVehicle — GOGETTER Reliability Index integration", () => {
+  it("penalizes a known-defect model into failing reliability territory", () => {
+    const trap = scoreVehicle(
+      makeVehicle({ make: "Nissan", model: "Sentra", modelYear: "2014", transmissionStyle: "CVT" }),
+    );
+    expect(trap.reliability).toBeLessThanOrEqual(40);
+    expect(trap.riskLevel).toBe("high");
+    expect(trap.advisories?.some((a) => a.id === "nissan-jatco-cvt")).toBe(true);
+    expect(trap.notes.some((n) => n.includes("Reliability Index"))).toBe(true);
+  });
+
+  it("waives an automatic-only defect for a decoded manual transmission", () => {
+    const manual = scoreVehicle(
+      makeVehicle({ make: "Nissan", model: "Sentra", modelYear: "2014", transmissionStyle: "Manual/Standard" }),
+    );
+    expect(manual.reliability).toBe(78); // Nissan make baseline, no penalty
+    expect(manual.riskLevel).toBe("clear");
+    expect(manual.advisories?.[0]?.waivedByManual).toBe(true);
+    expect(manual.notes.some((n) => n.toLowerCase().includes("manual"))).toBe(true);
+  });
+
+  it("rewards a curated value pick with a reliability bonus", () => {
+    const pick = scoreVehicle(
+      makeVehicle({ make: "Mazda", model: "Mazda3", modelYear: "2013", engineDisplacementL: "2.0" }),
+    );
+    expect(pick.reliability).toBeGreaterThanOrEqual(95);
+    expect(pick.riskLevel).toBe("clear");
+    expect(pick.notes.some((n) => n.includes("value pick"))).toBe(true);
+  });
+
+  it("scores a manual PowerShift-era Focus far above the automatic", () => {
+    const auto = scoreVehicle(
+      makeVehicle({ make: "Ford", model: "Focus", modelYear: "2014", transmissionStyle: "Automatic" }),
+    );
+    const manual = scoreVehicle(
+      makeVehicle({ make: "Ford", model: "Focus", modelYear: "2014", transmissionStyle: "Manual/Standard" }),
+    );
+    expect(manual.reliability).toBeGreaterThan(auto.reliability);
+    expect(auto.riskLevel).toBe("high");
+    expect(manual.riskLevel).toBe("clear");
+  });
+
+  it("attaches no advisories to vehicles outside the knowledge base", () => {
+    const baseline = scoreVehicle(makeVehicle()); // 2015 Honda Accord fixture
+    expect(baseline.advisories).toBeUndefined();
+    expect(baseline.riskLevel).toBeUndefined();
+  });
+
+  it("keeps the worst-case trap car within score bounds and grade mapping", () => {
+    const worst = scoreVehicle(
+      makeVehicle({ make: "Chevrolet", model: "Cruze", modelYear: "2011", safetyFeatures: [] }),
+      230000,
+    );
+    expect(worst.overall).toBeGreaterThanOrEqual(0);
+    expect(worst.overall).toBeLessThanOrEqual(100);
+    expect(worst.grade).toMatch(/^(A\+|A-|A|B\+|B-|B|C\+|C-|C|D|F)$/);
+    expect(worst.reliability).toBeGreaterThanOrEqual(15);
+  });
+});

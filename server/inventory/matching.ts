@@ -1,4 +1,7 @@
 import type { BuyerCriteria, Listing, RankedMatch } from "./types";
+import type { VehicleAdvisory } from "../knowledge/types";
+import { findAdvisories, hasAvoidAdvisory, normalizeModelKey, riskLevelFor } from "../knowledge/lookup";
+import { trustForListing } from "./trust";
 
 /**
  * Make-level reliability heuristics (0-100), kept in sync conceptually with
@@ -12,6 +15,7 @@ const MAKE_RELIABILITY: Record<string, number> = {
   RAM: 72, VOLKSWAGEN: 73, BMW: 72, "MERCEDES-BENZ": 71, AUDI: 71,
   VOLVO: 75, PORSCHE: 80, TESLA: 79, MINI: 70, "LAND ROVER": 62,
   JAGUAR: 63, CADILLAC: 73, LINCOLN: 76, MITSUBISHI: 76, FIAT: 64,
+  SCION: 90, // Toyota sub-brand — Toyota powertrains throughout
 };
 const DEFAULT_RELIABILITY = 75;
 const CURRENT_YEAR = 2026;
@@ -44,12 +48,31 @@ export function reliabilityForMake(make: string): number {
 }
 
 /**
+ * Curated knowledge lookup for a listing. Listings carry no transmission or
+ * engine data, so automatic-only defects apply conservatively with a
+ * verify-the-transmission note (exactly the caution a budget buyer needs).
+ */
+export function advisoriesForListing(listing: Listing): VehicleAdvisory[] {
+  return findAdvisories({ make: listing.make, model: listing.model, year: listing.year });
+}
+
+/** Apply knowledge-base deltas to a reliability figure (floored so it stays meaningful). */
+function applyAdvisoryDeltas(reliability: number, advisories: VehicleAdvisory[], floor: number): number {
+  let r = reliability;
+  for (const a of advisories) {
+    r = a.appliedDelta < 0 ? Math.max(floor, Math.min(100, r + a.appliedDelta)) : clamp(r + a.appliedDelta);
+  }
+  return r;
+}
+
+/**
  * GOGETTER quality score for a listing (0-100), derived from make reliability,
  * age, mileage-vs-expected, and fuel-type efficiency. Mirrors the VIN scoring
  * engine's spirit but operates on listing fields.
  */
 export function qualityScoreForListing(listing: Listing): { score: number; grade: string } {
-  const reliability = reliabilityForMake(listing.make);
+  const advisories = advisoriesForListing(listing);
+  const reliability = applyAdvisoryDeltas(reliabilityForMake(listing.make), advisories, 15);
   const age = Math.max(0, CURRENT_YEAR - listing.year);
 
   const expectedMiles = Math.max(1, age * 12000);
@@ -62,9 +85,12 @@ export function qualityScoreForListing(listing: Listing): { score: number; grade
   else if (listing.fuel === "Diesel") efficiency = 74;
   else efficiency = clamp(40 + listing.mpg * 1.1);
 
-  const overall = clamp(
+  let overall = clamp(
     Math.round(reliability * 0.45 + mileScore * 0.33 + efficiency * 0.22),
   );
+  // A documented catastrophic defect caps quality at D: great mileage can't
+  // outweigh a transmission that's known to die (buyer-first honesty).
+  if (hasAvoidAdvisory(advisories)) overall = Math.min(overall, 50);
   return { score: overall, grade: letterGrade(overall) };
 }
 
@@ -102,6 +128,24 @@ export function scoreListingFit(listing: Listing, c: BuyerCriteria): RankedMatch
   let reliabilityFit = reliabilityForMake(listing.make);
   if (reliabilityFit >= 90) reasons.push(`${listing.make} is known for excellent dependability.`);
   else if (reliabilityFit < 68) reasons.push(`${listing.make} carries higher repair risk — weigh carefully.`);
+
+  // Curated model-year knowledge (GOGETTER Reliability Index): known defects
+  // pull the fit down hard; proven value picks earn a bump (extra in Budget
+  // Buyer Mode, which exists precisely to surface them).
+  const advisories = advisoriesForListing(listing);
+  reliabilityFit = applyAdvisoryDeltas(reliabilityFit, advisories, 10);
+  const isValuePick = advisories.some((a) => a.severity === "value-pick");
+  for (const a of advisories) {
+    if (a.severity === "avoid" && !a.waivedByManual) {
+      reasons.push(`Known issue: ${a.title} — see the risk callout before visiting.`);
+    }
+  }
+  if (isValuePick) {
+    const pick = advisories.find((a) => a.severity === "value-pick");
+    reasons.unshift(`GOGETTER value pick: ${pick?.title ?? "proven budget choice"}.`);
+    if (c.budgetMode === true) reliabilityFit = clamp(reliabilityFit + 4);
+  }
+
   // New cars and franchise/CPO carry less ownership uncertainty; private sales
   // carry slightly more (no dealer warranty, unknown servicing).
   if (isNew) reliabilityFit = clamp(reliabilityFit + 6);
@@ -120,8 +164,10 @@ export function scoreListingFit(listing: Listing, c: BuyerCriteria): RankedMatch
   else if (listing.fuel === "Hybrid") reasons.push("Hybrid efficiency keeps fuel costs down.");
 
   // --- weighting from buyer dials ---
-  // priceVsReliability: 0 = price-first, 100 = reliability-first
-  const relW = c.priceVsReliability / 100; // 0..1
+  // priceVsReliability: 0 = price-first, 100 = reliability-first.
+  // Budget Buyer Mode floors the dial at 70: at budget price points,
+  // reliability matters more than the sticker (the golden rule).
+  const relW = Math.max(c.priceVsReliability, c.budgetMode === true ? 70 : 0) / 100; // 0..1
   const priceW = 1 - relW;
   const effPriority = c.efficiencyPriority / 100; // 0..1
 
@@ -159,6 +205,8 @@ export function scoreListingFit(listing: Listing, c: BuyerCriteria): RankedMatch
       mileage: Math.round(mileageFit),
     },
     reasons,
+    ...(advisories.length > 0 ? { advisories, riskLevel: riskLevelFor(advisories) } : {}),
+    trust: trustForListing(listing, advisories),
   };
 }
 
@@ -174,7 +222,16 @@ export function passesHardFilters(listing: Listing, c: BuyerCriteria): boolean {
   if (c.bodyStyles?.length > 0 && !c.bodyStyles.includes(listing.bodyStyle)) return false;
   if (c.fuels?.length > 0 && !c.fuels.includes(listing.fuel)) return false;
   if (c.sellerTypes && c.sellerTypes.length > 0 && listing.sellerType && !c.sellerTypes.includes(listing.sellerType)) return false;
+  // Optional make preference (from natural-language search); absent = any.
+  if (c.makes && c.makes.length > 0 && !c.makes.some((mk) => normalizeModelKey(mk) === normalizeModelKey(listing.make))) {
+    return false;
+  }
   return true;
+}
+
+/** True when a ranked match is a knowledge-base hard avoid (not waived). */
+export function isHighRiskMatch(m: RankedMatch): boolean {
+  return m.riskLevel === "high";
 }
 
 /**
@@ -188,12 +245,17 @@ export function rankInventory(
   limit = 5,
 ): RankedMatch[] {
   const eligible = inventory.filter((l) => passesHardFilters(l, criteria));
-  const ranked = eligible
-    .map((l) => scoreListingFit(l, criteria))
-    .sort((a, b) => {
-      if (b.matchScore !== a.matchScore) return b.matchScore - a.matchScore;
-      if (b.qualityScore !== a.qualityScore) return b.qualityScore - a.qualityScore;
-      return a.listing.price - b.listing.price;
-    });
+  let ranked = eligible.map((l) => scoreListingFit(l, criteria));
+  // Budget Buyer Mode: known-defect models never make the shortlist. The
+  // eligible count upstream still includes them so the UI can say honestly
+  // how many trouble cars were hidden.
+  if (criteria.budgetMode === true) {
+    ranked = ranked.filter((m) => !isHighRiskMatch(m));
+  }
+  ranked.sort((a, b) => {
+    if (b.matchScore !== a.matchScore) return b.matchScore - a.matchScore;
+    if (b.qualityScore !== a.qualityScore) return b.qualityScore - a.qualityScore;
+    return a.listing.price - b.listing.price;
+  });
   return ranked.slice(0, limit);
 }

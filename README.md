@@ -17,7 +17,14 @@ GOGETTER AI Used Car Advisor is a premium web application that helps shoppers de
 | Contact Seller | Ready-to-send message templates tailored for a private owner vs. a dealership (inquiry, offer, inspection, paperwork), with copy/email and optional AI personalization. |
 | New-Car Trim Configurator | Pick a trim and option packages; price, MSRP, efficiency, and the GOGETTER quality score recompute live (safety packages feed the score). |
 | Price-Drop Tracker & Alerts | Saved cars track their price (with a sparkline); saved searches and price drops surface as in-app notifications, refreshed by a scheduled monitor. |
-| Premium Teaser Panel | Previews Carfax/CarGurus-sourced accident history, ownership count, and market value behind a blurred, clearly-labeled "coming soon" panel. |
+| GOGETTER Reliability Index | A curated, versioned knowledge base of model-year-specific defects (Nissan Jatco CVT, Ford PowerShift, Hyundai Theta II…) and proven budget value picks (SkyActiv Mazda3, Honda Fit, Pontiac Vibe…) that feeds the score, the match ranking, the narratives, the advisor, and the checklists. Known defects cap a car's quality grade at D and trigger a "Don't walk away — RUN" callout; manual-transmission exceptions are handled (PowerShift/CVT warnings waive on a decoded manual). |
+| Hybrid Natural-Language Search | Describe the need in plain English ("a safe, efficient car under $7k for my 15-year-old new driver within 30 miles of 22030") and the filters visibly set themselves — LLM-extracted when configured, with an always-on deterministic rules parser. Detected use cases (teen driver, commuter, family…) personalize the recommendations. |
+| Budget Buyer Mode | One toggle productizes the budget golden rules: hides models with documented serious defects (reporting exactly how many were hidden), boosts curated value picks, and weights reliability heavily — because at budget prices, maintenance history beats brand name. |
+| Seller Trust Signals | Rule-based "GOGETTER Approved" badges (real seller photos, tenure/CPO, franchise standing) and red flags — including a suspicious-deal detector for known-defect models priced too well for their age/mileage ("the seller may know what's coming"). |
+| Pre-Purchase Action Plan | A personalized, copyable checklist per car: history report, ~$150 independent PPI, the three smart dealer questions to ask by phone (exact processing fee / send the history report now / absolute out-the-door price), private-sale title/lien steps, and model-specific checks from the Reliability Index. |
+| Free Public Records (NHTSA Recalls) | Open recall campaigns pulled live from NHTSA's free public database for any make/model/year, with remedies and campaign numbers — the first live slice of the per-vehicle "micro layer". |
+| Smart Zero-Result Guidance | When filters return nothing, the engine proposes one-click relaxations that are validated against inventory ("Widen the radius to 100 miles · +7") and surfaces curated value picks just outside the current filters. |
+| Premium Teaser Panel | Previews Carfax/CarGurus-sourced accident history, ownership count, and market value behind a blurred, clearly-labeled "coming soon" panel — framed as Layer 2 of the dual-layer score (Layer 1, model-level intelligence, is live today). |
 
 ## How It Works
 
@@ -36,7 +43,18 @@ flowchart TD
     F --> L[Compare page: decode multiple VINs side by side]
 ```
 
-The decode procedure normalizes the NHTSA response into a `DecodedVehicle`, the scoring engine derives a weighted overall score (reliability 40%, age & mileage 28%, safety 20%, efficiency 12%), and the advisor passes both objects to the LLM as structured context so its answers stay specific to the looked-up car.
+The decode procedure normalizes the NHTSA response into a `DecodedVehicle`, the scoring engine derives a weighted overall score (reliability 40%, age & mileage 28%, safety 20%, efficiency 12%), and the advisor passes both objects to the LLM as structured context so its answers stay specific to the looked-up car. The **GOGETTER Reliability Index** (`server/knowledge/`) adjusts the reliability subscore per model-year — hard avoids land in failing territory and cap the overall at D; curated value picks earn a bonus — and its advisories ride along on the score so the UI, advisor, and Garage all stay consistent.
+
+## Replicating Eric's Successful Car-Buying Experience
+
+This app productizes a real, successful used-car purchase that was researched manually with AI. The buyer needed a safe budget car for a new teen driver; hours of research surfaced the patterns now encoded in the Reliability Index:
+
+- **The golden rule:** under ~$7,000, owner maintenance history matters more than brand name — a well-maintained Ford or Hyundai beats a neglected Toyota.
+- **The traps:** suspiciously cheap, newer, low-mileage examples of known-defect models (2007–2017 automatic Nissans, 2012+ automatic Ford Focus/Fiesta, 2011–2016 Hyundai Elantra/Kia Forte…) are cheap because the seller can see the failure coming. The app flags these with a "Don't walk away — RUN" callout and a suspicious-deal warning.
+- **The bargains:** value picks that dodge the "Toyota/Honda tax" — SkyActiv Mazda3, Honda Fit Magic Seats, the Pontiac Vibe (a Toyota Matrix at a dead-brand discount), Scion xB, and the 2008–2011 Duratec Ford Focus.
+- **The process:** pull the history report first, ask the dealer three exact questions by phone before driving over, spend ~$150 on an independent pre-purchase inspection, and get an insurance quote *before* buying a theft-target model. Every recommended car ships with this checklist, personalized.
+
+Try it: open **Find My Car**, paste *"a safe, efficient car under $7k for my 15-year-old new driver within 30 miles of 22030"*, hit **Interpret & set filters**, and search — with and without **Budget Buyer Mode**.
 
 ## Tech Stack
 
@@ -61,17 +79,24 @@ A licensed real-listings API (the provider boundary is ready), live Carfax/CarGu
 | Path | Responsibility |
 | --- | --- |
 | `server/vin.ts` | VIN validation and NHTSA vPIC decoding. |
-| `server/scoring.ts` | The explainable vehicle scoring engine. |
-| `server/advisor.ts` | LLM advisor prompt construction and invocation. |
-| `server/routers/vehicle.ts` | tRPC procedures: decode, advisor, save/unsave, history. |
+| `server/scoring.ts` | The explainable vehicle scoring engine (knowledge-adjusted). |
+| `server/knowledge/` | The GOGETTER Reliability Index: curated model-year entries (`data.ts`), lookup with alias/year/engine/manual-transmission handling (`lookup.ts`). |
+| `server/search/intent.ts` | Natural-language → criteria parsing (LLM structured output + deterministic rules fallback). |
+| `server/checklist.ts` | Deterministic, personalized pre-purchase checklist builder. |
+| `server/recalls.ts` | Free NHTSA recall lookup (timeout, cache, null-safe). |
+| `server/inventory/trust.ts` | Rule-based seller trust signals + suspicious-deal detector. |
+| `server/inventory/data.curated.json` | Curated demo listings (reliability traps + value picks) kept separate so regenerating `data.json` never wipes them. |
+| `server/advisor.ts` | LLM advisor prompt construction and invocation (knowledge-aware). |
+| `server/routers/vehicle.ts` | tRPC procedures: decode, advisor, recalls, save/unsave, history. |
+| `server/routers/find.ts` | Discovery: search, parseIntent, checklist, facets, saved searches. |
 | `server/db.ts` | Query helpers for history and saved vehicles. |
-| `drizzle/schema.ts` | Database tables and shared decoded/score types. |
-| `client/src/pages/` | Home, Compare, History, Saved, Premium, VehicleDetail. |
-| `client/src/components/` | NavBar, VinSearchForm, VehicleResult, ScoreGauge, AdvisorChat, PremiumTeaser. |
+| `drizzle/schema.ts` | Database tables and shared decoded/score/advisory types. |
+| `client/src/pages/` | Home, FindMyCar, Compare, History, Saved, Premium, VehicleDetail. |
+| `client/src/components/` | NavBar, VinSearchForm, VehicleResult, ScoreGauge, AdvisorChat, MatchCard, AdvisoryCallout, ChecklistCard, PublicRecords, PremiumTeaser. |
 
 ## Testing
 
-Run the suite with `pnpm test`. Coverage includes VIN structural validation (`server/vin.test.ts`), the scoring engine's bounds, grade mapping, reliability/safety/efficiency/mileage behavior (`server/scoring.test.ts`), and the auth logout flow.
+Run the suite with `pnpm test` (118 tests). Coverage includes VIN structural validation, the scoring engine's bounds/grade mapping and its knowledge-base integration (trap penalties, value-pick bonuses, manual-transmission waivers), the Reliability Index lookup semantics, inventory matching with Budget Buyer Mode and trust signals, the deterministic intent parser, the checklist builder, NHTSA recall fetching (mocked), router-level backward compatibility for legacy saved-search criteria, and the auth flows.
 
 ## Disclaimers
 

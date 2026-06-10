@@ -159,6 +159,448 @@ async function decodeVin(vinInput, modelYear) {
   };
 }
 
+// server/knowledge/data.ts
+var KNOWLEDGE_VERSION = "GOGETTER Reliability Index v1";
+var GOLDEN_RULES = [
+  "At budget price points (under ~$7,000), owner maintenance history matters more than brand name \u2014 a well-maintained Ford or Hyundai will treat you better than a neglected Toyota.",
+  "A suspiciously cheap, newer, low-mileage example of a known-defect model is cheap for a reason \u2014 the current owner may know what's coming. Walk away.",
+  "Spend ~$150 on a pre-purchase inspection (PPI) by an independent mechanic before handing over cash \u2014 it catches hidden rust, fluid leaks, and masked check-engine lights.",
+  "Pull a vehicle history report (Carfax/AutoCheck) and confirm a clean title \u2014 a rebuilt or salvage title can make the car uninsurable or wildly expensive to insure."
+];
+var DEALER_QUESTIONS = [
+  "What is your exact dealer processing fee?",
+  "Can you send me the vehicle history report right now, before I come in?",
+  "What is the absolute total out-the-door price if I write a check today?"
+];
+var DEALER_EVASION_RULE = 'If they evade these questions or say "you have to come in to see" \u2014 walk away. At budget price points, a hidden $1,000 dealer fee ruins the deal.';
+var KNOWLEDGE_ENTRIES = [
+  // ───────────────────────── VALUE PICKS ─────────────────────────
+  {
+    id: "mazda3-skyactiv",
+    make: "Mazda",
+    models: ["Mazda3", "Mazda 3"],
+    yearFrom: 2012,
+    yearTo: 2014,
+    severity: "value-pick",
+    categories: ["value", "rust"],
+    title: "SkyActiv-era Mazda3 \u2014 Corolla reliability without the Toyota tax",
+    detail: "The 2012\u20132014 Mazda3 matches a Corolla for reliability but avoids the pricing premium. SkyActiv engines are excellent on gas and mechanically bulletproof, and it comes in sedan and versatile hatchback styles.",
+    whyBuy: [
+      "Fun to drive with sharp styling \u2014 rare at this price.",
+      "SkyActiv engine: efficient and mechanically bulletproof.",
+      "Avoids the inflated 'Toyota/Honda tax' on used prices."
+    ],
+    watchFor: [
+      "Check the underbody for rust if it lived in the rust belt (2012+ is much better protected than older Mazdas)."
+    ],
+    scoreDelta: 8,
+    checklistItems: ["Inspect the underbody and wheel arches for rust, especially on rust-belt cars."]
+  },
+  {
+    id: "honda-fit-magic-seats",
+    make: "Honda",
+    models: ["Fit"],
+    yearFrom: 2009,
+    yearTo: 2013,
+    severity: "value-pick",
+    categories: ["value", "maintenance"],
+    title: "Second-gen Honda Fit \u2014 small-SUV cargo space in a tiny footprint",
+    detail: "Honda's 'Magic Seats' fold flat or flip up, creating cargo room that rivals small SUVs. Stellar gas mileage and incredibly easy to park. Basic interior and highway noise are the honest trade-offs.",
+    whyBuy: [
+      "Magic Seats: cargo flexibility that rivals small SUVs.",
+      "Stellar gas mileage; easy to park and maneuver."
+    ],
+    watchFor: [
+      "Confirm the spark plugs have been serviced \u2014 they are known to loosen over time on this generation.",
+      "Basic interior and noticeable highway noise \u2014 judge on a highway test drive."
+    ],
+    scoreDelta: 8,
+    checklistItems: ["Ask when the spark plugs were last serviced (known to loosen on this generation)."]
+  },
+  {
+    id: "pontiac-vibe-toyota-twin",
+    make: "Pontiac",
+    models: ["Vibe"],
+    yearFrom: 2009,
+    yearTo: 2010,
+    severity: "value-pick",
+    categories: ["value", "engine"],
+    title: "Pontiac Vibe \u2014 a Toyota Matrix at a dead-brand discount",
+    detail: "Under the Pontiac badge, the Vibe is entirely a Toyota Matrix \u2014 same frame, engine, and transmission. Because the Pontiac brand no longer exists, it often sells for thousands less than the identical Toyota.",
+    whyBuy: [
+      "Mechanically identical to the Toyota Matrix \u2014 same frame, engine, transmission.",
+      "Dead-brand discount: often thousands cheaper than the Toyota twin."
+    ],
+    watchFor: ["Prefer the 1.8L engine \u2014 the optional 2.4L in some trims is known to consume oil."],
+    engineRules: [
+      {
+        displacements: ["2.4"],
+        severityOverride: "caution",
+        deltaOverride: -12,
+        note: "This one has the 2.4L, which is known to consume oil \u2014 check the dipstick and service records."
+      }
+    ],
+    scoreDelta: 12,
+    checklistItems: ["Confirm which engine it has \u2014 prefer the 1.8L; the 2.4L is known to consume oil."]
+  },
+  {
+    id: "toyota-matrix-twin",
+    make: "Toyota",
+    models: ["Matrix", "Corolla Matrix"],
+    yearFrom: 2009,
+    yearTo: 2010,
+    severity: "value-pick",
+    categories: ["value", "engine"],
+    title: "Toyota Matrix \u2014 practical Corolla-based hatch (the Vibe's twin)",
+    detail: "The Matrix shares its frame, engine, and transmission with the Pontiac Vibe. Toyota reliability in a practical hatchback body; the Vibe twin is often even cheaper if you can find one.",
+    whyBuy: [
+      "Toyota powertrain reliability in a practical hatchback.",
+      "Check the identical Pontiac Vibe too \u2014 usually thousands cheaper."
+    ],
+    watchFor: ["Prefer the 1.8L engine \u2014 the optional 2.4L is known to consume oil."],
+    engineRules: [
+      {
+        displacements: ["2.4"],
+        severityOverride: "caution",
+        deltaOverride: -12,
+        note: "This one has the 2.4L, which is known to consume oil \u2014 check the dipstick and service records."
+      }
+    ],
+    scoreDelta: 8,
+    checklistItems: ["Confirm which engine it has \u2014 prefer the 1.8L; the 2.4L is known to consume oil."]
+  },
+  {
+    id: "scion-xb-toyota-bargain",
+    make: "Scion",
+    models: ["xB"],
+    yearFrom: 2010,
+    yearTo: 2014,
+    severity: "value-pick",
+    categories: ["value", "engine"],
+    title: "Scion xB \u2014 Toyota powertrain, discontinued-brand depreciation",
+    detail: "Scion was Toyota's youth sub-brand; because it was discontinued, these depreciate faster than Toyotas, making them used bargains. Standard Toyota powertrains keep them reliable and cheap to fix, and the boxy shape offers massive headroom and cargo space.",
+    whyBuy: [
+      "Standard Toyota powertrain \u2014 reliable and cheap to fix.",
+      "Boxy shape = massive headroom and cargo space.",
+      "Discontinued-brand depreciation makes it a genuine bargain."
+    ],
+    watchFor: [
+      "The 2.4L engine can burn oil \u2014 check the dipstick and ask for oil-change records."
+    ],
+    scoreDelta: 8,
+    checklistItems: ["Check the dipstick level and ask for oil-change records (2.4L can burn oil)."]
+  },
+  {
+    id: "ford-focus-duratec",
+    make: "Ford",
+    models: ["Focus"],
+    yearFrom: 2008,
+    yearTo: 2011,
+    severity: "value-pick",
+    categories: ["value"],
+    title: "2008\u20132011 Ford Focus \u2014 plain, durable, and underpriced",
+    detail: "This generation uses the highly resilient 2.0L Duratec engine and a traditional, durable automatic \u2014 NOT the later PowerShift. Without a Japanese badge, these often have far lower mileage than a Civic or Corolla at the same price.",
+    whyBuy: [
+      "Resilient 2.0L Duratec engine and a traditional, durable automatic.",
+      "Often much lower mileage than a same-price Civic or Corolla."
+    ],
+    watchFor: [
+      "This value applies ONLY to 2008\u20132011 \u2014 the 2012+ automatic Focus has the defective PowerShift transmission."
+    ],
+    scoreDelta: 6
+  },
+  // ───────────────────────── HARD AVOIDS ─────────────────────────
+  {
+    id: "ford-focus-powershift",
+    make: "Ford",
+    models: ["Focus"],
+    yearFrom: 2012,
+    yearTo: 2018,
+    severity: "avoid",
+    categories: ["transmission"],
+    title: "PowerShift dual-clutch transmission failure (automatic)",
+    detail: "The automatic 'PowerShift' dual-clutch in 2012\u20132018 Focuses is fundamentally defective: it shudders, stalls, loses power on the highway, and fails completely. Ford faced massive class-action lawsuits. A $3,000\u2013$4,000 replacement tends to fail again.",
+    watchFor: [
+      "If it's the automatic, walk away \u2014 replacements fail again.",
+      "On any test drive: shuddering, hesitation, or clunky low-speed shifts are the failure starting."
+    ],
+    transmissionCaveat: {
+      manualIsFine: true,
+      note: "The manual-transmission versions are actually great and highly reliable \u2014 this warning only applies to the automatic. Verify the transmission before you go."
+    },
+    scoreDelta: -45,
+    checklistItems: ["Verify the transmission type FIRST \u2014 automatic PowerShift is a dealbreaker; manual is fine."]
+  },
+  {
+    id: "ford-fiesta-powershift",
+    make: "Ford",
+    models: ["Fiesta"],
+    yearFrom: 2011,
+    yearTo: 2018,
+    severity: "avoid",
+    categories: ["transmission"],
+    title: "PowerShift dual-clutch transmission failure (automatic)",
+    detail: "Automatic 2011\u20132018 Fiestas use the same defective 'PowerShift' dual-clutch as the Focus: shuddering, stalling, total failure, and class-action lawsuits. These cars are incredibly cheap for a reason.",
+    watchFor: [
+      "If it's the automatic, walk away \u2014 replacements fail again.",
+      "On any test drive: shuddering or hesitation at low speed is the failure starting."
+    ],
+    transmissionCaveat: {
+      manualIsFine: true,
+      note: "The manual-transmission versions are actually great and highly reliable \u2014 this warning only applies to the automatic. Verify the transmission before you go."
+    },
+    scoreDelta: -45,
+    checklistItems: ["Verify the transmission type FIRST \u2014 automatic PowerShift is a dealbreaker; manual is fine."]
+  },
+  {
+    id: "nissan-jatco-cvt",
+    make: "Nissan",
+    models: ["Sentra", "Versa", "Altima"],
+    yearFrom: 2007,
+    yearTo: 2017,
+    severity: "avoid",
+    categories: ["transmission"],
+    title: "Jatco CVT transmission failure (automatic)",
+    detail: "Nissan's early CVT automatics in this era are notoriously fragile: overheating, whining, slipping, and sudden death \u2014 frequently before 120,000 miles. Replacement costs upwards of $4,000, often more than the car is worth.",
+    watchFor: [
+      "CVTs in this era frequently fail before 120k miles \u2014 a $4,000+ repair.",
+      "On a test drive: whining, rubber-band acceleration, or shuddering means the CVT is dying."
+    ],
+    transmissionCaveat: {
+      manualIsFine: true,
+      note: "Manual-transmission versions are fine \u2014 this warning applies to every automatic Nissan of this era. Verify the transmission before you go."
+    },
+    scoreDelta: -45,
+    checklistItems: [
+      "Verify the transmission type FIRST \u2014 automatic (CVT) is a dealbreaker; manual is fine.",
+      "If you still test drive it: listen for CVT whine and feel for slipping under acceleration."
+    ]
+  },
+  {
+    id: "chevy-cruze-cooling",
+    make: "Chevrolet",
+    models: ["Cruze"],
+    yearFrom: 2011,
+    yearTo: 2016,
+    severity: "avoid",
+    categories: ["cooling", "engine"],
+    title: "Chronic coolant leaks, head gaskets, and 1.4L turbo failures",
+    detail: "First-generation Cruzes are notorious money pits: cracked plastic coolant housings, blown head gaskets, failing water pumps, and turbocharger failures on the 1.4L. You fix one leak just to find another the next week.",
+    watchFor: [
+      "Check for coolant smell, low coolant, or white exhaust smoke \u2014 endemic cooling failures.",
+      "1.4L turbo failures are common; listen for whining or check for oil in the intake."
+    ],
+    scoreDelta: -45,
+    checklistItems: ["Have the PPI pressure-test the cooling system \u2014 cracked coolant housings are endemic."]
+  },
+  {
+    id: "chevy-sonic-cooling",
+    make: "Chevrolet",
+    models: ["Sonic"],
+    yearFrom: 2012,
+    yearTo: 2018,
+    severity: "avoid",
+    categories: ["cooling", "engine"],
+    title: "Chronic fluid leaks and cooling-system failures",
+    detail: "The Sonic shares the Cruze's failure patterns: cracked coolant housings, water pumps, head gaskets, and 1.4L turbo trouble. Cheap to buy, expensive to keep alive.",
+    watchFor: [
+      "Check for coolant smell, low coolant, or crusty residue around plastic cooling parts.",
+      "Budget for repeated small leaks even if it passes inspection today."
+    ],
+    scoreDelta: -45,
+    checklistItems: ["Have the PPI pressure-test the cooling system \u2014 cracked coolant housings are endemic."]
+  },
+  {
+    id: "hyundai-elantra-theta",
+    make: "Hyundai",
+    models: ["Elantra"],
+    yearFrom: 2011,
+    yearTo: 2016,
+    severity: "avoid",
+    categories: ["engine", "theft"],
+    title: "Theta II/Nu engine failure + extreme theft risk",
+    detail: "This generation's engines are prone to piston slap and sudden seizure from manufacturing debris blocking oil flow. Worse, these years lack an engine immobilizer ('Kia Boys' era) \u2014 they're trivially easy to steal, so insurance is astronomically expensive if you can get covered at all.",
+    watchFor: [
+      "Engine can seize without warning \u2014 listen for ticking/knocking at startup.",
+      "No immobilizer: prime theft target, so get an insurance quote BEFORE buying.",
+      "Check for severe oil consumption between changes."
+    ],
+    scoreDelta: -45,
+    checklistItems: [
+      "Get an insurance quote BEFORE buying \u2014 no-immobilizer years are theft magnets and can be brutal to insure.",
+      "Ask whether the engine was ever replaced under Hyundai's Theta II recall/extended warranty."
+    ]
+  },
+  {
+    id: "kia-forte-theta",
+    make: "Kia",
+    models: ["Forte"],
+    yearFrom: 2011,
+    yearTo: 2016,
+    severity: "avoid",
+    categories: ["engine", "theft"],
+    title: "Theta II/Nu engine failure + extreme theft risk",
+    detail: "Same story as the sibling Elantra: engines prone to rod-bearing failure and seizure, plus no engine immobilizer in these years \u2014 a favorite of the 'Kia Boys' theft trend, which makes insurance astronomically expensive.",
+    watchFor: [
+      "Engine can seize without warning \u2014 listen for ticking/knocking at startup.",
+      "No immobilizer: prime theft target, so get an insurance quote BEFORE buying."
+    ],
+    scoreDelta: -45,
+    checklistItems: [
+      "Get an insurance quote BEFORE buying \u2014 no-immobilizer years are theft magnets and can be brutal to insure.",
+      "Ask whether the engine was ever replaced under Kia's engine recall/extended warranty."
+    ]
+  },
+  {
+    id: "dodge-dart-electrical",
+    make: "Dodge",
+    models: ["Dart"],
+    yearFrom: 2013,
+    yearTo: 2016,
+    severity: "avoid",
+    categories: ["electrical", "parts"],
+    title: "Electrical gremlins, stalling, and vanishing parts supply",
+    detail: "Fiat-Chrysler's Italian-architecture compacts were disastrous: severe electrical glitches, random stalling, and premature suspension failure. The Dart was discontinued quickly, so parts are getting harder to find.",
+    watchFor: [
+      "Electrical glitches and random stalling are the signature failures.",
+      "Parts availability is shrinking \u2014 repairs take longer and cost more."
+    ],
+    scoreDelta: -45
+  },
+  {
+    id: "chrysler-200-electrical",
+    make: "Chrysler",
+    models: ["200"],
+    yearFrom: 2011,
+    yearTo: 2017,
+    severity: "avoid",
+    categories: ["electrical", "parts"],
+    title: "Electrical nightmares and poor build quality",
+    detail: "The Chrysler 200 shares the Dart's disastrous reliability record: electrical faults, stalling, and premature suspension wear, with a shrinking parts supply after its quick discontinuation.",
+    watchFor: [
+      "Electrical glitches and random stalling are the signature failures.",
+      "Premature suspension wear \u2014 listen for clunks over bumps."
+    ],
+    scoreDelta: -45
+  },
+  // ───────────────────────── CAUTION ─────────────────────────
+  {
+    id: "vw-jetta-golf-budget",
+    make: "Volkswagen",
+    models: ["Jetta", "Golf"],
+    yearFrom: 2006,
+    yearTo: 2013,
+    severity: "caution",
+    categories: ["engine", "maintenance", "parts"],
+    title: "German maintenance costs \u2014 and turbo timing-chain roulette",
+    detail: "A $6,500 Jetta feels premium but requires strict, expensive upkeep: German parts and labor cost roughly double a Japanese car. The 2.5L 5-cylinder is genuinely reliable; the 2.0T/1.4T turbos are not \u2014 skipped oil changes stretch the timing chain and destroy the engine.",
+    watchFor: [
+      "Demand complete oil-change records \u2014 skipped changes on turbo engines stretch the timing chain.",
+      "Budget roughly double for parts and labor versus a Japanese rival.",
+      "The 2.5L 5-cylinder is the reliable engine choice in this era."
+    ],
+    engineRules: [
+      {
+        displacements: ["2.0", "1.4"],
+        severityOverride: "avoid",
+        deltaOverride: -45,
+        note: "This one has the turbo engine \u2014 timing-chain stretch destroys these engines when oil changes were skipped. Walk away without complete service records."
+      }
+    ],
+    scoreDelta: -15,
+    checklistItems: ["Require complete oil-change records \u2014 turbo timing chains die from skipped maintenance."]
+  }
+];
+
+// server/knowledge/lookup.ts
+function normalizeModelKey(s) {
+  return s.toUpperCase().replace(/[^A-Z0-9]/g, "");
+}
+function makeMatches(queryMake, entryMake) {
+  const q = normalizeModelKey(queryMake);
+  const e = normalizeModelKey(entryMake);
+  return q === e || q.includes(e);
+}
+function modelMatches(queryModel, aliases) {
+  const q = normalizeModelKey(queryModel);
+  if (!q) return false;
+  return aliases.some((a) => {
+    const alias = normalizeModelKey(a);
+    return q === alias || q.startsWith(alias);
+  });
+}
+function isManual(transmissionStyle) {
+  return /manual/i.test(transmissionStyle ?? "");
+}
+function displacementMatches(queryDisp, ruleDisps) {
+  const q = parseFloat(queryDisp ?? "");
+  if (!Number.isFinite(q)) return false;
+  return ruleDisps.some((d) => {
+    const r = parseFloat(d);
+    return Number.isFinite(r) && q.toFixed(1) === r.toFixed(1);
+  });
+}
+function toAdvisory(entry, q) {
+  let severity = entry.severity;
+  let delta = entry.scoreDelta;
+  let detail = entry.detail;
+  const engineRule = entry.engineRules?.find((r) => displacementMatches(q.engineDisplacementL, r.displacements));
+  if (engineRule) {
+    severity = engineRule.severityOverride ?? severity;
+    delta = engineRule.deltaOverride ?? delta;
+    detail = `${detail} ${engineRule.note}`;
+  }
+  let waivedByManual = false;
+  let transmissionNote;
+  if (entry.transmissionCaveat?.manualIsFine && delta < 0) {
+    if (isManual(q.transmissionStyle)) {
+      waivedByManual = true;
+      delta = 0;
+    } else {
+      transmissionNote = entry.transmissionCaveat.note;
+    }
+  }
+  return {
+    id: entry.id,
+    severity,
+    title: entry.title,
+    detail,
+    watchFor: entry.watchFor,
+    ...entry.whyBuy ? { whyBuy: entry.whyBuy } : {},
+    ...transmissionNote ? { transmissionNote } : {},
+    ...waivedByManual ? { waivedByManual: true } : {},
+    appliedDelta: delta,
+    source: KNOWLEDGE_VERSION
+  };
+}
+function findAdvisories(q) {
+  if (!q.make || !q.model || !Number.isFinite(q.year)) return [];
+  return KNOWLEDGE_ENTRIES.filter(
+    (e) => makeMatches(q.make, e.make) && modelMatches(q.model, e.models) && q.year >= e.yearFrom && q.year <= e.yearTo
+  ).map((e) => toAdvisory(e, q));
+}
+function riskLevelFor(advisories) {
+  if (advisories.some((a) => a.severity === "avoid" && !a.waivedByManual)) return "high";
+  if (advisories.some((a) => a.severity === "caution" && !a.waivedByManual)) return "caution";
+  return "clear";
+}
+function advisoryNote(a) {
+  if (a.waivedByManual) {
+    return `${a.title} affects automatics only \u2014 this one decodes as a manual, the reliable configuration (${a.source}).`;
+  }
+  switch (a.severity) {
+    case "avoid":
+      return `Known defect for this model year range: ${a.title} (${a.source}).`;
+    case "caution":
+      return `Verify before buying: ${a.title} (${a.source}).`;
+    case "value-pick":
+      return `GOGETTER value pick: ${a.title} (${a.source}).`;
+  }
+}
+function hasAvoidAdvisory(advisories) {
+  return advisories.some((a) => a.severity === "avoid" && !a.waivedByManual);
+}
+
 // server/scoring.ts
 var MAKE_RELIABILITY = {
   TOYOTA: 95,
@@ -194,7 +636,9 @@ var MAKE_RELIABILITY = {
   LINCOLN: 76,
   MITSUBISHI: 76,
   FIAT: 64,
-  ALFA: 62
+  ALFA: 62,
+  SCION: 90
+  // Toyota sub-brand — Toyota powertrains throughout
 };
 var DEFAULT_RELIABILITY = 75;
 function letterGrade(score) {
@@ -219,10 +663,21 @@ function scoreVehicle(vehicle, mileage) {
   const year = parseInt(vehicle.modelYear, 10);
   const age = Number.isFinite(year) ? Math.max(0, currentYear - year) : 8;
   const makeKey = vehicle.make.trim().toUpperCase();
-  const reliability = MAKE_RELIABILITY[makeKey] ?? Object.entries(MAKE_RELIABILITY).find(([k]) => makeKey.includes(k))?.[1] ?? DEFAULT_RELIABILITY;
+  let reliability = MAKE_RELIABILITY[makeKey] ?? Object.entries(MAKE_RELIABILITY).find(([k]) => makeKey.includes(k))?.[1] ?? DEFAULT_RELIABILITY;
   if (reliability >= 90) notes.push(`${vehicle.make} has an excellent long-term dependability reputation.`);
   else if (reliability >= 80) notes.push(`${vehicle.make} is generally considered above-average for reliability.`);
   else if (reliability < 68) notes.push(`${vehicle.make} historically carries higher ownership and repair risk.`);
+  const advisories = Number.isFinite(year) ? findAdvisories({
+    make: vehicle.make,
+    model: vehicle.model,
+    year,
+    transmissionStyle: vehicle.transmissionStyle,
+    engineDisplacementL: vehicle.engineDisplacementL
+  }) : [];
+  for (const a of advisories) {
+    reliability = a.appliedDelta < 0 ? Math.max(15, Math.min(100, reliability + a.appliedDelta)) : clamp(reliability + a.appliedDelta);
+    notes.push(advisoryNote(a));
+  }
   const safetyCount = vehicle.safetyFeatures.length;
   let safety = clamp(45 + safetyCount * 6);
   if (safetyCount >= 8) {
@@ -267,9 +722,10 @@ function scoreVehicle(vehicle, mileage) {
       else efficiency = 58;
     }
   }
-  const overall = clamp(
+  let overall = clamp(
     Math.round(reliability * 0.4 + safety * 0.2 + ageMileage * 0.28 + efficiency * 0.12)
   );
+  if (hasAvoidAdvisory(advisories)) overall = Math.min(overall, 50);
   return {
     overall,
     grade: letterGrade(overall),
@@ -277,7 +733,8 @@ function scoreVehicle(vehicle, mileage) {
     safety: Math.round(safety),
     ageMileage: Math.round(ageMileage),
     efficiency: Math.round(efficiency),
-    notes
+    notes,
+    ...advisories.length > 0 ? { advisories, riskLevel: riskLevelFor(advisories) } : {}
   };
 }
 
@@ -559,11 +1016,23 @@ function buildVehicleContext(vehicle, score, mileage) {
     `- Efficiency subscore: ${score.efficiency}/100`,
     `Engine notes: ${score.notes.join(" ")}`
   ].join("\n");
+  let knowledgeText = "";
+  if (score.advisories && score.advisories.length > 0) {
+    const lines = score.advisories.map((a) => {
+      if (a.waivedByManual) return `- WAIVED (manual transmission): ${a.title} \u2014 only affects automatics.`;
+      const head = a.severity === "value-pick" ? "VALUE PICK" : a.severity === "avoid" ? "KNOWN DEFECT" : "CAUTION";
+      return `- ${head}: ${a.title}. ${a.detail}${a.transmissionNote ? ` ${a.transmissionNote}` : ""}`;
+    });
+    knowledgeText = `
+
+KNOWN MODEL ISSUES (${score.advisories[0].source} \u2014 treat as ground truth, weave into advice):
+${lines.join("\n")}`;
+  }
   return `DECODED VEHICLE (source: NHTSA vPIC public VIN database):
 ${specs}
 
 GOGETTER SCORE BREAKDOWN:
-${scoreText}`;
+${scoreText}${knowledgeText}`;
 }
 var SYSTEM_PROMPT = `You are the GOGETTER AI Used Car Advisor \u2014 a sharp, trustworthy, and friendly expert who helps everyday buyers make confident used-car decisions.
 
@@ -604,6 +1073,63 @@ async function getAdvisorReply(args) {
     if (text2) return text2;
   }
   throw new Error("The advisor could not generate a response. Please try again.");
+}
+
+// server/recalls.ts
+var RECALLS_URL = "https://api.nhtsa.gov/recalls/recallsByVehicle";
+var TIMEOUT_MS = 5e3;
+var CACHE_TTL_MS = 6 * 60 * 60 * 1e3;
+var CACHE_MAX = 200;
+var cache = /* @__PURE__ */ new Map();
+function str(v) {
+  return typeof v === "string" ? v : "";
+}
+function parseRecallRow(r) {
+  return {
+    component: str(r.Component ?? r.component),
+    summary: str(r.Summary ?? r.summary),
+    remedy: str(r.Remedy ?? r.remedy) || void 0,
+    reportDate: str(r.ReportReceivedDate ?? r.reportReceivedDate) || void 0,
+    campaignNumber: str(r.NHTSACampaignNumber ?? r.nhtsaCampaignNumber) || void 0
+  };
+}
+async function fetchRecalls(make, model, modelYear) {
+  const year = String(modelYear).trim();
+  if (!make.trim() || !model.trim() || !/^\d{4}$/.test(year)) return null;
+  const key = `${make.trim().toLowerCase()}|${model.trim().toLowerCase()}|${year}`;
+  const hit = cache.get(key);
+  if (hit && Date.now() - hit.at < CACHE_TTL_MS) return hit.value;
+  let value = null;
+  try {
+    const url = `${RECALLS_URL}?make=${encodeURIComponent(make.trim())}&model=${encodeURIComponent(model.trim())}&modelYear=${encodeURIComponent(year)}`;
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), TIMEOUT_MS);
+    try {
+      const res = await fetch(url, { signal: controller.signal, headers: { accept: "application/json" } });
+      if (res.ok) {
+        const json = await res.json();
+        const list = json.results ?? json.Results ?? [];
+        if (Array.isArray(list)) {
+          const rows = list.map(parseRecallRow).filter((r) => r.component || r.summary);
+          const countRaw = json.Count ?? json.count;
+          const count = typeof countRaw === "number" ? countRaw : rows.length;
+          value = { count, recalls: rows.slice(0, 10), source: "NHTSA" };
+        }
+      }
+    } finally {
+      clearTimeout(timer);
+    }
+  } catch {
+    value = null;
+  }
+  if (value !== null) {
+    if (cache.size >= CACHE_MAX) {
+      const oldest = cache.keys().next().value;
+      if (oldest !== void 0) cache.delete(oldest);
+    }
+    cache.set(key, { at: Date.now(), value });
+  }
+  return value;
 }
 
 // server/inventory/data.json
@@ -3266,6 +3792,346 @@ var data_default = [
   }
 ];
 
+// server/inventory/data.curated.json
+var data_curated_default = [
+  {
+    id: "lst_091",
+    vin: "3N1AB7AP5FY2K8M41",
+    condition: "Used",
+    year: 2015,
+    make: "Nissan",
+    model: "Sentra",
+    trim: "SV",
+    bodyStyle: "Sedan",
+    fuel: "Gas",
+    price: 5500,
+    msrp: 18e3,
+    mileage: 88e3,
+    mpg: 33,
+    exteriorColor: "Gun Metallic",
+    sellerType: "Independent Dealer",
+    dealerName: "Beltway Budget Autos",
+    sellerTenure: "6 yrs in business",
+    city: "Springfield",
+    state: "VA",
+    distanceMiles: 5,
+    zip: "22150",
+    _photoKind: "stock",
+    _photoCount: 1,
+    photos: [],
+    dealerBlurb: "2015 Nissan Sentra SV \u2014 the newest car on our lot at this price! Low miles, cold A/C, drives smooth. Priced to sell this week.",
+    regionFlags: []
+  },
+  {
+    id: "lst_092",
+    vin: "1FADP3K28EL45B7N9",
+    condition: "Used",
+    year: 2014,
+    make: "Ford",
+    model: "Focus",
+    trim: "SE",
+    bodyStyle: "Hatchback",
+    fuel: "Gas",
+    price: 4800,
+    msrp: 18500,
+    mileage: 96e3,
+    mpg: 31,
+    exteriorColor: "Oxford White",
+    sellerType: "Private Seller",
+    dealerName: "Private Seller \u2014 Derek M.",
+    sellerTenure: "Individual owner",
+    city: "Falls Church",
+    state: "VA",
+    distanceMiles: 9,
+    zip: "22042",
+    _photoKind: "stock",
+    _photoCount: 1,
+    photos: [],
+    dealerBlurb: "2014 Ford Focus SE hatchback, automatic. Well-kept commuter, new tires last year. Selling because we upgraded.",
+    regionFlags: []
+  },
+  {
+    id: "lst_093",
+    vin: "KMHDH4AE3DU79C2X5",
+    condition: "Used",
+    year: 2013,
+    make: "Hyundai",
+    model: "Elantra",
+    trim: "GLS",
+    bodyStyle: "Sedan",
+    fuel: "Gas",
+    price: 4300,
+    msrp: 17500,
+    mileage: 102e3,
+    mpg: 32,
+    exteriorColor: "Shimmering Silver",
+    sellerType: "Independent Dealer",
+    dealerName: "Capital Auto Mart",
+    sellerTenure: "11 yrs in business",
+    city: "Hyattsville",
+    state: "MD",
+    distanceMiles: 17,
+    zip: "20782",
+    _photoKind: "dealer",
+    _photoCount: 3,
+    photos: [],
+    dealerBlurb: "2013 Hyundai Elantra GLS in silver. Clean inside and out, great on gas. Easy financing available.",
+    regionFlags: []
+  },
+  {
+    id: "lst_094",
+    vin: "1G1PC5SB2D71M4K83",
+    condition: "Used",
+    year: 2013,
+    make: "Chevrolet",
+    model: "Cruze",
+    trim: "1LT",
+    bodyStyle: "Sedan",
+    fuel: "Gas",
+    price: 3900,
+    msrp: 19e3,
+    mileage: 109e3,
+    mpg: 30,
+    exteriorColor: "Summit White",
+    sellerType: "Independent Dealer",
+    dealerName: "Route 1 Motors",
+    sellerTenure: "9 yrs in business",
+    city: "Alexandria",
+    state: "VA",
+    distanceMiles: 13,
+    zip: "22301",
+    _photoKind: "stock",
+    _photoCount: 1,
+    photos: [],
+    dealerBlurb: "2013 Chevy Cruze 1LT turbo. Peppy and efficient, recent state inspection. Cash price special.",
+    regionFlags: ["Hail-prone area \u2014 check panels for filler/repaint."]
+  },
+  {
+    id: "lst_095",
+    vin: "3VWDP7AJ4CM38R6T2",
+    condition: "Used",
+    year: 2012,
+    make: "Volkswagen",
+    model: "Jetta",
+    trim: "SE 2.5L",
+    bodyStyle: "Sedan",
+    fuel: "Gas",
+    price: 5200,
+    msrp: 21e3,
+    mileage: 98e3,
+    mpg: 26,
+    exteriorColor: "Platinum Gray",
+    sellerType: "Private Seller",
+    dealerName: "Private Seller \u2014 Anika S.",
+    sellerTenure: "Individual owner",
+    city: "Arlington",
+    state: "VA",
+    distanceMiles: 9,
+    zip: "22201",
+    _photoKind: "stock",
+    _photoCount: 1,
+    photos: [],
+    dealerBlurb: "2012 VW Jetta SE with the 2.5L five-cylinder. Feels premium for the price, all records since new.",
+    regionFlags: []
+  },
+  {
+    id: "lst_096",
+    vin: "JM1BL1M72D17N5W94",
+    condition: "Used",
+    year: 2013,
+    make: "Mazda",
+    model: "Mazda3",
+    trim: "i Touring",
+    bodyStyle: "Hatchback",
+    fuel: "Gas",
+    price: 6400,
+    msrp: 2e4,
+    mileage: 88e3,
+    mpg: 33,
+    exteriorColor: "Sky Blue Mica",
+    sellerType: "Independent Dealer",
+    dealerName: "Olde Towne Imports",
+    sellerTenure: "24 yrs in business",
+    city: "Alexandria",
+    state: "VA",
+    distanceMiles: 12,
+    zip: "22304",
+    _photoKind: "dealer",
+    _photoCount: 4,
+    photos: [],
+    dealerBlurb: "2013 Mazda3 i Touring hatchback with the SkyActiv engine. One owner, full service history, fun to drive and sips gas.",
+    regionFlags: []
+  },
+  {
+    id: "lst_097",
+    vin: "JHMGE8H52BC04T7L6",
+    condition: "Used",
+    year: 2011,
+    make: "Honda",
+    model: "Fit",
+    trim: "Sport",
+    bodyStyle: "Hatchback",
+    fuel: "Gas",
+    price: 5900,
+    msrp: 16500,
+    mileage: 105e3,
+    mpg: 31,
+    exteriorColor: "Milano Red",
+    sellerType: "Private Seller",
+    dealerName: "Private Seller \u2014 Gloria P.",
+    sellerTenure: "Individual owner",
+    city: "Rockville",
+    state: "MD",
+    distanceMiles: 21,
+    zip: "20850",
+    _photoKind: "dealer",
+    _photoCount: 2,
+    photos: [],
+    dealerBlurb: "2011 Honda Fit Sport, garage kept. The Magic Seats swallow everything \u2014 moved a bookshelf in it last month. All maintenance records.",
+    regionFlags: []
+  },
+  {
+    id: "lst_098",
+    vin: "5Y2SP6E08AZ41H9D3",
+    condition: "Used",
+    year: 2010,
+    make: "Pontiac",
+    model: "Vibe",
+    trim: "1.8L",
+    bodyStyle: "Hatchback",
+    fuel: "Gas",
+    price: 4200,
+    msrp: 17500,
+    mileage: 118e3,
+    mpg: 29,
+    exteriorColor: "Carbon Gray",
+    sellerType: "Independent Dealer",
+    dealerName: "Fairfax City Used Cars",
+    sellerTenure: "15 yrs in business",
+    city: "Fairfax",
+    state: "VA",
+    distanceMiles: 12,
+    zip: "22030",
+    _photoKind: "dealer",
+    _photoCount: 3,
+    photos: [],
+    dealerBlurb: "2010 Pontiac Vibe with the 1.8L \u2014 same bones as a Toyota Matrix at a friendlier price. Runs out great.",
+    regionFlags: []
+  },
+  {
+    id: "lst_099",
+    vin: "JTLZE4FE2C10G6Y58",
+    condition: "Used",
+    year: 2012,
+    make: "Scion",
+    model: "xB",
+    trim: "Base",
+    bodyStyle: "Wagon",
+    fuel: "Gas",
+    price: 5700,
+    msrp: 17800,
+    mileage: 96e3,
+    mpg: 24,
+    exteriorColor: "Classic Silver",
+    sellerType: "Franchise Dealer",
+    dealerName: "Springfield Toyota",
+    sellerTenure: "Certified Pre-Owned available",
+    city: "Springfield",
+    state: "VA",
+    distanceMiles: 8,
+    zip: "22150",
+    _photoKind: "dealer",
+    _photoCount: 3,
+    photos: [],
+    dealerBlurb: "2012 Scion xB traded in by its original owner. Toyota powertrain, huge interior, dealer inspected with records on file.",
+    regionFlags: []
+  },
+  {
+    id: "lst_100",
+    vin: "1FAHP3GN1AW19Z3J7",
+    condition: "Used",
+    year: 2010,
+    make: "Ford",
+    model: "Focus",
+    trim: "SES",
+    bodyStyle: "Sedan",
+    fuel: "Gas",
+    price: 4e3,
+    msrp: 17e3,
+    mileage: 114e3,
+    mpg: 27,
+    exteriorColor: "Sangria Red",
+    sellerType: "Private Seller",
+    dealerName: "Private Seller \u2014 Hank R.",
+    sellerTenure: "Individual owner",
+    city: "Silver Spring",
+    state: "MD",
+    distanceMiles: 27,
+    zip: "20910",
+    _photoKind: "stock",
+    _photoCount: 1,
+    photos: [],
+    dealerBlurb: "2010 Ford Focus SES, the dependable Duratec engine with a traditional automatic. Oil changed every 5k, folder of receipts.",
+    regionFlags: ["Salt-belt winters \u2014 inspect underbody for corrosion."]
+  },
+  {
+    id: "lst_101",
+    vin: "KMHDU4ADXAU52E916",
+    condition: "Used",
+    year: 2010,
+    make: "Hyundai",
+    model: "Elantra",
+    trim: "GLS",
+    bodyStyle: "Sedan",
+    fuel: "Gas",
+    price: 3995,
+    msrp: 16e3,
+    mileage: 115800,
+    mpg: 29,
+    exteriorColor: "Quicksilver",
+    sellerType: "Independent Dealer",
+    dealerName: "Bayview Auto Sales",
+    sellerTenure: "12 yrs in business",
+    city: "Arlington",
+    state: "VA",
+    distanceMiles: 10,
+    zip: "22203",
+    _photoKind: "dealer",
+    _photoCount: 3,
+    photos: [],
+    dealerBlurb: "2010 Hyundai Elantra GLS \u2014 timing belt recently replaced, state inspections on file, one-owner trade-in. Clean and honest.",
+    regionFlags: []
+  },
+  {
+    id: "lst_102",
+    vin: "2T1KU4EE9AC31F7P4",
+    condition: "Used",
+    year: 2009,
+    make: "Toyota",
+    model: "Matrix",
+    trim: "S 1.8L",
+    bodyStyle: "Hatchback",
+    fuel: "Gas",
+    price: 6800,
+    msrp: 17500,
+    mileage: 101e3,
+    mpg: 28,
+    exteriorColor: "Nautical Blue",
+    sellerType: "Independent Dealer",
+    dealerName: "Commuter Cars of Vienna",
+    sellerTenure: "18 yrs in business",
+    city: "Tysons",
+    state: "VA",
+    distanceMiles: 13,
+    zip: "22182",
+    _photoKind: "stock",
+    _photoCount: 1,
+    photos: [],
+    dealerBlurb: "2009 Toyota Matrix S with the 1.8L. Corolla mechanicals in a practical hatch \u2014 hard to kill and cheap to keep.",
+    regionFlags: []
+  }
+];
+
 // server/inventory/provider.ts
 var BODY_PHOTOS = {
   Sedan: "https://d2xsxph8kpxj0f.cloudfront.net/87827969/VXB2U7r7hK3nj9XKQgRt2L/body-sedan-5aSF5pY8aCw4HWu2rzTFvV.webp",
@@ -3299,7 +4165,8 @@ function buildPhotos(row) {
 var _cache = null;
 function loadListings() {
   if (_cache) return _cache;
-  const listings = data_default.map((row) => {
+  const rows = [...data_default, ...data_curated_default];
+  const listings = rows.map((row) => {
     const { _photoKind, _photoCount, ...rest } = row;
     return { ...rest, photos: buildPhotos(row) };
   });
@@ -3650,6 +4517,18 @@ var decodedVehicleSchema = z2.object({
   safetyFeatures: z2.array(z2.object({ label: z2.string(), value: z2.string() })),
   raw: z2.record(z2.string(), z2.string())
 });
+var scoreAdvisorySchema = z2.object({
+  id: z2.string(),
+  severity: z2.enum(["avoid", "caution", "value-pick"]),
+  title: z2.string(),
+  detail: z2.string(),
+  watchFor: z2.array(z2.string()),
+  whyBuy: z2.array(z2.string()).optional(),
+  transmissionNote: z2.string().optional(),
+  waivedByManual: z2.boolean().optional(),
+  appliedDelta: z2.number(),
+  source: z2.string()
+});
 var scoreSchema = z2.object({
   overall: z2.number(),
   grade: z2.string(),
@@ -3657,7 +4536,9 @@ var scoreSchema = z2.object({
   safety: z2.number(),
   ageMileage: z2.number(),
   efficiency: z2.number(),
-  notes: z2.array(z2.string())
+  notes: z2.array(z2.string()),
+  advisories: z2.array(scoreAdvisorySchema).optional(),
+  riskLevel: z2.enum(["clear", "caution", "high"]).optional()
 });
 var vehicleRouter = router({
   /** Decode a VIN + compute its score. Logs to history if user is signed in. */
@@ -3706,6 +4587,18 @@ var vehicleRouter = router({
   }),
   /** Re-score an already decoded vehicle (e.g. user adjusts mileage). */
   rescore: publicProcedure.input(z2.object({ vehicle: decodedVehicleSchema, mileage: z2.number().int().positive().max(1e6).optional() })).query(({ input }) => scoreVehicle(input.vehicle, input.mileage)),
+  /**
+   * Free NHTSA recall lookup (public records, no key). Queried by
+   * make/model/year so it works for real VINs and demo listings alike.
+   * Returns null when NHTSA can't be reached — the UI says "couldn't check".
+   */
+  recalls: publicProcedure.input(
+    z2.object({
+      make: z2.string().min(1),
+      model: z2.string().min(1),
+      modelYear: z2.union([z2.string().min(2), z2.number().int()])
+    })
+  ).query(({ input }) => fetchRecalls(input.make, input.model, input.modelYear)),
   /** Conversational advisor reply. */
   advisor: publicProcedure.input(
     z2.object({
@@ -3805,6 +4698,50 @@ var vehicleRouter = router({
 import { z as z3 } from "zod";
 import { TRPCError as TRPCError3 } from "@trpc/server";
 
+// server/inventory/trust.ts
+var CURRENT_YEAR = 2026;
+function roughExpectedPrice(listing) {
+  const age = Math.max(0, CURRENT_YEAR - listing.year);
+  return Math.max(2500, 24e3 * Math.pow(0.84, age));
+}
+function isSuspiciousDeal(listing, advisories) {
+  if (!hasAvoidAdvisory(advisories)) return false;
+  if (listing.condition !== "Used") return false;
+  const age = Math.max(0, CURRENT_YEAR - listing.year);
+  const lowMileageForAge = listing.mileage < age * 11e3;
+  const newish = age <= 13;
+  const dramaticallyCheap = listing.price <= roughExpectedPrice(listing) * 0.75;
+  return newish && (lowMileageForAge || dramaticallyCheap);
+}
+function trustForListing(listing, advisories) {
+  const reasons = [];
+  const avoid = hasAvoidAdvisory(advisories);
+  const suspicious = isSuspiciousDeal(listing, advisories);
+  if (avoid) {
+    reasons.push("This model year range has a documented serious defect (GOGETTER Reliability Index).");
+    if (suspicious) {
+      reasons.push(
+        "Priced suspiciously well for its age/mileage on a known-defect model \u2014 the seller may know what's coming."
+      );
+    }
+    return { level: "flagged", reasons, ...suspicious ? { suspiciousDeal: true } : {} };
+  }
+  const hasDealerPhotos = listing.photos.some((p) => p.source === "dealer");
+  const hasTenure = Boolean(listing.sellerTenure && listing.sellerTenure.trim());
+  const isCpo = /certified|cpo/i.test(listing.sellerTenure ?? "");
+  const isFranchise = listing.sellerType === "Franchise Dealer";
+  if (hasDealerPhotos) reasons.push("Real seller-supplied photos of this exact car.");
+  if (isCpo) reasons.push("Certified Pre-Owned availability noted.");
+  else if (hasTenure) reasons.push(`Established seller \u2014 ${listing.sellerTenure}.`);
+  if (isFranchise) reasons.push("Franchise dealer \u2014 recourse and reconditioning standards.");
+  const positives = [hasDealerPhotos, hasTenure || isCpo, isFranchise].filter(Boolean).length;
+  if (positives >= 2) return { level: "approved", reasons };
+  if (listing.sellerType === "Private Seller") {
+    reasons.push("Private sale \u2014 verify title and get a pre-purchase inspection.");
+  }
+  return { level: "neutral", reasons };
+}
+
 // server/inventory/matching.ts
 var MAKE_RELIABILITY2 = {
   TOYOTA: 95,
@@ -3839,10 +4776,12 @@ var MAKE_RELIABILITY2 = {
   CADILLAC: 73,
   LINCOLN: 76,
   MITSUBISHI: 76,
-  FIAT: 64
+  FIAT: 64,
+  SCION: 90
+  // Toyota sub-brand — Toyota powertrains throughout
 };
 var DEFAULT_RELIABILITY2 = 75;
-var CURRENT_YEAR = 2026;
+var CURRENT_YEAR2 = 2026;
 function clamp2(n, min = 0, max = 100) {
   return Math.max(min, Math.min(max, n));
 }
@@ -3863,9 +4802,20 @@ function reliabilityForMake(make) {
   const key = make.trim().toUpperCase();
   return MAKE_RELIABILITY2[key] ?? Object.entries(MAKE_RELIABILITY2).find(([k]) => key.includes(k))?.[1] ?? DEFAULT_RELIABILITY2;
 }
+function advisoriesForListing(listing) {
+  return findAdvisories({ make: listing.make, model: listing.model, year: listing.year });
+}
+function applyAdvisoryDeltas(reliability, advisories, floor) {
+  let r = reliability;
+  for (const a of advisories) {
+    r = a.appliedDelta < 0 ? Math.max(floor, Math.min(100, r + a.appliedDelta)) : clamp2(r + a.appliedDelta);
+  }
+  return r;
+}
 function qualityScoreForListing(listing) {
-  const reliability = reliabilityForMake(listing.make);
-  const age = Math.max(0, CURRENT_YEAR - listing.year);
+  const advisories = advisoriesForListing(listing);
+  const reliability = applyAdvisoryDeltas(reliabilityForMake(listing.make), advisories, 15);
+  const age = Math.max(0, CURRENT_YEAR2 - listing.year);
   const expectedMiles = Math.max(1, age * 12e3);
   const ratio = listing.mileage / expectedMiles;
   const mileScore = clamp2(100 - (ratio - 1) * 55 - age * 2.2);
@@ -3874,9 +4824,10 @@ function qualityScoreForListing(listing) {
   else if (listing.fuel === "Hybrid") efficiency = 88;
   else if (listing.fuel === "Diesel") efficiency = 74;
   else efficiency = clamp2(40 + listing.mpg * 1.1);
-  const overall = clamp2(
+  let overall = clamp2(
     Math.round(reliability * 0.45 + mileScore * 0.33 + efficiency * 0.22)
   );
+  if (hasAvoidAdvisory(advisories)) overall = Math.min(overall, 50);
   return { score: overall, grade: letterGrade2(overall) };
 }
 function scoreListingFit(listing, c) {
@@ -3898,6 +4849,19 @@ function scoreListingFit(listing, c) {
   let reliabilityFit = reliabilityForMake(listing.make);
   if (reliabilityFit >= 90) reasons.push(`${listing.make} is known for excellent dependability.`);
   else if (reliabilityFit < 68) reasons.push(`${listing.make} carries higher repair risk \u2014 weigh carefully.`);
+  const advisories = advisoriesForListing(listing);
+  reliabilityFit = applyAdvisoryDeltas(reliabilityFit, advisories, 10);
+  const isValuePick = advisories.some((a) => a.severity === "value-pick");
+  for (const a of advisories) {
+    if (a.severity === "avoid" && !a.waivedByManual) {
+      reasons.push(`Known issue: ${a.title} \u2014 see the risk callout before visiting.`);
+    }
+  }
+  if (isValuePick) {
+    const pick2 = advisories.find((a) => a.severity === "value-pick");
+    reasons.unshift(`GOGETTER value pick: ${pick2?.title ?? "proven budget choice"}.`);
+    if (c.budgetMode === true) reliabilityFit = clamp2(reliabilityFit + 4);
+  }
   if (isNew) reliabilityFit = clamp2(reliabilityFit + 6);
   else if (listing.sellerType === "Franchise Dealer") reliabilityFit = clamp2(reliabilityFit + 2);
   else if (listing.sellerType === "Private Seller") {
@@ -3910,7 +4874,7 @@ function scoreListingFit(listing, c) {
   else efficiencyFit = clamp2(35 + listing.mpg * 1.3);
   if (listing.fuel === "EV") reasons.push("Electric \u2014 lowest running costs.");
   else if (listing.fuel === "Hybrid") reasons.push("Hybrid efficiency keeps fuel costs down.");
-  const relW = c.priceVsReliability / 100;
+  const relW = Math.max(c.priceVsReliability, c.budgetMode === true ? 70 : 0) / 100;
   const priceW = 1 - relW;
   const effPriority = c.efficiencyPriority / 100;
   const wPrice = 0.3 * (0.5 + priceW);
@@ -3937,7 +4901,9 @@ function scoreListingFit(listing, c) {
       distance: Math.round(distanceFit),
       mileage: Math.round(mileageFit)
     },
-    reasons
+    reasons,
+    ...advisories.length > 0 ? { advisories, riskLevel: riskLevelFor(advisories) } : {},
+    trust: trustForListing(listing, advisories)
   };
 }
 function passesHardFilters(listing, c) {
@@ -3950,11 +4916,21 @@ function passesHardFilters(listing, c) {
   if (c.bodyStyles?.length > 0 && !c.bodyStyles.includes(listing.bodyStyle)) return false;
   if (c.fuels?.length > 0 && !c.fuels.includes(listing.fuel)) return false;
   if (c.sellerTypes && c.sellerTypes.length > 0 && listing.sellerType && !c.sellerTypes.includes(listing.sellerType)) return false;
+  if (c.makes && c.makes.length > 0 && !c.makes.some((mk) => normalizeModelKey(mk) === normalizeModelKey(listing.make))) {
+    return false;
+  }
   return true;
+}
+function isHighRiskMatch(m) {
+  return m.riskLevel === "high";
 }
 function rankInventory(inventory, criteria, limit = 5) {
   const eligible = inventory.filter((l) => passesHardFilters(l, criteria));
-  const ranked = eligible.map((l) => scoreListingFit(l, criteria)).sort((a, b) => {
+  let ranked = eligible.map((l) => scoreListingFit(l, criteria));
+  if (criteria.budgetMode === true) {
+    ranked = ranked.filter((m) => !isHighRiskMatch(m));
+  }
+  ranked.sort((a, b) => {
     if (b.matchScore !== a.matchScore) return b.matchScore - a.matchScore;
     if (b.qualityScore !== a.qualityScore) return b.qualityScore - a.qualityScore;
     return a.listing.price - b.listing.price;
@@ -3963,9 +4939,17 @@ function rankInventory(inventory, criteria, limit = 5) {
 }
 
 // server/inventory/recommend.ts
+var USE_CASE_LABELS = {
+  "teen-driver": "a new/teen driver \u2014 safety, predictability, and insurance costs matter most",
+  student: "a student \u2014 low running costs and dependability matter most",
+  commuter: "a daily commuter \u2014 fuel costs and long-term reliability matter most",
+  family: "family duty \u2014 space, safety, and practicality matter most",
+  "first-car": "a first car \u2014 forgiving, reliable, and cheap to keep",
+  budget: "a tight budget \u2014 avoiding known-defect models matters more than features"
+};
 function criteriaSummary(c) {
   const tradeoff = c.priceVsReliability >= 66 ? "reliability matters more than price" : c.priceVsReliability <= 33 ? "price matters more than reliability" : "price and reliability are balanced";
-  return [
+  const parts = [
     `Condition: ${c.condition === "Any" ? "new or used" : c.condition.toLowerCase()}`,
     `Budget: up to $${c.maxPrice.toLocaleString()}`,
     `Max distance: ${c.maxDistance} miles`,
@@ -3975,12 +4959,36 @@ function criteriaSummary(c) {
     `Max mileage: ${c.maxMileage.toLocaleString()}`,
     `Trade-off: ${tradeoff}`,
     `Fuel-efficiency priority: ${c.efficiencyPriority}/100`
-  ].join("; ");
+  ];
+  if (c.useCase && USE_CASE_LABELS[c.useCase]) {
+    parts.push(`Buying for: ${USE_CASE_LABELS[c.useCase]}`);
+  }
+  if (c.budgetMode === true) {
+    parts.push("Budget Buyer Mode is ON: known-defect models were excluded; proven value picks are prioritized");
+  }
+  if (c.searchText && c.searchText.trim()) {
+    parts.push(`Buyer's own words: "${c.searchText.trim().slice(0, 300)}"`);
+  }
+  return parts.join("; ");
 }
 function listingLine(m) {
   const l = m.listing;
   const flags = l.regionFlags && l.regionFlags.length ? ` | Regional notes (UNVERIFIED): ${l.regionFlags.join("; ")}` : "";
   const newInfo = l.condition === "New" ? ` | NEW CAR | warranty: ${l.warranty ?? "factory"} | reputation: ${l.modelReputation ?? "n/a"}` : "";
+  const knowledgeBits = [];
+  for (const a of m.advisories ?? []) {
+    if (a.severity === "value-pick") {
+      knowledgeBits.push(`VALUE PICK (${a.source}): ${a.title}. ${a.detail}`);
+    } else if (a.waivedByManual) {
+      knowledgeBits.push(`WAIVED ISSUE: ${a.title} affects automatics only and this car is a manual.`);
+    } else {
+      knowledgeBits.push(
+        `KNOWN ISSUE (${a.source}, severity=${a.severity}): ${a.title}. ${a.detail}${a.transmissionNote ? ` ${a.transmissionNote}` : ""}`
+      );
+    }
+  }
+  const knowledge = knowledgeBits.length ? ` | ${knowledgeBits.join(" | ")}` : "";
+  const trust = m.trust && m.trust.level !== "neutral" ? ` | Trust: ${m.trust.level}${m.trust.suspiciousDeal ? " (SUSPICIOUSLY GOOD DEAL on a known-defect model \u2014 the seller may know what's coming)" : ""}` : "";
   return [
     `id=${l.id}`,
     `${l.condition} ${l.year} ${l.make} ${l.model} ${l.trim}`,
@@ -3994,7 +5002,7 @@ function listingLine(m) {
     `qualityScore=${m.qualityScore} (${m.qualityGrade})`,
     newInfo,
     flags
-  ].join(" | ");
+  ].join(" | ") + knowledge + trust;
 }
 var SYSTEM_PROMPT2 = `You are the GOGETTER AI Car Advisor. Given a buyer's criteria and a shortlist of real-area car listings (already filtered and ranked by our engine), write a concise, trustworthy narrative for EACH car. Listings may be NEW or USED, and from a Franchise Dealer, Independent Dealer, or Private Seller.
 
@@ -4009,6 +5017,12 @@ Context-specific guidance:
 - NEW cars: there is NO vehicle history \u2014 do NOT mention Carfax/accident history. Instead emphasize model reputation, warranty coverage, expected reliability/ownership costs, and reasonable out-the-door price negotiation.
 - PRIVATE SELLER: add practical private-sale guidance \u2014 get a pre-purchase inspection, verify title is clean and in seller's name, confirm no liens, use secure payment, and that there's no dealer warranty.
 - INDEPENDENT DEALER: suggest confirming any warranty/as-is status and reputation.
+
+Curated knowledge (GOGETTER Reliability Index): some listings include KNOWN ISSUE / VALUE PICK / WAIVED ISSUE / Trust facts. Treat these as ground truth and weave them in:
+- KNOWN ISSUE: lead watchFor with it in plain English and include it in disadvantages. If a transmission caveat is present (manuals are fine), say so and tell the buyer to verify the transmission FIRST. If the deal is flagged as suspiciously good, say plainly that the price may reflect a failure the seller can see coming.
+- VALUE PICK: lead advantages with why it's a curated pick (e.g. "a Toyota Matrix at a dead-brand discount"), but keep its specific watch items (oil consumption, spark plugs, rust).
+- WAIVED ISSUE: mention it as good news \u2014 the manual transmission avoids the known automatic defect.
+- Buying-for context: if the buyer described a use case (e.g. a 15-year-old new driver), address it directly \u2014 insurance, predictability, safety \u2014 in whyPicked and advantages.
 
 Rules:
 - Ground claims in the provided specs and well-known reliability/maintenance patterns. Do NOT invent specific accident history, owner counts, or exact prices beyond what is given.
@@ -4043,39 +5057,67 @@ var RESPONSE_SCHEMA = {
     }
   }
 };
-function fallbackNarrative(m) {
+function fallbackNarrative(m, criteria) {
   const l = m.listing;
+  const advisories = m.advisories ?? [];
+  const valuePick = advisories.find((a) => a.severity === "value-pick");
+  const knownIssues = advisories.filter((a) => a.appliedDelta < 0 && !a.waivedByManual);
+  const waived = advisories.find((a) => a.waivedByManual);
   const adv = [];
-  if (m.fit.reliability >= 88) adv.push(`${l.make} has a strong dependability reputation.`);
+  if (valuePick) {
+    adv.push(`GOGETTER value pick: ${valuePick.title}.`);
+    for (const w of valuePick.whyBuy ?? []) adv.push(w);
+  }
+  if (waived) adv.push(`Good news: ${waived.title} only affects automatics \u2014 this manual avoids it.`);
+  if (m.fit.reliability >= 88 && !valuePick) adv.push(`${l.make} has a strong dependability reputation.`);
   if (m.fit.price >= 80) adv.push("Priced well within your budget.");
   if (l.fuel === "EV") adv.push("Electric drivetrain means very low running costs.");
   else if (l.fuel === "Hybrid") adv.push("Hybrid powertrain keeps fuel costs down.");
   if (l.condition === "New") adv.push("Brand new with full factory warranty and no history risk.");
-  else if (m.fit.mileage >= 75) adv.push("Reasonable mileage for its age.");
+  else if (m.fit.mileage >= 75 && adv.length < 4) adv.push("Reasonable mileage for its age.");
   if (adv.length === 0) adv.push("Solid all-around fit for your criteria.");
   const dis = [];
-  if (m.fit.reliability < 70) dis.push(`${l.make} can carry higher repair costs.`);
-  if (l.mileage > 9e4) dis.push("Higher mileage \u2014 inspect wear items closely.");
+  for (const issue of knownIssues) {
+    dis.push(`Known issue for this model year range: ${issue.title}.`);
+  }
+  if (m.trust?.suspiciousDeal) {
+    dis.push("Priced suspiciously well for a known-defect model \u2014 the seller may know what's coming.");
+  }
+  if (m.fit.reliability < 70 && knownIssues.length === 0) dis.push(`${l.make} can carry higher repair costs.`);
+  if (l.mileage > 9e4 && l.condition !== "New") dis.push("Higher mileage \u2014 inspect wear items closely.");
   if (l.fuel === "Gas" && l.mpg < 24) dis.push("Fuel economy is on the thirstier side.");
   if (dis.length === 0) dis.push("Few obvious drawbacks; verify condition in person.");
   const watch = [];
+  for (const a of advisories) {
+    if (a.waivedByManual) continue;
+    if (a.transmissionNote) watch.push(a.transmissionNote);
+    for (const w of a.watchFor) {
+      if (watch.length < 3) watch.push(w);
+    }
+  }
   if (l.condition === "New") {
     watch.push("Negotiate the out-the-door price and dealer add-ons.");
     watch.push(`Confirm warranty coverage (${l.warranty ?? "factory"}).`);
     watch.push("Compare across nearby dealers for the best allocation/price.");
   } else {
     watch.push("Request maintenance records and a pre-purchase inspection.");
-    watch.push(`Budget for routine ${l.year <= 2018 ? "age-related" : "wear"} items (tires, brakes, fluids).`);
-    if (l.sellerType === "Private Seller") {
+    if (watch.length < 4) {
+      watch.push(`Budget for routine ${l.year <= 2018 ? "age-related" : "wear"} items (tires, brakes, fluids).`);
+    }
+    if (l.sellerType === "Private Seller" && watch.length < 4) {
       watch.push("Verify clean title in seller's name and no outstanding liens.");
     }
-    if (l.regionFlags && l.regionFlags.length) {
+    if (l.regionFlags && l.regionFlags.length && watch.length < 4) {
       watch.push(`${l.regionFlags[0]} (UNVERIFIED \u2014 confirm via Carfax/CarGurus).`);
     }
   }
+  const useCaseLabel = criteria?.useCase ? USE_CASE_LABELS[criteria.useCase] : void 0;
+  const topReason = (m.reasons[0] ?? "fits your core criteria").replace(/\.$/, "");
+  const whyParts = [`A ${m.matchScore}/100 match: ${topReason}`];
+  if (useCaseLabel) whyParts.push(`Chosen with your situation in mind \u2014 ${useCaseLabel}`);
   return {
     listingId: l.id,
-    whyPicked: `A ${m.matchScore}/100 match: ${m.reasons[0] ?? "fits your core criteria"}.`,
+    whyPicked: `${whyParts.join(". ")}.`,
     advantages: adv.slice(0, 4),
     disadvantages: dis.slice(0, 3),
     watchFor: watch.slice(0, 4)
@@ -4110,12 +5152,12 @@ async function generateNarratives(matches, criteria) {
       if (car && car.listingId) byId[car.listingId] = car;
     }
     for (const m of matches) {
-      if (!byId[m.listing.id]) byId[m.listing.id] = fallbackNarrative(m);
+      if (!byId[m.listing.id]) byId[m.listing.id] = fallbackNarrative(m, criteria);
     }
     return byId;
   } catch {
     const byId = {};
-    for (const m of matches) byId[m.listing.id] = fallbackNarrative(m);
+    for (const m of matches) byId[m.listing.id] = fallbackNarrative(m, criteria);
     return byId;
   }
 }
@@ -4383,6 +5425,427 @@ var CONFIG_OPTIONS = [
   }
 ];
 
+// server/search/intent.ts
+var BODY_KEYWORDS = [
+  [/\bsedans?\b/i, "Sedan"],
+  [/\bsuvs?\b|\bcrossovers?\b/i, "SUV"],
+  [/\btrucks?\b|\bpickups?\b/i, "Truck"],
+  [/\bcoupes?\b/i, "Coupe"],
+  [/\bhatch(?:back)?s?\b|\bhatchbacks?\b/i, "Hatchback"],
+  [/\bminivans?\b/i, "Minivan"],
+  [/\bconvertibles?\b/i, "Convertible"],
+  [/\bwagons?\b/i, "Wagon"]
+];
+var FUEL_KEYWORDS = [
+  [/\bhybrids?\b/i, "Hybrid"],
+  [/\bevs?\b|\belectric\b/i, "EV"],
+  [/\bdiesels?\b/i, "Diesel"],
+  [/\bgas(?:oline)?\b|\bpetrol\b/i, "Gas"]
+];
+var KNOWN_MAKES = [
+  "Toyota",
+  "Lexus",
+  "Honda",
+  "Acura",
+  "Mazda",
+  "Subaru",
+  "Hyundai",
+  "Kia",
+  "Genesis",
+  "Nissan",
+  "Infiniti",
+  "Buick",
+  "Chevrolet",
+  "Chevy",
+  "GMC",
+  "Ford",
+  "Dodge",
+  "Chrysler",
+  "Jeep",
+  "Ram",
+  "Volkswagen",
+  "VW",
+  "BMW",
+  "Mercedes",
+  "Audi",
+  "Volvo",
+  "Porsche",
+  "Tesla",
+  "Mini",
+  "Jaguar",
+  "Cadillac",
+  "Lincoln",
+  "Mitsubishi",
+  "Fiat",
+  "Pontiac",
+  "Scion"
+];
+var MAKE_CANONICAL = {
+  CHEVY: "Chevrolet",
+  VW: "Volkswagen",
+  MERCEDES: "Mercedes-Benz"
+};
+var VALID_BODY = ["Sedan", "SUV", "Truck", "Coupe", "Hatchback", "Minivan", "Convertible", "Wagon"];
+var VALID_FUEL = ["Gas", "Hybrid", "EV", "Diesel"];
+var VALID_SELLER = ["Franchise Dealer", "Independent Dealer", "Private Seller"];
+var VALID_USE_CASES = ["teen-driver", "student", "commuter", "family", "first-car", "budget"];
+function clampInt(n, min, max) {
+  const v = typeof n === "number" ? Math.round(n) : NaN;
+  if (!Number.isFinite(v)) return void 0;
+  return Math.max(min, Math.min(max, v));
+}
+function sanitizePatch(raw) {
+  const patch = {};
+  const condition = raw.condition;
+  if (condition === "New" || condition === "Used" || condition === "Any") patch.condition = condition;
+  const maxPrice = clampInt(raw.maxPrice, 1, 2e6);
+  if (maxPrice) patch.maxPrice = maxPrice;
+  const minPrice = clampInt(raw.minPrice, 0, 2e6);
+  if (minPrice) patch.minPrice = minPrice;
+  const maxDistance = clampInt(raw.maxDistance, 1, 500);
+  if (maxDistance) patch.maxDistance = maxDistance;
+  const maxMileage = clampInt(raw.maxMileage, 1, 5e5);
+  if (maxMileage) patch.maxMileage = maxMileage;
+  if (typeof raw.zip === "string" && /^\d{5}$/.test(raw.zip)) patch.zip = raw.zip;
+  if (Array.isArray(raw.bodyStyles)) {
+    const v = raw.bodyStyles.filter((b) => VALID_BODY.includes(b));
+    if (v.length) patch.bodyStyles = Array.from(new Set(v));
+  }
+  if (Array.isArray(raw.fuels)) {
+    const v = raw.fuels.filter((f) => VALID_FUEL.includes(f));
+    if (v.length) patch.fuels = Array.from(new Set(v));
+  }
+  if (Array.isArray(raw.sellerTypes)) {
+    const v = raw.sellerTypes.filter((s) => VALID_SELLER.includes(s));
+    if (v.length) patch.sellerTypes = Array.from(new Set(v));
+  }
+  if (Array.isArray(raw.makes)) {
+    const v = raw.makes.filter((m) => typeof m === "string" && m.trim().length > 0).slice(0, 8);
+    if (v.length) patch.makes = Array.from(new Set(v));
+  }
+  const rel = clampInt(raw.priceVsReliability, 0, 100);
+  if (rel !== void 0) patch.priceVsReliability = rel;
+  const eff = clampInt(raw.efficiencyPriority, 0, 100);
+  if (eff !== void 0) patch.efficiencyPriority = eff;
+  if (raw.budgetMode === true) patch.budgetMode = true;
+  return patch;
+}
+function toDollars(numText, hasK) {
+  const n = parseFloat(numText.replace(/,/g, ""));
+  if (!Number.isFinite(n) || n <= 0) return void 0;
+  if (hasK) return Math.round(n * 1e3);
+  return n < 500 ? Math.round(n * 1e3) : Math.round(n);
+}
+function parseIntentDeterministic(text2) {
+  const raw = {};
+  const interpreted = [];
+  const t2 = text2.trim();
+  const dist = t2.match(/\bwithin\s+(\d{1,3})\s*(?:miles?|mi)\b/i) ?? t2.match(/\b(\d{1,3})\s*(?:miles?|mi)\s+radius\b/i);
+  if (dist) {
+    raw.maxDistance = parseInt(dist[1], 10);
+    interpreted.push(`Within ${dist[1]} miles`);
+  }
+  const zip = t2.match(/\b(?:of|near|around|in|zip(?:\s*code)?)\s+(\d{5})\b/i);
+  if (zip) {
+    raw.zip = zip[1];
+    interpreted.push(`Near ZIP ${zip[1]}`);
+  }
+  const miles = t2.match(/\b(?:under|below|less than|max(?:imum)?(?:\s+of)?)\s+\$?([\d,]+)\s*(k)?\s*miles?\b/i);
+  if (miles) {
+    const n = parseFloat(miles[1].replace(/,/g, ""));
+    if (Number.isFinite(n)) {
+      raw.maxMileage = Math.round(miles[2] ? n * 1e3 : n < 500 ? n * 1e3 : n);
+      interpreted.push(`Mileage: under ${Number(raw.maxMileage).toLocaleString()} miles`);
+    }
+  }
+  const priceSource = miles ? t2.replace(miles[0], " ") : t2;
+  const price = priceSource.match(/\$\s*([\d.,]+)\s*(k)?\b/i) ?? priceSource.match(/\b(?:under|below|less than|max(?:imum)?(?:\s+of)?|budget(?:\s+(?:of|is|around))?)\s+([\d.,]+)\s*(k)?\b(?!\s*miles?)/i);
+  if (price) {
+    const dollars = toDollars(price[1], Boolean(price[2]));
+    if (dollars && dollars >= 1e3) {
+      raw.maxPrice = dollars;
+      interpreted.push(`Budget: up to $${dollars.toLocaleString()}`);
+    }
+  }
+  if (/\bbrand[- ]new\b|\bnew (?:car|vehicle)s?\b/i.test(t2)) {
+    raw.condition = "New";
+    interpreted.push("Condition: new");
+  } else if (/\bused\b|\bpre[- ]owned\b|\bsecond[- ]hand\b/i.test(t2)) {
+    raw.condition = "Used";
+    interpreted.push("Condition: used");
+  }
+  const bodies = BODY_KEYWORDS.filter(([re]) => re.test(t2)).map(([, b]) => b);
+  if (bodies.length) {
+    raw.bodyStyles = bodies;
+    interpreted.push(`Body: ${bodies.join(", ")}`);
+  }
+  const fuels = FUEL_KEYWORDS.filter(([re]) => re.test(t2)).map(([, f]) => f);
+  const meaningfulFuels = fuels.filter((f) => f !== "Gas" || /\bgas (?:engine|car|only)\b/i.test(t2));
+  if (meaningfulFuels.length) {
+    raw.fuels = meaningfulFuels;
+    interpreted.push(`Fuel: ${meaningfulFuels.join(", ")}`);
+  }
+  if (/\bprivate (?:seller|sale|party|owner)\b|\bby owner\b/i.test(t2)) {
+    raw.sellerTypes = ["Private Seller"];
+    interpreted.push("Seller: private seller");
+  } else if (/\bfranchise dealer\b/i.test(t2)) {
+    raw.sellerTypes = ["Franchise Dealer"];
+    interpreted.push("Seller: franchise dealer");
+  } else if (/\bdealer(?:ship)?s?\b/i.test(t2)) {
+    raw.sellerTypes = ["Franchise Dealer", "Independent Dealer"];
+    interpreted.push("Seller: dealers");
+  }
+  const makes = KNOWN_MAKES.filter((m) => new RegExp(`\\b${m}\\b`, "i").test(t2)).map(
+    (m) => MAKE_CANONICAL[m.toUpperCase()] ?? m
+  );
+  if (makes.length) {
+    raw.makes = Array.from(new Set(makes));
+    interpreted.push(`Makes: ${Array.from(new Set(makes)).join(", ")}`);
+  }
+  let useCase;
+  if (/\b1[5-7][- ]?year[- ]?old\b|\bteen(?:ager)?s?\b|\bnew driver\b|\byoung driver\b|\bfirst[- ]time driver\b|\bmy (?:daughter|son|kid|granddaughter|grandson)\b/i.test(t2)) {
+    useCase = "teen-driver";
+    interpreted.push("Use case: new/teen driver \u2014 safety and reliability first");
+  } else if (/\bstudent\b|\bcollege\b/i.test(t2)) {
+    useCase = "student";
+    interpreted.push("Use case: student");
+  } else if (/\bcommut/i.test(t2)) {
+    useCase = "commuter";
+    interpreted.push("Use case: commuter");
+  } else if (/\bfamily\b|\bcar seats?\b|\bkids\b/i.test(t2)) {
+    useCase = "family";
+    interpreted.push("Use case: family");
+  } else if (/\bfirst car\b/i.test(t2)) {
+    useCase = "first-car";
+    interpreted.push("Use case: first car");
+  }
+  if (/\breliab|\bdependab|\bsafe(?:st|ty)?\b|\bwon'?t break\b/i.test(t2) || useCase === "teen-driver") {
+    raw.priceVsReliability = 75;
+    interpreted.push("Reliability prioritized over price");
+  } else if (/\bcheapest\b|\blowest price\b|\bbargain\b/i.test(t2)) {
+    raw.priceVsReliability = 25;
+    interpreted.push("Price prioritized");
+  }
+  if (/\befficien|\bgood (?:on gas|gas mileage|mpg)\b|\bfuel[- ]sip|\bhigh mpg\b/i.test(t2)) {
+    raw.efficiencyPriority = 75;
+    interpreted.push("Fuel efficiency prioritized");
+  }
+  if (typeof raw.maxPrice === "number" && raw.maxPrice <= 1e4) {
+    raw.budgetMode = true;
+    interpreted.push("Budget Buyer Mode suggested \u2014 hides known-defect models");
+  }
+  const patch = sanitizePatch(raw);
+  return { criteriaPatch: patch, ...useCase ? { useCase } : {}, interpreted, source: "rules" };
+}
+var INTENT_SCHEMA = {
+  type: "json_schema",
+  json_schema: {
+    name: "search_intent",
+    strict: true,
+    schema: {
+      type: "object",
+      properties: {
+        condition: { type: ["string", "null"], description: 'One of "New", "Used", "Any", or null.' },
+        maxPrice: { type: ["number", "null"], description: "Max budget in whole US dollars." },
+        minPrice: { type: ["number", "null"] },
+        zip: { type: ["string", "null"], description: "5-digit US ZIP code if mentioned." },
+        maxDistance: { type: ["number", "null"], description: "Max distance in miles." },
+        maxMileage: { type: ["number", "null"], description: "Max odometer miles." },
+        bodyStyles: { type: "array", items: { type: "string" } },
+        fuels: { type: "array", items: { type: "string" } },
+        sellerTypes: { type: "array", items: { type: "string" } },
+        makes: { type: "array", items: { type: "string" } },
+        useCase: {
+          type: ["string", "null"],
+          description: 'One of "teen-driver","student","commuter","family","first-car","budget", or null.'
+        },
+        priceVsReliability: {
+          type: ["number", "null"],
+          description: "0-100; 100 = reliability matters most. Set \u226570 when safety/reliability is emphasized."
+        },
+        efficiencyPriority: { type: ["number", "null"], description: "0-100; set \u226570 when fuel economy is emphasized." },
+        budgetMode: { type: ["boolean", "null"], description: "true for tight budgets (\u2264 ~$10k) where defect-avoidance matters most." },
+        interpreted: {
+          type: "array",
+          items: { type: "string" },
+          description: "Short human-readable chips summarizing each thing you extracted."
+        }
+      },
+      required: [
+        "condition",
+        "maxPrice",
+        "minPrice",
+        "zip",
+        "maxDistance",
+        "maxMileage",
+        "bodyStyles",
+        "fuels",
+        "sellerTypes",
+        "makes",
+        "useCase",
+        "priceVsReliability",
+        "efficiencyPriority",
+        "budgetMode",
+        "interpreted"
+      ],
+      additionalProperties: false
+    }
+  }
+};
+var INTENT_SYSTEM_PROMPT = `You translate a car buyer's natural-language description into structured search criteria for the GOGETTER Car Advisor.
+Valid bodyStyles: Sedan, SUV, Truck, Coupe, Hatchback, Minivan, Convertible, Wagon.
+Valid fuels: Gas, Hybrid, EV, Diesel. Valid sellerTypes: Franchise Dealer, Independent Dealer, Private Seller.
+Rules:
+- Extract ONLY what the buyer actually said; use null/empty for everything else.
+- "new driver" describes the PERSON, not the car's condition.
+- Money like "$7k" or "under 8 grand" means thousands of dollars.
+- A 5-digit number after "near/of/around/in" is a ZIP code, not a price.
+- Teen/new-driver or safety-focused buyers: priceVsReliability \u2265 75.
+- Budgets at or under $10,000: budgetMode = true.
+- "interpreted": one short chip per extraction, e.g. "Budget: up to $7,000".
+Return STRICT JSON matching the schema.`;
+async function parseSearchIntent(text2) {
+  const trimmed = text2.trim();
+  if (!trimmed) return { criteriaPatch: {}, interpreted: [], source: "rules" };
+  try {
+    const response = await invokeLLM({
+      messages: [
+        { role: "system", content: INTENT_SYSTEM_PROMPT },
+        { role: "user", content: trimmed.slice(0, 600) }
+      ],
+      response_format: INTENT_SCHEMA
+    });
+    let content = response?.choices?.[0]?.message?.content;
+    if (Array.isArray(content)) {
+      content = content.map((p) => p.type === "text" ? p.text : "").join("");
+    }
+    if (typeof content !== "string" || !content.trim()) throw new Error("empty");
+    const parsed = JSON.parse(content);
+    const patch = sanitizePatch(parsed);
+    const useCase = VALID_USE_CASES.includes(parsed.useCase) ? parsed.useCase : void 0;
+    const interpreted = Array.isArray(parsed.interpreted) ? parsed.interpreted.filter((s) => typeof s === "string").slice(0, 12) : [];
+    return { criteriaPatch: patch, ...useCase ? { useCase } : {}, interpreted, source: "llm" };
+  } catch {
+    return parseIntentDeterministic(trimmed);
+  }
+}
+
+// server/checklist.ts
+var ENTRY_BY_ID = new Map(KNOWLEDGE_ENTRIES.map((e) => [e.id, e]));
+function dedupe(items) {
+  const seen = /* @__PURE__ */ new Set();
+  return items.filter((i) => {
+    const key = i.text.toLowerCase();
+    if (seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
+}
+function buildChecklist(input) {
+  const { advisories, sellerType, regionFlags = [], mileage, useCase } = input;
+  const isDealer = sellerType === "Franchise Dealer" || sellerType === "Independent Dealer";
+  const isPrivate2 = sellerType === "Private Seller";
+  const age = Math.max(0, (/* @__PURE__ */ new Date()).getFullYear() - input.year);
+  const theftRisk = advisories.some((a) => !a.waivedByManual && /theft|immobilizer/i.test(`${a.title} ${a.detail}`));
+  const before = [
+    {
+      text: "Pull a vehicle history report (Carfax/AutoCheck) and confirm a clean title \u2014 rebuilt/salvage titles can be uninsurable or carry massive premiums.",
+      critical: true
+    }
+  ];
+  if (isDealer) {
+    before.push({
+      text: 'Call ahead and ask the three smart dealer questions below \u2014 if they evade or say "you have to come in," walk away.',
+      critical: true
+    });
+  }
+  if (isPrivate2) {
+    before.push({ text: "Ask the owner for maintenance records and why they're selling \u2014 at budget prices, maintenance history matters more than brand." });
+  }
+  if (theftRisk || useCase === "teen-driver") {
+    before.push({
+      text: theftRisk ? "Get an insurance quote for this exact car BEFORE committing \u2014 this model year range is a known theft target and can be brutal to insure." : "Get an insurance quote for this exact car with your new driver on the policy BEFORE committing.",
+      critical: theftRisk
+    });
+  }
+  const modelChecks = [];
+  for (const a of advisories) {
+    if (a.waivedByManual) {
+      modelChecks.push({ text: `Good news: ${a.title} only affects automatics \u2014 this manual avoids it. Still confirm it shifts smoothly.` });
+      continue;
+    }
+    const entry = ENTRY_BY_ID.get(a.id);
+    const items = entry?.checklistItems?.length ? entry.checklistItems : a.watchFor;
+    for (const text2 of items) {
+      modelChecks.push({ text: text2, critical: a.severity === "avoid" });
+    }
+    if (a.transmissionNote) {
+      modelChecks.push({ text: a.transmissionNote, critical: a.severity === "avoid" });
+    }
+  }
+  const atCar = [
+    {
+      text: "Arrange a ~$150 pre-purchase inspection (PPI) with an independent mechanic \u2014 not the seller's shop. It catches hidden rust, leaks, and masked check-engine lights.",
+      critical: true
+    },
+    { text: "Cold-start the engine and listen for ticking, knocking, or rough idle before it warms up." }
+  ];
+  if (typeof mileage === "number" && mileage > 12e4) {
+    atCar.push({ text: "Ask for proof of timing belt/chain service and recent fluid changes \u2014 budget for major maintenance past 120k miles." });
+  }
+  if (age >= 12) {
+    atCar.push({ text: "Older vehicle: verify parts availability and check wear items (suspension bushings, hoses, seals)." });
+  }
+  for (const flag of regionFlags) {
+    atCar.push({ text: `Regional signal (UNVERIFIED): ${flag} \u2014 have the PPI specifically check for this and confirm with the history report.` });
+  }
+  const closing = [];
+  if (isPrivate2) {
+    closing.push(
+      { text: "Verify the title is clean, in the seller's name, and there are no outstanding liens.", critical: true },
+      { text: "Use a secure payment method and complete the bill of sale + title transfer per your state's rules." }
+    );
+  } else {
+    closing.push({
+      text: "Get the out-the-door price in writing and confirm it matches the phone quote \u2014 no surprise fees at signing.",
+      critical: true
+    });
+    if (sellerType === "Independent Dealer") {
+      closing.push({ text: "Confirm warranty vs. as-is status in writing before signing anything." });
+    }
+  }
+  const sections = [
+    { title: "Before you visit", items: dedupe(before) },
+    ...modelChecks.length ? [{ title: "Model-specific checks", items: dedupe(modelChecks) }] : [],
+    { title: "At the car & test drive", items: dedupe(atCar) },
+    { title: "Paperwork & closing", items: dedupe(closing) }
+  ];
+  return {
+    vehicleLabel: `${input.year} ${input.make} ${input.model}`.trim(),
+    sections,
+    dealerQuestions: isDealer ? [...DEALER_QUESTIONS] : [],
+    ...isDealer ? { dealerEvasionRule: DEALER_EVASION_RULE } : {},
+    goldenRules: [...GOLDEN_RULES]
+  };
+}
+function checklistToText(c) {
+  const lines = [`Pre-purchase checklist \u2014 ${c.vehicleLabel}`, ""];
+  for (const s of c.sections) {
+    lines.push(s.title.toUpperCase());
+    for (const i of s.items) lines.push(`  [ ] ${i.critical ? "(!) " : ""}${i.text}`);
+    lines.push("");
+  }
+  if (c.dealerQuestions.length) {
+    lines.push("SMART QUESTIONS FOR THE DEALER (ask by phone first)");
+    c.dealerQuestions.forEach((q, i) => lines.push(`  ${i + 1}. ${q}`));
+    if (c.dealerEvasionRule) lines.push(`  ${c.dealerEvasionRule}`);
+    lines.push("");
+  }
+  lines.push("GOLDEN RULES");
+  for (const r of c.goldenRules) lines.push(`  \u2022 ${r}`);
+  return lines.join("\n");
+}
+
 // server/routers/find.ts
 async function saveListingForUser(userId, listing) {
   const vehicle = listingToDecodedVehicle(listing);
@@ -4433,7 +5896,12 @@ var criteriaSchema = z3.object({
   maxMileage: z3.number().int().positive().max(5e5),
   priceVsReliability: z3.number().int().min(0).max(100),
   efficiencyPriority: z3.number().int().min(0).max(100),
-  limit: z3.number().int().min(1).max(10).optional()
+  limit: z3.number().int().min(1).max(10).optional(),
+  // Optional buyer-first extensions (legacy saved searches simply lack them).
+  searchText: z3.string().max(600).optional(),
+  useCase: z3.enum(["teen-driver", "student", "commuter", "family", "first-car", "budget"]).optional(),
+  budgetMode: z3.boolean().optional(),
+  makes: z3.array(z3.string().min(1)).max(8).optional()
 });
 function applyZipDistance(inventory, zip) {
   if (!isKnownZip(zip)) return inventory;
@@ -4490,23 +5958,135 @@ var findRouter = router({
       sellerTypes: input.sellerTypes,
       maxMileage: input.maxMileage,
       priceVsReliability: input.priceVsReliability,
-      efficiencyPriority: input.efficiencyPriority
+      efficiencyPriority: input.efficiencyPriority,
+      searchText: input.searchText,
+      useCase: input.useCase,
+      budgetMode: input.budgetMode,
+      makes: input.makes
     };
-    const eligibleCount = inventory.filter(
-      (l) => (criteria.condition === "Any" || l.condition === criteria.condition) && l.price <= criteria.maxPrice && (!criteria.minPrice || l.price >= criteria.minPrice) && (l.condition === "New" || l.mileage <= criteria.maxMileage) && l.distanceMiles <= criteria.maxDistance && (criteria.bodyStyles.length === 0 || criteria.bodyStyles.includes(l.bodyStyle)) && (criteria.fuels.length === 0 || criteria.fuels.includes(l.fuel)) && (criteria.sellerTypes.length === 0 || criteria.sellerTypes.includes(l.sellerType))
-    ).length;
+    const eligibleListings = inventory.filter((l) => passesHardFilters(l, criteria));
+    const eligibleCount = eligibleListings.length;
+    const hiddenAvoidCount = criteria.budgetMode === true ? eligibleListings.filter((l) => hasAvoidAdvisory(advisoriesForListing(l))).length : 0;
     const matches = rankInventory(inventory, criteria, input.limit ?? 5);
     const narratives = await generateNarratives(matches, criteria);
+    const suggestions = [];
+    let valuePickAlternatives = [];
+    if (matches.length === 0) {
+      const countWith = (patch) => {
+        const next = { ...criteria, ...patch };
+        let pool = inventory.filter((l) => passesHardFilters(l, next));
+        if (next.budgetMode === true) pool = pool.filter((l) => !hasAvoidAdvisory(advisoriesForListing(l)));
+        return pool.length;
+      };
+      const candidates = [
+        {
+          label: `Widen the radius to ${Math.min(150, criteria.maxDistance * 2)} miles`,
+          patch: { maxDistance: Math.min(150, criteria.maxDistance * 2) }
+        },
+        {
+          label: `Raise the budget to ${formatPrice(Math.round(criteria.maxPrice * 1.2))}`,
+          patch: { maxPrice: Math.round(criteria.maxPrice * 1.2) }
+        },
+        {
+          label: `Allow up to ${(criteria.maxMileage + 3e4).toLocaleString()} miles`,
+          patch: { maxMileage: criteria.maxMileage + 3e4 }
+        },
+        ...criteria.bodyStyles.length ? [{ label: "Any body style", patch: { bodyStyles: [] } }] : [],
+        ...criteria.fuels.length ? [{ label: "Any fuel type", patch: { fuels: [] } }] : [],
+        ...criteria.sellerTypes.length ? [{ label: "Any seller type", patch: { sellerTypes: [] } }] : [],
+        ...criteria.makes?.length ? [{ label: "Any make", patch: { makes: [] } }] : [],
+        ...criteria.condition !== "Any" ? [{ label: "New or used", patch: { condition: "Any" } }] : []
+      ];
+      for (const cand of candidates) {
+        const unlocks = countWith(cand.patch);
+        if (unlocks > 0) suggestions.push({ ...cand, patch: cand.patch, unlocks });
+      }
+      valuePickAlternatives = inventory.filter(
+        (l) => l.condition === "Used" && l.price <= criteria.maxPrice * 1.15 && advisoriesForListing(l).some((a) => a.severity === "value-pick")
+      ).sort((a, b) => a.price - b.price).slice(0, 3).map((l) => ({
+        listingId: l.id,
+        vin: l.vin,
+        label: `${l.year} ${l.make} ${l.model} ${l.trim}`.trim(),
+        price: l.price
+      }));
+    }
     return {
       scanned: inventory.length,
       eligible: eligibleCount,
       shortlisted: matches.length,
       zipApplied: isKnownZip(input.zip),
+      hiddenAvoidCount,
+      suggestions,
+      valuePickAlternatives,
       matches: matches.map((m) => ({
         ...m,
         narrative: narratives[m.listing.id] ?? null
       }))
     };
+  }),
+  /**
+   * Hybrid search: translate a plain-English description into criteria the
+   * filter controls understand. LLM-extracted when configured; a deterministic
+   * rules parser is the always-on fallback.
+   */
+  parseIntent: publicProcedure.input(z3.object({ text: z3.string().min(3).max(600) })).mutation(async ({ input }) => parseSearchIntent(input.text)),
+  /**
+   * Personalized pre-purchase checklist (deterministic, free). Accepts either
+   * a seeded listing id or a vehicle shape (for real NHTSA-decoded VINs).
+   */
+  checklist: publicProcedure.input(
+    z3.object({
+      listingId: z3.string().optional(),
+      vehicle: z3.object({
+        year: z3.number().int().min(1980).max(2030),
+        make: z3.string().min(1),
+        model: z3.string().min(1),
+        mileage: z3.number().int().nonnegative().optional(),
+        sellerType: z3.enum(SELLER_TYPES).optional(),
+        regionFlags: z3.array(z3.string()).optional(),
+        transmissionStyle: z3.string().optional(),
+        engineDisplacementL: z3.string().optional()
+      }).optional(),
+      useCase: z3.string().max(40).optional()
+    }).refine((i) => Boolean(i.listingId || i.vehicle), {
+      message: "Provide a listingId or a vehicle."
+    })
+  ).query(async ({ input }) => {
+    let checklist;
+    if (input.listingId) {
+      const listing = await inventoryProvider.getListingById(input.listingId);
+      if (!listing) throw new TRPCError3({ code: "NOT_FOUND", message: "Listing not found." });
+      checklist = buildChecklist({
+        year: listing.year,
+        make: listing.make,
+        model: listing.model,
+        mileage: listing.condition === "New" ? void 0 : listing.mileage,
+        price: listing.price,
+        sellerType: listing.sellerType,
+        regionFlags: listing.regionFlags,
+        advisories: advisoriesForListing(listing),
+        useCase: input.useCase
+      });
+    } else {
+      const v = input.vehicle;
+      checklist = buildChecklist({
+        year: v.year,
+        make: v.make,
+        model: v.model,
+        mileage: v.mileage,
+        sellerType: v.sellerType,
+        regionFlags: v.regionFlags,
+        advisories: findAdvisories({
+          make: v.make,
+          model: v.model,
+          year: v.year,
+          transmissionStyle: v.transmissionStyle,
+          engineDisplacementL: v.engineDisplacementL
+        }),
+        useCase: input.useCase
+      });
+    }
+    return { checklist, text: checklistToText(checklist) };
   }),
   /**
    * New-car browse: group new inventory by model so buyers shop on reputation,

@@ -3,6 +3,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { ScoreGauge, SubscoreBar } from "@/components/ScoreGauge";
 import { PremiumTeaser } from "@/components/PremiumTeaser";
+import { AdvisoryCallout } from "@/components/AdvisoryCallout";
 import { specRows, vehicleTitle, type DecodeResult } from "@/lib/vehicle";
 import { BadgeCheck, Bookmark, BookmarkCheck, Lightbulb, MessageSquare, ShieldCheck } from "lucide-react";
 
@@ -87,10 +88,17 @@ export function VehicleResult({ result, onAskAdvisor, onSave, isSaved, isSaving,
                 <SubscoreBar label="Age & Mileage" value={score.ageMileage} />
                 <SubscoreBar label="Efficiency" value={score.efficiency} />
               </div>
+              <p className="text-center text-[10px] leading-relaxed text-muted-foreground">
+                Layer 1 — model-level intelligence (live) · Layer 2 — this exact VIN's history
+                (Premium, coming soon)
+              </p>
             </CardContent>
           </Card>
         </div>
       </div>
+
+      {/* Curated model-year knowledge (GOGETTER Reliability Index) */}
+      <AdvisoryCallout advisories={score.advisories} riskLevel={score.riskLevel} />
 
       {/* Insights + Safety */}
       <div className="grid gap-6 lg:grid-cols-2">

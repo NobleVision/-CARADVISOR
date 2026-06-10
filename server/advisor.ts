@@ -52,7 +52,19 @@ function buildVehicleContext(vehicle: DecodedVehicle, score: ScoreBreakdown, mil
     `Engine notes: ${score.notes.join(" ")}`,
   ].join("\n");
 
-  return `DECODED VEHICLE (source: NHTSA vPIC public VIN database):\n${specs}\n\nGOGETTER SCORE BREAKDOWN:\n${scoreText}`;
+  // Curated model-year intelligence — lets the advisor cite specific known
+  // traps (PowerShift, Jatco CVT, Theta II...) or value picks for this car.
+  let knowledgeText = "";
+  if (score.advisories && score.advisories.length > 0) {
+    const lines = score.advisories.map((a) => {
+      if (a.waivedByManual) return `- WAIVED (manual transmission): ${a.title} — only affects automatics.`;
+      const head = a.severity === "value-pick" ? "VALUE PICK" : a.severity === "avoid" ? "KNOWN DEFECT" : "CAUTION";
+      return `- ${head}: ${a.title}. ${a.detail}${a.transmissionNote ? ` ${a.transmissionNote}` : ""}`;
+    });
+    knowledgeText = `\n\nKNOWN MODEL ISSUES (${score.advisories[0].source} — treat as ground truth, weave into advice):\n${lines.join("\n")}`;
+  }
+
+  return `DECODED VEHICLE (source: NHTSA vPIC public VIN database):\n${specs}\n\nGOGETTER SCORE BREAKDOWN:\n${scoreText}${knowledgeText}`;
 }
 
 const SYSTEM_PROMPT = `You are the GOGETTER AI Used Car Advisor — a sharp, trustworthy, and friendly expert who helps everyday buyers make confident used-car decisions.

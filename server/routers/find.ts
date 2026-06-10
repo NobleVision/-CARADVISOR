@@ -2,12 +2,16 @@ import { z } from "zod";
 import { TRPCError } from "@trpc/server";
 import { protectedProcedure, publicProcedure, router } from "../_core/trpc";
 import { inventoryProvider } from "../inventory/provider";
-import { rankInventory } from "../inventory/matching";
+import { advisoriesForListing, passesHardFilters, rankInventory } from "../inventory/matching";
 import { generateNarratives } from "../inventory/recommend";
 import { listingToDecodedVehicle } from "../inventory/adapt";
 import { distanceFromZip, isKnownZip } from "../inventory/geo";
 import { scoreVehicle, letterGrade } from "../scoring";
 import { CONFIG_OPTIONS } from "../inventory/options";
+import { parseSearchIntent } from "../search/intent";
+import { buildChecklist, checklistToText } from "../checklist";
+import { findAdvisories, hasAvoidAdvisory } from "../knowledge/lookup";
+import type { BuyerCriteria } from "../inventory/types";
 import {
   saveVehicle,
   recordPrice,
@@ -67,6 +71,11 @@ const criteriaSchema = z.object({
   priceVsReliability: z.number().int().min(0).max(100),
   efficiencyPriority: z.number().int().min(0).max(100),
   limit: z.number().int().min(1).max(10).optional(),
+  // Optional buyer-first extensions (legacy saved searches simply lack them).
+  searchText: z.string().max(600).optional(),
+  useCase: z.enum(["teen-driver", "student", "commuter", "family", "first-car", "budget"]).optional(),
+  budgetMode: z.boolean().optional(),
+  makes: z.array(z.string().min(1)).max(8).optional(),
 });
 
 /**
@@ -123,7 +132,7 @@ export const findRouter = router({
     .mutation(async ({ input }) => {
       const rawInventory = await inventoryProvider.getInventory();
       const inventory = applyZipDistance(rawInventory, input.zip);
-      const criteria = {
+      const criteria: BuyerCriteria = {
         condition: input.condition,
         maxPrice: input.maxPrice,
         minPrice: input.minPrice,
@@ -135,32 +144,167 @@ export const findRouter = router({
         maxMileage: input.maxMileage,
         priceVsReliability: input.priceVsReliability,
         efficiencyPriority: input.efficiencyPriority,
+        searchText: input.searchText,
+        useCase: input.useCase,
+        budgetMode: input.budgetMode,
+        makes: input.makes,
       };
 
-      const eligibleCount = inventory.filter((l) =>
-        (criteria.condition === "Any" || l.condition === criteria.condition) &&
-        l.price <= criteria.maxPrice &&
-        (!criteria.minPrice || l.price >= criteria.minPrice) &&
-        (l.condition === "New" || l.mileage <= criteria.maxMileage) &&
-        l.distanceMiles <= criteria.maxDistance &&
-        (criteria.bodyStyles.length === 0 || criteria.bodyStyles.includes(l.bodyStyle)) &&
-        (criteria.fuels.length === 0 || criteria.fuels.includes(l.fuel)) &&
-        (criteria.sellerTypes.length === 0 || criteria.sellerTypes.includes(l.sellerType)),
-      ).length;
+      // Single source of truth for eligibility — the same hard filters the
+      // ranking engine applies (deliberately includes known-defect models so
+      // the hidden-by-Budget-Mode count below stays honest).
+      const eligibleListings = inventory.filter((l) => passesHardFilters(l, criteria));
+      const eligibleCount = eligibleListings.length;
+      const hiddenAvoidCount =
+        criteria.budgetMode === true
+          ? eligibleListings.filter((l) => hasAvoidAdvisory(advisoriesForListing(l))).length
+          : 0;
 
       const matches = rankInventory(inventory, criteria, input.limit ?? 5);
       const narratives = await generateNarratives(matches, criteria);
+
+      // Zero results → advise which criteria to loosen (each suggestion is
+      // validated against the inventory, so every button actually unlocks cars)
+      // and surface curated value picks slightly outside the chip filters.
+      const suggestions: { label: string; patch: Partial<z.infer<typeof criteriaSchema>>; unlocks: number }[] = [];
+      let valuePickAlternatives: { listingId: string; vin: string; label: string; price: number }[] = [];
+      if (matches.length === 0) {
+        const countWith = (patch: Partial<BuyerCriteria>): number => {
+          const next = { ...criteria, ...patch };
+          let pool = inventory.filter((l) => passesHardFilters(l, next));
+          if (next.budgetMode === true) pool = pool.filter((l) => !hasAvoidAdvisory(advisoriesForListing(l)));
+          return pool.length;
+        };
+        const candidates: { label: string; patch: Partial<BuyerCriteria> }[] = [
+          {
+            label: `Widen the radius to ${Math.min(150, criteria.maxDistance * 2)} miles`,
+            patch: { maxDistance: Math.min(150, criteria.maxDistance * 2) },
+          },
+          {
+            label: `Raise the budget to ${formatPrice(Math.round(criteria.maxPrice * 1.2))}`,
+            patch: { maxPrice: Math.round(criteria.maxPrice * 1.2) },
+          },
+          {
+            label: `Allow up to ${(criteria.maxMileage + 30000).toLocaleString()} miles`,
+            patch: { maxMileage: criteria.maxMileage + 30000 },
+          },
+          ...(criteria.bodyStyles.length ? [{ label: "Any body style", patch: { bodyStyles: [] as typeof criteria.bodyStyles } }] : []),
+          ...(criteria.fuels.length ? [{ label: "Any fuel type", patch: { fuels: [] as typeof criteria.fuels } }] : []),
+          ...(criteria.sellerTypes.length ? [{ label: "Any seller type", patch: { sellerTypes: [] as typeof criteria.sellerTypes } }] : []),
+          ...(criteria.makes?.length ? [{ label: "Any make", patch: { makes: [] as string[] } }] : []),
+          ...(criteria.condition !== "Any" ? [{ label: "New or used", patch: { condition: "Any" as const } }] : []),
+        ];
+        for (const cand of candidates) {
+          const unlocks = countWith(cand.patch);
+          if (unlocks > 0) suggestions.push({ ...cand, patch: cand.patch as Partial<z.infer<typeof criteriaSchema>>, unlocks });
+        }
+
+        // Curated value picks near the budget, ignoring chip filters — the
+        // "consider this instead" guidance from the budget golden rules.
+        valuePickAlternatives = inventory
+          .filter(
+            (l) =>
+              l.condition === "Used" &&
+              l.price <= criteria.maxPrice * 1.15 &&
+              advisoriesForListing(l).some((a) => a.severity === "value-pick"),
+          )
+          .sort((a, b) => a.price - b.price)
+          .slice(0, 3)
+          .map((l) => ({
+            listingId: l.id,
+            vin: l.vin,
+            label: `${l.year} ${l.make} ${l.model} ${l.trim}`.trim(),
+            price: l.price,
+          }));
+      }
 
       return {
         scanned: inventory.length,
         eligible: eligibleCount,
         shortlisted: matches.length,
         zipApplied: isKnownZip(input.zip),
+        hiddenAvoidCount,
+        suggestions,
+        valuePickAlternatives,
         matches: matches.map((m) => ({
           ...m,
           narrative: narratives[m.listing.id] ?? null,
         })),
       };
+    }),
+
+  /**
+   * Hybrid search: translate a plain-English description into criteria the
+   * filter controls understand. LLM-extracted when configured; a deterministic
+   * rules parser is the always-on fallback.
+   */
+  parseIntent: publicProcedure
+    .input(z.object({ text: z.string().min(3).max(600) }))
+    .mutation(async ({ input }) => parseSearchIntent(input.text)),
+
+  /**
+   * Personalized pre-purchase checklist (deterministic, free). Accepts either
+   * a seeded listing id or a vehicle shape (for real NHTSA-decoded VINs).
+   */
+  checklist: publicProcedure
+    .input(
+      z
+        .object({
+          listingId: z.string().optional(),
+          vehicle: z
+            .object({
+              year: z.number().int().min(1980).max(2030),
+              make: z.string().min(1),
+              model: z.string().min(1),
+              mileage: z.number().int().nonnegative().optional(),
+              sellerType: z.enum(SELLER_TYPES).optional(),
+              regionFlags: z.array(z.string()).optional(),
+              transmissionStyle: z.string().optional(),
+              engineDisplacementL: z.string().optional(),
+            })
+            .optional(),
+          useCase: z.string().max(40).optional(),
+        })
+        .refine((i) => Boolean(i.listingId || i.vehicle), {
+          message: "Provide a listingId or a vehicle.",
+        }),
+    )
+    .query(async ({ input }) => {
+      let checklist;
+      if (input.listingId) {
+        const listing = await inventoryProvider.getListingById(input.listingId);
+        if (!listing) throw new TRPCError({ code: "NOT_FOUND", message: "Listing not found." });
+        checklist = buildChecklist({
+          year: listing.year,
+          make: listing.make,
+          model: listing.model,
+          mileage: listing.condition === "New" ? undefined : listing.mileage,
+          price: listing.price,
+          sellerType: listing.sellerType,
+          regionFlags: listing.regionFlags,
+          advisories: advisoriesForListing(listing),
+          useCase: input.useCase,
+        });
+      } else {
+        const v = input.vehicle!;
+        checklist = buildChecklist({
+          year: v.year,
+          make: v.make,
+          model: v.model,
+          mileage: v.mileage,
+          sellerType: v.sellerType,
+          regionFlags: v.regionFlags,
+          advisories: findAdvisories({
+            make: v.make,
+            model: v.model,
+            year: v.year,
+            transmissionStyle: v.transmissionStyle,
+            engineDisplacementL: v.engineDisplacementL,
+          }),
+          useCase: input.useCase,
+        });
+      }
+      return { checklist, text: checklistToText(checklist) };
     }),
 
   /**
