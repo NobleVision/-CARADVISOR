@@ -15,6 +15,7 @@ import { useState } from "react";
 import { SignInDialog } from "./SignInDialog";
 import { NotificationsBell } from "./NotificationsBell";
 import { Logo } from "./Logo";
+import { ThemeToggle } from "./ThemeToggle";
 import { HelpMenu } from "@/tour/HelpMenu";
 import { useTour } from "@/tour/TourProvider";
 
@@ -73,6 +74,7 @@ export function NavBar() {
         </nav>
 
         <div className="flex items-center gap-2">
+          <ThemeToggle />
           <HelpMenu />
           <NotificationsBell />
           {isAuthenticated ? (

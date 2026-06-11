@@ -268,3 +268,70 @@ Built from the June 9, 2026 strategy meeting + the real-world car-search researc
 - [x] Tracking: localStorage `gg-tour` for visitors; `users.onboarding` jsonb (migration applied via db:push) + auth.setOnboarding mutation for accounts; two-way login reconciliation; the SHARED demo account is exempt from server persistence (server-enforced) so demo visitors don't poison each other
 - [x] .env.local.example: audited (all 17 live vars documented) + commented FUTURE/PLANNED section (Marketcheck/Auto.dev, VinAudit, Google Places/Yelp, Resend/Twilio, production auth, Sentry)
 - [x] Tests: 184 passing (5 new auth.setOnboarding router tests: anonymous rejected, persists shape, DB-null persisted:false, demo-account no-op, invalid status)
+
+## v9 — Path to ZERO mock/demo data (planned roadmap)
+
+Everything below is what remains between today's build and an app with no mock, seeded,
+or simulated data anywhere. Already real and staying: NHTSA vPIC decode, NHTSA recalls,
+Z.AI advisor/narratives/intent, Pinecone semantic search, Cloudinary delivery, Mapbox
+map + geocoding, Brave live-market/web-intel. The curated GOGETTER Reliability Index is
+editorial content (a feature, not mock data) and stays. The guided-tour fixtures are
+deliberately static sample data by design and stay.
+
+### Current mock/demo surfaces → what replaces each
+| Mock/demo surface today | Replaced by |
+| --- | --- |
+| `server/inventory/data.json` (90 generated listings) + `scripts/genInventory.mjs` | Licensed listings feed via a new `InventoryProvider` (9.1) |
+| `server/inventory/data.curated.json` (12 story cars) | Keep only as guided-tour/demo fixtures once live inventory exists; exclude from production search (9.1) |
+| Stock body-style photos (`BODY_PHOTOS` CloudFront → Cloudinary mirrors) | Real per-car dealer photos from the listings feed through the existing Cloudinary sync (9.1) |
+| Seeded `distanceMiles` / `sellerTenure` / `dealerBlurb` / `regionFlags` fields | Feed-supplied values + computed distance (already real when a buyer ZIP is given) (9.1) |
+| ZIP centroid table (~25 DC-metro ZIPs) as primary geo source | Census ZCTA gazetteer (free, ~33k ZIPs, offline) with Mapbox geocoding for the rest (9.2) |
+| Price-drop SIMULATION (`server/monitor.ts`, deterministic ~1.5% nudges) | Real price tracking: diff actual listing prices on each feed refresh (9.1) + optional valuation API (9.4) |
+| Premium teaser panel (blurred fake history) | Real NMVTIS history reports behind a paid tier (9.3) |
+| Demo auth (`admin/admin`, in-code account table) | Production auth provider + real accounts (9.6) |
+| Make-level reliability heuristic table in `scoring.ts` | Keep as baseline, augment with free NHTSA complaints/investigations + real fuel-economy data (9.5) |
+
+### 9.1 Real inventory (the big one — unblocks photos, prices, scale)
+- [ ] Provision a listings API: **Marketcheck Cars API** (free dev tier ~500 calls/mo to start) or **Auto.dev Listings**; add `MARKETCHECK_API_KEY`/`AUTO_DEV_API_KEY` (already stubbed in `.env.local.example`)
+- [ ] Implement `marketcheckInventoryProvider` behind the existing `InventoryProvider` interface (`server/inventory/types.ts` — the boundary was built for this; matching/scoring/trust need zero changes)
+- [ ] Normalize feed → `Listing` (VIN, price, mileage, seller, city/state/zip, real dealer photo URLs); map feed body/fuel types to the app enums
+- [ ] Sync job (Vercel cron or on-demand revalidation): refresh inventory on a schedule, persist snapshots (new `listings` table or KV cache) so serverless instances share one copy instead of per-instance JSON
+- [ ] **Real price history**: on each refresh, diff prices into the existing `price_history` table → the Garage sparkline, price-drop alerts, and the monitor become real; delete the simulation from `server/monitor.ts`
+- [ ] Pipe feed photos through `pnpm sync:cloudinary` (manifest contract already handles distinct per-car URLs) — or build delivery URLs on the fly for feed CDNs
+- [ ] Re-run `pnpm sync:pinecone` as part of the inventory sync job so semantic search tracks live stock (the script is already idempotent)
+- [ ] Demote `data.curated.json` to tour/demo-mode-only; keep the trap/value-pick cars as the guided tour's sample set
+- [ ] Update `find.facets` ranges, map bounds/clustering (>1k pins needs marker clustering on `/map`), and the "scanned N listings" copy to live counts
+
+### 9.2 Nationwide geo (free)
+- [ ] Ship the **Census ZCTA gazetteer** (~33k US ZIP centroids, public domain, ~1MB) as the primary `centroidForZip` source; keep Mapbox Geocoding v6 as the fallback for non-ZCTA codes — removes the last "fall back to seeded distance" path entirely
+- [ ] Compute listing coordinates from feed lat/lng when provided (most listing APIs include it) instead of ZIP-centroid + jitter
+
+### 9.3 Real vehicle history — the premium "micro layer" (Tier-2 critical bottleneck)
+- [ ] Provision **VinAudit** (NMVTIS reseller, ~$0.12–$1/report; `VINAUDIT_API_KEY` stubbed): title brands, salvage, theft, odometer, junk/total-loss records
+- [ ] `server/history/vinaudit.ts` (recalls.ts pattern) + `vehicle.history` tRPC procedure, gated by premium entitlement
+- [ ] Replace the blurred `PremiumTeaser` with the real report UI; blend confirmed title/odometer flags into the score as the true Layer-2 50% (the dual-layer architecture from the June 9 meeting)
+- [ ] Long-term: pursue the Carfax/AutoCheck partnership track for accident/service records NMVTIS lacks (no open API — business development, not code)
+
+### 9.4 Real valuation
+- [ ] **VinAudit Market Value** or **Marketcheck price/prediction** endpoints (`VINAUDIT_MARKET_VALUE_KEY` stubbed) → replace the price-vs-budget heuristic in fit scoring with price-vs-market ("$1,200 under market"), feed the suspicious-deal detector a real baseline, and show fair-price ranges on detail pages and in advisor context
+
+### 9.5 Free public-data enrichment (no keys, quick wins)
+- [ ] **NHTSA complaints + investigations** APIs (same family as recalls.ts) → complaint counts/themes on detail pages; corroborates Reliability Index entries with live federal data
+- [ ] **NHTSA SafetyRatings (NCAP)** → real crash-test stars into the safety subscore (today it's decoded-feature-based)
+- [ ] **EPA fueleconomy.gov** web services → real combined MPG/MPGe by year/make/model replacing feed/seeded `mpg` values
+- [ ] **Google Places / Yelp Fusion** (keys stubbed) → real dealer ratings + review counts into `server/inventory/trust.ts`, replacing seeded `sellerTenure` trust cues
+
+### 9.6 Production accounts & delivery
+- [ ] Real auth provider (Google OAuth or email magic-link; `AUTH_SECRET`/`GOOGLE_CLIENT_*` stubbed) replacing admin/admin; keep the demo account only for the guided tour's auto-login beat (or switch that beat to a per-session sandbox user)
+- [ ] **Resend** (email) + optional **Twilio** (SMS) for saved-search and price-drop alerts — the cron monitor already produces the notifications, only delivery is missing
+- [ ] Rate limiting + per-user quotas on metered endpoints (Brave liveMarket, future history reports)
+
+### 9.7 Monetization & ops (to "complete the application")
+- [ ] Stripe subscription for the premium tier (history reports + valuation + priority alerts) — entitlement checks on the new premium procedures
+- [ ] Z.AI: fund the account and set `LLM_MODEL=glm-4.7` (or `glm-5.1`) — the free `glm-4.5-flash` default works but flagship models write noticeably better advisor prose
+- [ ] Serverless cache hardening: move the in-memory TTL caches (recalls/Brave/geocode/Pinecone) to a shared store (Vercel KV/Upstash) so cold instances don't refetch metered APIs
+- [ ] `SENTRY_DSN` error monitoring (stubbed); structured logging for the sync jobs
+- [ ] Tier-2 carry-overs from v5: crowdsourced prior-owner feedback ("Private Investigator", opt-in/consented), dealer "Trust Stamp" program, affiliate integrations (financing/insurance/warranty), marketing assets (micro-drama commercial, shareable "My AI Car Find" cards)
+
+### Carry-over small items
+- [ ] Static landing fallback art `/img/hero-car.svg` (reduced-motion/no-WebGL) still shows pre-v6.1 stylized proportions — retrace to match the particle car

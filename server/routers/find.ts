@@ -16,6 +16,7 @@ import {
   jitterForId,
   resolveBuyerPoint,
 } from "../inventory/geo";
+import { resolveLocationToZip } from "../geo/cityToZip";
 import { scoreVehicle, letterGrade } from "../scoring";
 import { CONFIG_OPTIONS } from "../inventory/options";
 import { parseSearchIntent } from "../search/intent";
@@ -126,6 +127,15 @@ function describeCriteria(c: z.infer<typeof criteriaSchema>): string {
 }
 
 export const findRouter = router({
+  /**
+   * Resolve a free-text buyer location (5-digit ZIP or "City, ST") to the
+   * representative ZIP the search engine needs. Seeded metro table first,
+   * then Mapbox, then keyless Zippopotam; ok:false carries a clear message.
+   */
+  resolveLocation: publicProcedure
+    .input(z.object({ query: z.string().trim().min(1).max(80) }))
+    .query(({ input }) => resolveLocationToZip(input.query)),
+
   /** Distinct facet values to drive the intake form (from current inventory). */
   facets: publicProcedure.query(async () => {
     const inv = await inventoryProvider.getInventory();

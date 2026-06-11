@@ -4,6 +4,8 @@
 
 GOGETTER AI Used Car Advisor is a premium web application that helps shoppers decode, score, compare, and get AI-powered advice on used vehicles in one seamless experience. A buyer enters a Vehicle Identification Number (VIN); the application decodes the full factory specification from the free **NHTSA vPIC** public database, computes a transparent 0–100 quality score, and lets the user chat with an LLM-powered advisor that explains the score and offers personalized buying guidance. Vehicles can be saved to a personal garage, compared side by side, and revisited through a persistent search history. A premium teaser panel previews the private vehicle-history data (accident records, ownership count, and market value from **Carfax** and **CarGurus**) that a future paid tier would unlock.
 
+As of v7/v8 the app also runs on **live cloud services** wherever a key is configured — Z.AI powers the advisor and natural-language search, Pinecone adds semantic ranking and similar-vehicle matching, Cloudinary serves optimized listing imagery, Mapbox drives an interactive **inventory map** plus real geocoding, and Brave Search pulls real marketplace listings and owner-reported intel — and new visitors get a **guided onboarding tour** (Quick or Full) that demos every feature on sample data.
+
 ## Core Features
 
 | Feature | Description |
@@ -24,6 +26,11 @@ GOGETTER AI Used Car Advisor is a premium web application that helps shoppers de
 | Pre-Purchase Action Plan | A personalized, copyable checklist per car: history report, ~$150 independent PPI, the three smart dealer questions to ask by phone (exact processing fee / send the history report now / absolute out-the-door price), private-sale title/lien steps, and model-specific checks from the Reliability Index. |
 | Free Public Records (NHTSA Recalls) | Open recall campaigns pulled live from NHTSA's free public database for any make/model/year, with remedies and campaign numbers — the first live slice of the per-vehicle "micro layer". |
 | Smart Zero-Result Guidance | When filters return nothing, the engine proposes one-click relaxations that are validated against inventory ("Widen the radius to 100 miles · +7") and surfaces curated value picks just outside the current filters. |
+| Semantic Search & Similar Vehicles (Pinecone) | Free-text searches blend vector relevance into the deterministic ranking (badged "AI semantic ranking applied"), and every detail page gets a "More like this" rail of nearest neighbors — with a closeness-ranked fallback when the index is offline. |
+| Inventory Map Explorer (`/map`) | Every listing pinned on a dark Mapbox map as a gold price pill at its real ZIP location, with popup report cards, price/body/risk filters, and geolocation. Buyer ZIPs outside the seeded area geocode live, so distance filtering uses real geography nationwide. |
+| Live Market Scan & Web Intel (Brave) | One opt-in click searches the real web for cars matching the buyer's criteria (results badged by marketplace — Cars.com, AutoTrader, CarGurus, Craigslist…), and detail pages add a "From the web" card of owner-reported problem/reliability links that also feeds the advisor's context. |
+| Optimized Imagery (Cloudinary) | All listing photos serve from Cloudinary's CDN with `f_auto,q_auto` transformations via a committed manifest — a pure URL builder at runtime, no SDK on the request path. |
+| Guided Onboarding Tour | First visitors choose a Quick (~2 min) or Full (~5 min) spotlight walkthrough of every feature, running entirely on sample data (zero live API calls). Completion is remembered per visitor and per account, and the tour relaunches anytime from the "?" menu. |
 | Premium Teaser Panel | Previews Carfax/CarGurus-sourced accident history, ownership count, and market value behind a blurred, clearly-labeled "coming soon" panel — framed as Layer 2 of the dual-layer score (Layer 1, model-level intelligence, is live today). |
 
 ## How It Works
@@ -60,6 +67,8 @@ Try it: open **Find My Car**, paste *"a safe, efficient car under $7k for my 15-
 
 The project runs **React 19 + Tailwind 4** on the client and a **tRPC 11** API on the server, with **Drizzle ORM** over **Neon serverless Postgres** and JWT cookie sessions (demo credential login) for authentication. It deploys to **Vercel** as a Vite static site plus serverless functions (the same tRPC router runs under a local Express dev server for HMR). The UI uses a dark "midnight showroom" theme with Fraunces serif headings and Inter body type.
 
+Heavy client libraries are isolated in lazy route chunks so the main bundle stays lean: **GSAP + Three.js** power the landing page, **mapbox-gl** powers `/map`, and **driver.js** loads only when a guided tour starts. Server-side integrations (**Pinecone** vector search, **Cloudinary** image delivery, **Z.AI** via the generic OpenAI-compatible LLM client, **Mapbox Geocoding**, **Brave Search**) are all optional and degrade gracefully to deterministic behavior when their keys are absent — the test suite enforces this by blanking every service key.
+
 ## Deployment (Vercel)
 
 `vercel.json` configures the static build (`vite build` → `dist/public`), SPA rewrites, the serverless API (`api/trpc/[trpc].ts`), and a daily cron that runs the price-drop / new-match monitor (`api/cron/monitor.ts`). Set `DATABASE_URL`, `JWT_SECRET`, and `CRON_SECRET` in the Vercel project (plus any of the optional service keys below), run `pnpm db:push` once against the production database, and deploy. See [LOCAL_SETUP.md](LOCAL_SETUP.md) for the full walkthrough and the landing-page b-roll prompts in [docs/landing-video-prompts.md](docs/landing-video-prompts.md).
@@ -94,7 +103,7 @@ Drop your clips into **`client/public/videos/`** (MP4) and list them in `LANDING
 
 ## Roadmap (not yet wired)
 
-A licensed real-listings API (the provider boundary is ready — Marketcheck/Auto.dev feeds would also bring real per-car dealer photos straight through the Cloudinary sync), NMVTIS vehicle history (e.g. VinAudit) behind the premium tier, real valuations (VinAudit/Marketcheck price APIs), dealer reputation (Google Places/Yelp), free NHTSA complaints + SafetyRatings and EPA fueleconomy.gov enrichment, and email/SMS delivery for alerts (currently in-app only).
+A licensed real-listings API (the provider boundary is ready — Marketcheck/Auto.dev feeds would also bring real per-car dealer photos straight through the Cloudinary sync), NMVTIS vehicle history (e.g. VinAudit) behind the premium tier, real valuations (VinAudit/Marketcheck price APIs), dealer reputation (Google Places/Yelp), free NHTSA complaints + SafetyRatings and EPA fueleconomy.gov enrichment, production auth + Stripe for the premium tier, and email/SMS delivery for alerts (currently in-app only). The full task-level plan to reach **zero mock/demo data** — including which mock surface each task replaces — lives in [todo.md § v9](todo.md); the env keys each step needs are pre-stubbed in the "FUTURE / PLANNED" section of `.env.local.example`.
 
 ## Project Structure
 
@@ -108,17 +117,28 @@ A licensed real-listings API (the provider boundary is ready — Marketcheck/Aut
 | `server/recalls.ts` | Free NHTSA recall lookup (timeout, cache, null-safe). |
 | `server/inventory/trust.ts` | Rule-based seller trust signals + suspicious-deal detector. |
 | `server/inventory/data.curated.json` | Curated demo listings (reliability traps + value picks) kept separate so regenerating `data.json` never wipes them. |
-| `server/advisor.ts` | LLM advisor prompt construction and invocation (knowledge-aware). |
-| `server/routers/vehicle.ts` | tRPC procedures: decode, advisor, recalls, save/unsave, history. |
-| `server/routers/find.ts` | Discovery: search, parseIntent, checklist, facets, saved searches. |
-| `server/db.ts` | Query helpers for history and saved vehicles. |
-| `drizzle/schema.ts` | Database tables and shared decoded/score/advisory types. |
-| `client/src/pages/` | Home, FindMyCar, Compare, History, Saved, Premium, VehicleDetail. |
-| `client/src/components/` | NavBar, VinSearchForm, VehicleResult, ScoreGauge, AdvisorChat, MatchCard, AdvisoryCallout, ChecklistCard, PublicRecords, PremiumTeaser. |
+| `server/advisor.ts` | LLM advisor prompt construction and invocation (knowledge-aware + Pinecone recall + Brave web context). |
+| `server/vector/` | Pinecone semantic search: embedding-text composers, lazy SDK client (timeout + cache warming), score blending. |
+| `server/websearch/` | Brave Search client (metered-aware cache/throttle) + marketplace tagging for the live-market panel. |
+| `server/geo/mapboxGeocode.ts` | Mapbox Geocoding v6 for buyer ZIPs outside the seeded centroid table. |
+| `server/images/cloudinary.ts` | Pure Cloudinary delivery-URL builder over the committed photo manifest (`server/inventory/photos.cloudinary.json`). |
+| `server/routers/vehicle.ts` | tRPC procedures: decode, advisor, recalls, webIntel, save/unsave, history. |
+| `server/routers/find.ts` | Discovery: search (semantic blend), similar, mapListings, liveMarket, parseIntent, checklist, facets, saved searches. |
+| `server/routers/config.ts` | `config.public`: service flags + the public Mapbox token (never any secret). |
+| `server/db.ts` | Query helpers for history, saved vehicles, and onboarding state. |
+| `drizzle/schema.ts` | Database tables (incl. `users.onboarding`) and shared decoded/score/advisory types. |
+| `scripts/sync-pinecone.mts` / `sync-cloudinary.mts` | One-time/idempotent index + image syncs (`pnpm sync:pinecone`, `pnpm sync:cloudinary`). |
+| `scripts/qa-browser.mjs` | Scripted Chrome QA: routes × viewports, landing deep checks, login flow, guided-tour smoke. |
+| `client/src/pages/` | Landing, Lookup, FindMyCar, MapExplorer, NewCars, Compare, History, Saved, Premium, VehicleDetail. |
+| `client/src/components/` | NavBar, VinSearchForm, VehicleResult, ScoreGauge, AdvisorChat, MatchCard, AdvisoryCallout, ChecklistCard, PublicRecords, SimilarVehicles, FromTheWeb, LiveMarketPanel, PremiumTeaser. |
+| `client/src/tour/` | Guided-tour engine (driver.js provider, steps, sample-data fixtures, prompt card, "?" help menu, completion tracking). |
+| `client/src/landing/` | GSAP scroll story + Three.js particle hero (lazy chunk). |
 
 ## Testing
 
-Run the suite with `pnpm test` (118 tests). Coverage includes VIN structural validation, the scoring engine's bounds/grade mapping and its knowledge-base integration (trap penalties, value-pick bonuses, manual-transmission waivers), the Reliability Index lookup semantics, inventory matching with Budget Buyer Mode and trust signals, the deterministic intent parser, the checklist builder, NHTSA recall fetching (mocked), router-level backward compatibility for legacy saved-search criteria, and the auth flows.
+Run the suite with `pnpm test` (**184 tests**, all hermetic — `vitest.config.ts` blanks every service key so nothing ever touches a live API). Coverage includes VIN structural validation, the scoring engine's bounds/grade mapping and its knowledge-base integration (trap penalties, value-pick bonuses, manual-transmission waivers), the Reliability Index lookup semantics, inventory matching with Budget Buyer Mode and trust signals, the deterministic intent parser, the checklist builder, NHTSA recall fetching (mocked), env/service resolution (Z.AI fallback chain, service flags), the LLM client's URL-join + `json_schema` downgrade shim, the Pinecone client (lazy load, cache warming, timeouts) and score blending, the Cloudinary URL builder and manifest passthrough, Mapbox geocoding, the Brave client (cache/throttle/429) and marketplace tagging, router-level additions (`similar`, `mapListings`, `config.public`, onboarding persistence incl. the demo-account exemption), backward compatibility for legacy saved-search criteria, and the auth flows.
+
+Browser-level QA is scripted in `scripts/qa-browser.mjs` (puppeteer-core + system Chrome): 11 routes × 4 breakpoints for console errors and horizontal overflow, landing FPS/reduced-motion/pin-navigation checks, the demo login flow, brand assets, and a full guided-tour smoke (fresh-visitor prompt → quick tour drive-through → completion recorded → no re-prompt).
 
 ## Disclaimers
 

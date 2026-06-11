@@ -25,6 +25,39 @@ describe("find.parseIntent", () => {
   });
 });
 
+describe("find.resolveLocation", () => {
+  it("passes a valid 5-digit ZIP through unchanged", async () => {
+    const caller = appRouter.createCaller(publicCtx());
+    const r = await caller.find.resolveLocation({ query: "22030" });
+    expect(r.ok).toBe(true);
+    if (r.ok) {
+      expect(r.zip).toBe("22030");
+      expect(r.source).toBe("zip");
+    }
+  });
+
+  it("resolves a seeded metro city (with or without state) to its ZIP", async () => {
+    const caller = appRouter.createCaller(publicCtx());
+    const withState = await caller.find.resolveLocation({ query: "Falls Church, VA" });
+    expect(withState.ok && withState.zip === "22042").toBe(true);
+    const noState = await caller.find.resolveLocation({ query: "bethesda" });
+    expect(noState.ok && noState.zip === "20814" && noState.source === "seeded").toBe(true);
+  });
+
+  it("asks for a state when an unknown city has none (no network needed)", async () => {
+    const caller = appRouter.createCaller(publicCtx());
+    const r = await caller.find.resolveLocation({ query: "Atlantis" });
+    expect(r.ok).toBe(false);
+    if (!r.ok) expect(r.message).toMatch(/state|ZIP/i);
+  });
+
+  it("rejects input that cannot be a place", async () => {
+    const caller = appRouter.createCaller(publicCtx());
+    const r = await caller.find.resolveLocation({ query: "123 Main St 4" });
+    expect(r.ok).toBe(false);
+  });
+});
+
 describe("find.checklist", () => {
   it("builds a checklist from a vehicle shape with model-specific items", async () => {
     const caller = appRouter.createCaller(publicCtx());

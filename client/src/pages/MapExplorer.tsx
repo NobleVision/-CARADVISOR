@@ -72,7 +72,7 @@ export default function MapExplorer() {
   const config = trpc.config.public.useQuery(undefined, { staleTime: Infinity });
   const listings = trpc.find.mapListings.useQuery(undefined, { staleTime: 5 * 60 * 1000 });
 
-  const [maxPrice, setMaxPrice] = useState(70000);
+  const [priceRange, setPriceRange] = useState<[number, number]>([0, 70000]);
   const [bodyStyles, setBodyStyles] = useState<BodyStyle[]>([]);
   const [hideHighRisk, setHideHighRisk] = useState(false);
 
@@ -89,11 +89,12 @@ export default function MapExplorer() {
     () =>
       items.filter(
         (i) =>
-          i.price <= maxPrice &&
+          i.price >= priceRange[0] &&
+          i.price <= priceRange[1] &&
           (bodyStyles.length === 0 || bodyStyles.includes(i.bodyStyle as BodyStyle)) &&
           (!hideHighRisk || i.riskLevel !== "high"),
       ),
-    [items, maxPrice, bodyStyles, hideHighRisk],
+    [items, priceRange, bodyStyles, hideHighRisk],
   );
 
   // ── Map lifecycle ──
@@ -173,10 +174,19 @@ export default function MapExplorer() {
           <CardContent className="flex flex-wrap items-center gap-x-8 gap-y-4 p-4">
             <div className="min-w-56 flex-1">
               <div className="mb-2 flex items-center justify-between">
-                <Label className="text-xs text-muted-foreground">Max price</Label>
-                <span className="text-sm font-semibold">{formatUSD(maxPrice)}</span>
+                <Label className="text-xs text-muted-foreground">Price range</Label>
+                <span className="text-sm font-semibold">
+                  {formatUSD(priceRange[0])} – {formatUSD(priceRange[1])}
+                </span>
               </div>
-              <Slider value={[maxPrice]} min={4000} max={70000} step={1000} onValueChange={(v) => setMaxPrice(v[0])} />
+              <Slider
+                value={priceRange}
+                min={0}
+                max={70000}
+                step={1000}
+                minStepsBetweenThumbs={1}
+                onValueChange={(v) => setPriceRange([v[0], v[1]])}
+              />
             </div>
             <div className="flex flex-wrap gap-1.5">
               {ALL_BODY_STYLES.map((b) => {

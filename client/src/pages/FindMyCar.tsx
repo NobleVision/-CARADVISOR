@@ -71,8 +71,11 @@ export default function FindMyCar() {
   const [, navigate] = useLocation();
 
   const [condition, setCondition] = useState<Condition>("Used");
+  const [minPrice, setMinPrice] = useState(0);
   const [maxPrice, setMaxPrice] = useState(20000);
-  const [zip, setZip] = useState("");
+  const [locationText, setLocationText] = useState("");
+  const [resolved, setResolved] = useState<{ query: string; zip: string; label: string } | null>(null);
+  const [resolving, setResolving] = useState(false);
   const [maxDistance, setMaxDistance] = useState(25);
   const [maxMileage, setMaxMileage] = useState(100000);
   const [bodyStyles, setBodyStyles] = useState<BodyStyle[]>([]);
@@ -103,6 +106,7 @@ export default function FindMyCar() {
     }
   }, [isTourActive]);
 
+  const utils = trpc.useUtils();
   const facets = trpc.find.facets.useQuery();
   const search = trpc.find.search.useMutation({
     onSuccess: (data) => {
@@ -117,8 +121,10 @@ export default function FindMyCar() {
     let applied = 0;
     const clampN = (n: number, min: number, max: number) => Math.max(min, Math.min(max, Math.round(n)));
     if (patch.condition) { setCondition(patch.condition); applied++; }
-    if (typeof patch.maxPrice === "number") { setMaxPrice(clampN(patch.maxPrice, 4000, 70000)); applied++; }
-    if (patch.zip) { setZip(patch.zip); applied++; }
+    const nextMax = typeof patch.maxPrice === "number" ? clampN(patch.maxPrice, 4000, 70000) : maxPrice;
+    if (typeof patch.maxPrice === "number") { setMaxPrice(nextMax); applied++; }
+    if (typeof patch.minPrice === "number") { setMinPrice(clampN(Math.min(patch.minPrice, nextMax - 500), 0, 70000)); applied++; }
+    if (patch.zip) { setLocationText(patch.zip); applied++; }
     if (typeof patch.maxDistance === "number") { setMaxDistance(clampN(patch.maxDistance, 5, 150)); applied++; }
     if (typeof patch.maxMileage === "number") { setMaxMileage(clampN(patch.maxMileage, 20000, 150000)); applied++; }
     if (patch.bodyStyles) { setBodyStyles(patch.bodyStyles); applied++; }
@@ -181,12 +187,43 @@ export default function FindMyCar() {
   const toggleSeller = (s: SellerType) =>
     setSellerTypes((prev) => (prev.includes(s) ? prev.filter((x) => x !== s) : [...prev, s]));
 
-  const zipValid = /^\d{5}$/.test(zip);
+  // Location accepts a 5-digit ZIP directly, or a city ("Fairfax" / "Austin, TX")
+  // resolved to a representative ZIP server-side. Last resolution is cached so
+  // repeat searches don't re-hit the resolver.
+  const trimmedLocation = locationText.trim();
+  const zipDirect = /^\d{5}$/.test(trimmedLocation);
+  const effectiveZip = zipDirect
+    ? trimmedLocation
+    : resolved && resolved.query === trimmedLocation
+      ? resolved.zip
+      : undefined;
 
-  const buildCriteria = () => ({
+  /** Resolve the location box to a ZIP (toasting on failure). */
+  const ensureZip = async (): Promise<{ ok: boolean; zip?: string }> => {
+    if (!trimmedLocation) return { ok: true, zip: undefined };
+    if (effectiveZip) return { ok: true, zip: effectiveZip };
+    setResolving(true);
+    try {
+      const r = await utils.find.resolveLocation.fetch({ query: trimmedLocation });
+      if (r.ok) {
+        setResolved({ query: trimmedLocation, zip: r.zip, label: r.label });
+        return { ok: true, zip: r.zip };
+      }
+      toast.error(r.message);
+      return { ok: false };
+    } catch {
+      toast.error("Couldn't look up that location — try a 5-digit ZIP.");
+      return { ok: false };
+    } finally {
+      setResolving(false);
+    }
+  };
+
+  const buildCriteria = (zip?: string) => ({
     condition,
     maxPrice,
-    zip: zipValid ? zip : undefined,
+    minPrice: minPrice > 0 ? minPrice : undefined,
+    zip,
     maxDistance,
     maxMileage,
     bodyStyles,
@@ -204,27 +241,23 @@ export default function FindMyCar() {
   /** Apply a zero-result suggestion and immediately re-run the search. */
   const applySuggestion = (s: SearchSuggestion) => {
     applyPatch(s.patch);
-    search.mutate({ ...buildCriteria(), ...(s.patch as Partial<ReturnType<typeof buildCriteria>>) });
+    search.mutate({ ...buildCriteria(effectiveZip), ...(s.patch as Partial<ReturnType<typeof buildCriteria>>) });
   };
 
-  const runSearch = () => {
-    if (zip.length > 0 && !zipValid) {
-      toast.error("Enter a valid 5-digit ZIP code, or leave it blank.");
-      return;
-    }
-    search.mutate(buildCriteria());
+  const runSearch = async () => {
+    const loc = await ensureZip();
+    if (!loc.ok) return;
+    search.mutate(buildCriteria(loc.zip));
   };
 
-  const onSaveSearch = () => {
+  const onSaveSearch = async () => {
     if (!isAuthenticated) {
       toast.error("Sign in to save searches and get new-match alerts.");
       return;
     }
-    if (zip.length > 0 && !zipValid) {
-      toast.error("Enter a valid 5-digit ZIP code, or leave it blank.");
-      return;
-    }
-    saveSearch.mutate({ criteria: buildCriteria() });
+    const loc = await ensureZip();
+    if (!loc.ok) return;
+    saveSearch.mutate({ criteria: buildCriteria(loc.zip) });
   };
 
   const onSaveMatch = (m: RankedMatch) => {
@@ -386,17 +419,26 @@ export default function FindMyCar() {
               <div>
                 <div className="mb-2 flex items-center justify-between">
                   <Label className="flex items-center gap-1.5 text-sm">
-                    <Gauge className="size-4 text-primary" /> Budget (max)
+                    <Gauge className="size-4 text-primary" /> Budget
                   </Label>
-                  <span className="text-sm font-semibold">{formatUSD(maxPrice)}</span>
+                  <span className="text-sm font-semibold">
+                    {minPrice > 0 ? `${formatUSD(minPrice)} – ${formatUSD(maxPrice)}` : `Up to ${formatUSD(maxPrice)}`}
+                  </span>
                 </div>
                 <Slider
-                  value={[maxPrice]}
-                  min={4000}
+                  value={[minPrice, maxPrice]}
+                  min={0}
                   max={70000}
                   step={500}
-                  onValueChange={(v) => setMaxPrice(v[0])}
+                  minStepsBetweenThumbs={1}
+                  onValueChange={(v) => {
+                    setMinPrice(v[0]);
+                    setMaxPrice(v[1]);
+                  }}
                 />
+                <p className="mt-1.5 text-[11px] text-muted-foreground">
+                  Raise the lower end to skip suspiciously cheap listings.
+                </p>
               </div>
 
               {/* Budget Buyer Mode — productizes the budget golden rules */}
@@ -438,21 +480,26 @@ export default function FindMyCar() {
                 </div>
               )}
 
-              {/* ZIP + distance */}
+              {/* Location (ZIP or city) + distance */}
               <div>
                 <Label className="mb-2 flex items-center gap-1.5 text-sm">
                   <MapPin className="size-4 text-primary" /> Your location
                 </Label>
                 <div className="flex items-center gap-2">
                   <Input
-                    value={zip}
-                    onChange={(e) => setZip(e.target.value.replace(/\D/g, "").slice(0, 5))}
-                    placeholder="ZIP code"
-                    inputMode="numeric"
-                    className="h-9 w-28"
+                    value={locationText}
+                    onChange={(e) => setLocationText(e.target.value)}
+                    placeholder="ZIP or city, ST"
+                    className="h-9 w-40"
                   />
                   <span className="text-xs text-muted-foreground">
-                    {zipValid ? "Distances from your ZIP" : "Optional — improves distance"}
+                    {resolving
+                      ? "Looking up…"
+                      : zipDirect
+                        ? "Distances from your ZIP"
+                        : effectiveZip
+                          ? `Using ZIP ${effectiveZip} (${resolved?.label})`
+                          : "Optional — ZIP or city improves distance"}
                   </span>
                 </div>
                 <div className="mt-3 flex items-center justify-between">
@@ -800,10 +847,10 @@ export default function FindMyCar() {
 
               {/* Real web listings for the same criteria (Brave; opt-in click) */}
               <LiveMarketPanel
-                key={`${makes[0] ?? ""}|${maxPrice}|${zipValid ? zip : ""}|${condition}`}
+                key={`${makes[0] ?? ""}|${maxPrice}|${effectiveZip ?? ""}|${condition}`}
                 make={makes[0]}
                 maxPrice={maxPrice}
-                zip={zipValid ? zip : undefined}
+                zip={effectiveZip}
                 condition={condition}
               />
             </>

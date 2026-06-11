@@ -19,7 +19,10 @@ import { TourPrompt } from "@/tour/TourPrompt";
  */
 export default function Landing() {
   return (
-    <div className="min-h-screen">
+    // Forced `dark`: the cinematic scroll story (additive gold particles,
+    // b-roll video) is composed for the midnight palette regardless of the
+    // user's app theme preference.
+    <div className="dark min-h-screen bg-background text-foreground">
       <NavBar />
       <main>
         <HeroSection />

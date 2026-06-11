@@ -43,7 +43,9 @@ export default function Login() {
   };
 
   return (
-    <div className="relative flex min-h-screen flex-col text-foreground">
+    // Forced `dark`: this page sits directly on the dark brand video, so its
+    // tokens must stay midnight regardless of the user's theme preference.
+    <div className="dark relative flex min-h-screen flex-col text-foreground">
       <BackgroundVideo videos={LANDING_VIDEOS} poster={LANDING_POSTER} />
 
       {/* Brand bar */}
