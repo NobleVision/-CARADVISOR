@@ -1,5 +1,8 @@
 # GOGETTER AI Used Car Advisor — Project TODO
 
+**Last Updated:** June 11, 2026
+**Status:** v1–v8 shipped, plus the June 11 enhancements (location input, Min Price, theming, wordless brand mark). Active work = the v9 "zero mock data" roadmap below; open items live in **🐛 Known Issues** at the bottom. Project overview + setup: [README.md](README.md).
+
 ## Foundation
 - [x] Establish elegant design system (typography, color palette, theming) in index.css + index.html
 - [x] Define database schema (vehicles cache, search history, saved vehicles)
@@ -269,6 +272,15 @@ Built from the June 9, 2026 strategy meeting + the real-world car-search researc
 - [x] .env.local.example: audited (all 17 live vars documented) + commented FUTURE/PLANNED section (Marketcheck/Auto.dev, VinAudit, Google Places/Yelp, Resend/Twilio, production auth, Sentry)
 - [x] Tests: 184 passing (5 new auth.setOnboarding router tests: anonymous rejected, persists shape, DB-null persisted:false, demo-account no-op, invalid status)
 
+## June 11, 2026 — Location input, Min Price, theming & brand mark (delivered)
+
+- [x] City → ZIP location input: Find My Car accepts a ZIP **or** "City, ST" — new `server/geo/cityToZip.ts` (seeded city table → Mapbox geocoding → keyless Zippopotam.us fallback, cached) behind the new `find.resolveLocation` tRPC endpoint (4 new router tests)
+- [x] Min Price: dual-thumb budget slider on Find My Car (criteria now sends `minPrice`; the server already supported it) + a min/max price-range filter on the Map Explorer
+- [x] Light/Dark/System theme: rewritten `ThemeContext` + new `ThemeToggle` (Sun/Moon/Monitor) in the NavBar — persisted to localStorage, follows the OS in System mode; light "ivory showroom" tokens in `index.css`; theme-aware Mapbox basemap, popups, and toasts; Landing/Login intentionally stay dark; default remains dark
+- [x] Wordless brand mark: `docs/images/caradvisor-logo-nowords.png` resized into `client/public/brand/` (512/180/32) and wired into `Logo.tsx` + the favicon set (the GOGETTER / CAR ADVISOR wordmark renders as text beside it); OG/Twitter art still renders from SVG via `scripts/render-brand-pngs.mjs`
+- [x] Env + docs handoff cleanup per `docs/skills/`: `.env` ↔ `.env.local.example` audited and mirrored section-for-section (added the code-referenced `LLM_JSON_SCHEMA`; removed the unused `CLOUDINARY_API_KEY`/`CLOUDINARY_API_SECRET` — `CLOUDINARY_URL` embeds both); README refreshed
+- [x] Verified: `pnpm build:functions` + `pnpm check` clean · `pnpm test` 186/188 — the 2 failures are the pre-existing config-router timeout flake (see Known Issues)
+
 ## v9 — Path to ZERO mock/demo data (planned roadmap)
 
 Everything below is what remains between today's build and an app with no mock, seeded,
@@ -335,3 +347,9 @@ deliberately static sample data by design and stay.
 
 ### Carry-over small items
 - [ ] Static landing fallback art `/img/hero-car.svg` (reduced-motion/no-WebGL) still shows pre-v6.1 stylized proportions — retrace to match the particle car
+
+## 🐛 Known Issues
+
+- [ ] **Flaky `config.public` tests on slow machines** — the 2 tests in `server/routers/config.router.test.ts` can exceed Vitest's default 5000ms timeout: `freshCaller` does `vi.resetModules()` + a dynamic re-import of the entire `appRouter` graph per test. Pre-existing (reproduced at commit `d066560`, before any June 11 work). Suggested fix: per-test `{ timeout: 20_000 }`.
+- [ ] **Uncommitted handoff-cleanup edits** — `.env.local.example`, `README.md`, and `todo.md` (this file) carry the June 11 env/docs cleanup and are not yet committed; everything else is on `origin/main` (`1899721`).
+- [ ] **README MD060 lint** — pre-existing table-style warnings on the compact `|---|` delimiter rows; cosmetic only.
