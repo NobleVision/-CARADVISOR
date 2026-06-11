@@ -6579,6 +6579,48 @@ async function geocodeZip(zip) {
   }
   return value;
 }
+var placeCache = /* @__PURE__ */ new Map();
+async function geocodePlaceZip(query) {
+  const q = query.trim();
+  if (!geoConfigured() || q.length < 2) return null;
+  const key = q.toLowerCase();
+  const hit = placeCache.get(key);
+  if (hit && Date.now() - hit.at < CACHE_TTL_MS4) return hit.value;
+  let value = null;
+  try {
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), TIMEOUT_MS3);
+    try {
+      const params = new URLSearchParams({
+        q,
+        country: "us",
+        types: "postcode",
+        limit: "1",
+        access_token: ENV.mapboxToken
+      });
+      const res = await fetch(`${GEOCODE_URL}?${params}`, {
+        signal: controller.signal,
+        headers: { accept: "application/json" }
+      });
+      if (res.ok) {
+        const json = await res.json();
+        const props = json?.features?.[0]?.properties;
+        if (props?.name && /^\d{5}$/.test(props.name)) {
+          value = { zip: props.name, place: props.place_formatted ?? q };
+        }
+      }
+    } finally {
+      clearTimeout(timer);
+    }
+  } catch {
+    value = null;
+  }
+  if (value !== null) {
+    if (placeCache.size >= CACHE_MAX4) placeCache.delete(placeCache.keys().next().value);
+    placeCache.set(key, { at: Date.now(), value });
+  }
+  return value;
+}
 
 // server/inventory/geo.ts
 var ZIP_CENTROIDS = {
@@ -6669,6 +6711,167 @@ function jitterForId(id) {
   const h2 = Math.imul((h ^ 2654435769) >>> 0, 16777619);
   const b = (h2 >>> 0) % 1e3 / 1e3 - 0.5;
   return { dLat: a * 0.016, dLng: b * 0.016 };
+}
+
+// server/geo/cityToZip.ts
+var US_STATES = /* @__PURE__ */ new Set([
+  "AL",
+  "AK",
+  "AZ",
+  "AR",
+  "CA",
+  "CO",
+  "CT",
+  "DE",
+  "DC",
+  "FL",
+  "GA",
+  "HI",
+  "ID",
+  "IL",
+  "IN",
+  "IA",
+  "KS",
+  "KY",
+  "LA",
+  "ME",
+  "MD",
+  "MA",
+  "MI",
+  "MN",
+  "MS",
+  "MO",
+  "MT",
+  "NE",
+  "NV",
+  "NH",
+  "NJ",
+  "NM",
+  "NY",
+  "NC",
+  "ND",
+  "OH",
+  "OK",
+  "OR",
+  "PA",
+  "RI",
+  "SC",
+  "SD",
+  "TN",
+  "TX",
+  "UT",
+  "VT",
+  "VA",
+  "WA",
+  "WV",
+  "WI",
+  "WY"
+]);
+var SEEDED_CITY_ZIPS = {
+  "springfield": { zip: "22150", state: "VA", label: "Springfield, VA" },
+  "arlington": { zip: "22201", state: "VA", label: "Arlington, VA" },
+  "alexandria": { zip: "22301", state: "VA", label: "Alexandria, VA" },
+  "fairfax": { zip: "22030", state: "VA", label: "Fairfax, VA" },
+  "falls church": { zip: "22042", state: "VA", label: "Falls Church, VA" },
+  "bethesda": { zip: "20814", state: "MD", label: "Bethesda, MD" },
+  "rockville": { zip: "20850", state: "MD", label: "Rockville, MD" },
+  "silver spring": { zip: "20910", state: "MD", label: "Silver Spring, MD" },
+  "hyattsville": { zip: "20782", state: "MD", label: "Hyattsville, MD" },
+  "gaithersburg": { zip: "20878", state: "MD", label: "Gaithersburg, MD" },
+  "reston": { zip: "20190", state: "VA", label: "Reston, VA" },
+  "tysons": { zip: "22102", state: "VA", label: "Tysons, VA" },
+  "mclean": { zip: "22101", state: "VA", label: "McLean, VA" },
+  "vienna": { zip: "22182", state: "VA", label: "Vienna, VA" },
+  "washington": { zip: "20001", state: "DC", label: "Washington, DC" },
+  "aldie": { zip: "20105", state: "VA", label: "Aldie, VA" },
+  "herndon": { zip: "20171", state: "VA", label: "Herndon, VA" },
+  "baltimore": { zip: "21201", state: "MD", label: "Baltimore, MD" },
+  "fredericksburg": { zip: "22401", state: "VA", label: "Fredericksburg, VA" }
+};
+var ZIPPOPOTAM_URL = "https://api.zippopotam.us/us";
+var TIMEOUT_MS4 = 5e3;
+var CACHE_TTL_MS5 = 6 * 60 * 60 * 1e3;
+var CACHE_MAX5 = 200;
+var zippoCache = /* @__PURE__ */ new Map();
+function parseCityState(query) {
+  const cleaned = query.trim().replace(/\s+/g, " ");
+  if (!cleaned || /\d/.test(cleaned)) return null;
+  let city = cleaned;
+  let state;
+  const commaIdx = cleaned.indexOf(",");
+  if (commaIdx >= 0) {
+    city = cleaned.slice(0, commaIdx).trim();
+    const st = cleaned.slice(commaIdx + 1).trim().toUpperCase();
+    if (!US_STATES.has(st)) return null;
+    state = st;
+  } else {
+    const words = cleaned.split(" ");
+    const last = words[words.length - 1]?.toUpperCase();
+    if (words.length > 1 && last && US_STATES.has(last)) {
+      state = last;
+      city = words.slice(0, -1).join(" ");
+    }
+  }
+  if (city.length < 2 || !/^[a-zA-Z][a-zA-Z .'-]*$/.test(city)) return null;
+  return { city, state };
+}
+function titleCase(s) {
+  return s.replace(/\b[a-z]/g, (c) => c.toUpperCase());
+}
+async function zippopotamCityZip(city, state) {
+  const key = `${state}/${city.toLowerCase()}`;
+  const hit = zippoCache.get(key);
+  if (hit && Date.now() - hit.at < CACHE_TTL_MS5) return hit.value;
+  let value = null;
+  try {
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), TIMEOUT_MS4);
+    try {
+      const res = await fetch(
+        `${ZIPPOPOTAM_URL}/${state.toLowerCase()}/${encodeURIComponent(city.toLowerCase())}`,
+        { signal: controller.signal, headers: { accept: "application/json" } }
+      );
+      if (res.ok) {
+        const json = await res.json();
+        const zip = json?.places?.[0]?.["post code"];
+        if (zip && /^\d{5}$/.test(zip)) value = zip;
+      }
+    } finally {
+      clearTimeout(timer);
+    }
+  } catch {
+    value = null;
+  }
+  if (value !== null) {
+    if (zippoCache.size >= CACHE_MAX5) zippoCache.delete(zippoCache.keys().next().value);
+    zippoCache.set(key, { at: Date.now(), value });
+  }
+  return value;
+}
+async function resolveLocationToZip(query) {
+  const q = query.trim();
+  if (!q) return { ok: false, message: "Enter a 5-digit ZIP code or a city." };
+  if (/^\d{5}$/.test(q)) return { ok: true, zip: q, label: `ZIP ${q}`, source: "zip" };
+  const parsed = parseCityState(q);
+  if (!parsed) {
+    return { ok: false, message: `Couldn't read "${q}" as a location \u2014 enter a 5-digit ZIP or a city like "Fairfax, VA".` };
+  }
+  const seeded = SEEDED_CITY_ZIPS[parsed.city.toLowerCase()];
+  if (seeded && (!parsed.state || parsed.state === seeded.state)) {
+    return { ok: true, zip: seeded.zip, label: seeded.label, source: "seeded" };
+  }
+  if (geoConfigured()) {
+    const hit = await geocodePlaceZip(parsed.state ? `${parsed.city}, ${parsed.state}` : parsed.city);
+    if (hit) return { ok: true, zip: hit.zip, label: hit.place, source: "mapbox" };
+  }
+  if (parsed.state) {
+    const zip = await zippopotamCityZip(parsed.city, parsed.state);
+    if (zip) {
+      return { ok: true, zip, label: `${titleCase(parsed.city)}, ${parsed.state}`, source: "zippopotam" };
+    }
+    return { ok: false, message: `Couldn't find "${q}" \u2014 check the spelling, or enter a 5-digit ZIP.` };
+  }
+  return { ok: false, message: `Couldn't pinpoint "${q}" \u2014 add the state (e.g. "${titleCase(parsed.city)}, VA") or enter a 5-digit ZIP.` };
 }
 
 // server/inventory/options.ts
@@ -7334,6 +7537,12 @@ function describeCriteria(c) {
   return parts.join(" \xB7 ");
 }
 var findRouter = router({
+  /**
+   * Resolve a free-text buyer location (5-digit ZIP or "City, ST") to the
+   * representative ZIP the search engine needs. Seeded metro table first,
+   * then Mapbox, then keyless Zippopotam; ok:false carries a clear message.
+   */
+  resolveLocation: publicProcedure.input(z3.object({ query: z3.string().trim().min(1).max(80) })).query(({ input }) => resolveLocationToZip(input.query)),
   /** Distinct facet values to drive the intake form (from current inventory). */
   facets: publicProcedure.query(async () => {
     const inv = await inventoryProvider.getInventory();

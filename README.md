@@ -93,7 +93,7 @@ First-time visitors get a corner slide-in offer (landing page + `/lookup`) for a
 
 `/` is now the public brand home — a GSAP scroll story under a **Three.js particle hero**: ~14,000 champagne-gold particles assemble into a procedural fastback silhouette (no 3D model download), parallax with the pointer, and disperse as you scroll into the story (pinned score build → the RUN stamp demo → cinematic b-roll → product tour). Everything degrades to a fully static page under `prefers-reduced-motion`, falls back to poster art without WebGL, and ships in lazy chunks (`Landing` ~54KB gz, three.js ~128KB gz) so the main app bundle is untouched. The VIN lookup moved to **`/lookup`**.
 
-The **G-Gauge monogram** (a letter G whose mouth is a speedometer's redline gap, crossbar doubling as the needle) lives in `client/public/brand/` as hand-crafted SVG with PNG derivatives (`scripts/render-brand-pngs.mjs`), wired into the favicon set, OG/Twitter cards, NavBar, and footer. Browser QA is scripted in `scripts/qa-browser.mjs` (puppeteer-core + system Chrome): all routes × 4 breakpoints, console/overflow/FPS/reduced-motion checks.
+The **brand mark** is the wordless raster logo at `docs/images/caradvisor-logo-nowords.png`, resized into `client/public/brand/` (caradvisor-logo-nowords, favicon-32, apple-touch-icon, icon-512) and rendered by `client/src/components/Logo.tsx` with a rounded crop — wired into the favicon set, NavBar, footer, and login (the GOGETTER / CAR ADVISOR wordmark renders as text beside it). OG/Twitter card art still renders from SVG via `scripts/render-brand-pngs.mjs`. Browser QA is scripted in `scripts/qa-browser.mjs` (puppeteer-core + system Chrome): all routes × 4 breakpoints, console/overflow/FPS/reduced-motion checks.
 
 ## Login page (cinematic video background)
 
@@ -123,7 +123,7 @@ A licensed real-listings API (the provider boundary is ready — Marketcheck/Aut
 | `server/geo/mapboxGeocode.ts` | Mapbox Geocoding v6 for buyer ZIPs outside the seeded centroid table. |
 | `server/images/cloudinary.ts` | Pure Cloudinary delivery-URL builder over the committed photo manifest (`server/inventory/photos.cloudinary.json`). |
 | `server/routers/vehicle.ts` | tRPC procedures: decode, advisor, recalls, webIntel, save/unsave, history. |
-| `server/routers/find.ts` | Discovery: search (semantic blend), similar, mapListings, liveMarket, parseIntent, checklist, facets, saved searches. |
+| `server/routers/find.ts` | Discovery: search (semantic blend), resolveLocation (city → ZIP), similar, mapListings, liveMarket, parseIntent, checklist, facets, saved searches. |
 | `server/routers/config.ts` | `config.public`: service flags + the public Mapbox token (never any secret). |
 | `server/db.ts` | Query helpers for history, saved vehicles, and onboarding state. |
 | `drizzle/schema.ts` | Database tables (incl. `users.onboarding`) and shared decoded/score/advisory types. |

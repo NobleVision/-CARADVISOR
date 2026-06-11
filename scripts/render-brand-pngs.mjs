@@ -21,9 +21,9 @@ function render(svgPath, outPath, width) {
   console.log(`✓ ${outPath.replace(root, "").replace(/\\/g, "/")} (${width}w)`);
 }
 
-render(join(brand, "favicon.svg"), join(brand, "favicon-32.png"), 32);
-render(join(brand, "favicon.svg"), join(brand, "apple-touch-icon.png"), 180);
-render(join(brand, "favicon.svg"), join(brand, "icon-512.png"), 512);
+// NOTE: favicon-32 / apple-touch-icon / icon-512 / caradvisor-logo-nowords are
+// now resized from the raster brand mark docs/images/caradvisor-logo-nowords.png
+// (not the legacy favicon.svg) — do not regenerate them here.
 render(join(brand, "og-image.svg"), join(brand, "og-image.png"), 1200);
 render(join(brand, "gogetter-mark.svg"), join(brand, "preview-mark.png"), 512);
 render(join(brand, "gogetter-lockup.svg"), join(brand, "preview-lockup.png"), 1020);

@@ -15,6 +15,12 @@ import "./map-explorer.css";
 import { MapPin, ShieldAlert } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Link, useLocation } from "wouter";
+import { useTheme } from "@/contexts/ThemeContext";
+
+const MAP_STYLES = {
+  dark: "mapbox://styles/mapbox/dark-v11",
+  light: "mapbox://styles/mapbox/light-v11",
+} as const;
 
 type MapItem = {
   id: string;
@@ -69,6 +75,7 @@ function popupNode(item: MapItem, onView: () => void): HTMLElement {
  */
 export default function MapExplorer() {
   const [, navigate] = useLocation();
+  const { resolvedTheme } = useTheme();
   const config = trpc.config.public.useQuery(undefined, { staleTime: Infinity });
   const listings = trpc.find.mapListings.useQuery(undefined, { staleTime: 5 * 60 * 1000 });
 
@@ -80,6 +87,7 @@ export default function MapExplorer() {
   const mapRef = useRef<mapboxgl.Map | null>(null);
   const markersRef = useRef<mapboxgl.Marker[]>([]);
   const fittedRef = useRef(false);
+  const appliedStyleRef = useRef(resolvedTheme);
   const [mapReady, setMapReady] = useState(false);
 
   const token = config.data?.mapboxToken ?? null;
@@ -103,7 +111,7 @@ export default function MapExplorer() {
     mapboxgl.accessToken = token;
     const map = new mapboxgl.Map({
       container: containerRef.current,
-      style: "mapbox://styles/mapbox/dark-v11",
+      style: MAP_STYLES[appliedStyleRef.current],
       center: [-77.15, 38.92], // DC metro — where the inventory lives
       zoom: 9,
       attributionControl: true,
@@ -124,6 +132,14 @@ export default function MapExplorer() {
       fittedRef.current = false;
     };
   }, [token]);
+
+  // ── Basemap follows the app theme (markers are DOM-based and survive setStyle) ──
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map || appliedStyleRef.current === resolvedTheme) return;
+    appliedStyleRef.current = resolvedTheme;
+    map.setStyle(MAP_STYLES[resolvedTheme]);
+  }, [resolvedTheme]);
 
   // ── Markers follow the filtered set ──
   useEffect(() => {
