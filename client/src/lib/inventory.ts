@@ -112,6 +112,8 @@ export type SearchResult = {
   shortlisted: number;
   zipApplied: boolean;
   hiddenAvoidCount: number;
+  /** True when Pinecone semantic relevance was blended into the ranking. */
+  semanticApplied: boolean;
   suggestions: SearchSuggestion[];
   valuePickAlternatives: ValuePickAlternative[];
   matches: RankedMatch[];

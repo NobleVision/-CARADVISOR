@@ -19,6 +19,7 @@ import { Logo } from "./Logo";
 const links = [
   { href: "/lookup", label: "Lookup" },
   { href: "/find", label: "Find My Car" },
+  { href: "/map", label: "Map" },
   { href: "/new-cars", label: "New Cars" },
   { href: "/compare", label: "Compare" },
   { href: "/saved", label: "Garage" },
@@ -53,7 +54,8 @@ export function NavBar() {
                 key={l.href}
                 href={l.href}
                 className={cn(
-                  "relative rounded-md px-3.5 py-2 text-sm transition-colors",
+                  // 8 links must fit the 768px container — tighter at md, roomy at lg.
+                  "relative rounded-md px-2 py-2 text-[13px] transition-colors lg:px-3.5 lg:text-sm",
                   active ? "text-foreground" : "text-muted-foreground hover:text-foreground",
                 )}
               >

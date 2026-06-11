@@ -221,3 +221,39 @@ Built from the June 9, 2026 strategy meeting + the real-world car-search researc
 - [x] New `scripts/preview-car-points.mts` verification loop: 6 proportion gates (all pass) + side/front/3-4 orthographic PNG renders, checked before browser
 - [x] Verified: pnpm check/test (118)/build clean; browser QA suite all-pass, 57 FPS unchanged, zero console errors, zero mobile overflow
 - [ ] Follow-up: static fallback art `/img/hero-car.svg` (reduced-motion/no-WebGL path) still shows the old stylized art — could be retraced to match
+
+## v7 — Real-data cloud services (Pinecone · Cloudinary · Z.AI · Mapbox · Brave)
+
+### Foundation
+- [x] `server/_core/env.ts`: 7 new keys + Z.AI fallback chain (explicit `LLM_*` always wins; the Z.AI key is never sent to a custom endpoint) + `SERVICES` booleans; `config.public` tRPC endpoint serves flags + the public Mapbox token only
+- [x] `vitest.config.ts` test.env guard blanks every service var — dev-machine keys can never leak tests onto real networks
+- [x] `.env.local.example` documents all 7 vars with the degradation story
+
+### Z.AI (lights up 4 existing features, zero call-site changes)
+- [x] `llm.ts` URL join handles version-pinned bases (`…/paas/v4`) alongside OpenAI-style hosts; `json_schema` → `json_object` shim (schema into system prompt + fence-strip) since GLM has no schema mode
+- [x] Live-verified: advisor chat, search-intent parsing (`source: "llm"`), per-match narratives, contact drafts — all deterministic fallbacks intact
+- [x] Default model `glm-4.5-flash` (Z.AI free tier — the account currently has no paid balance; error 1113 on paid models). `LLM_MODEL=glm-4.7`/`glm-5.1` after recharge
+
+### Pinecone (semantic search / similar / advisor recall)
+- [x] `server/vector/` (text composers · lazy-SDK client with 3.5s timeout + late-resolve cache warming · pure blend) — keyless deployments never even import the SDK
+- [x] find.search blends semantic relevance (75/25) over a wider deterministic pool when the buyer typed free text → `semanticApplied`; NEW find.similar ("More like this" on vehicle detail, deterministic closeness fallback); advisor recalls top-2 curated advisories for the question itself
+- [x] `pnpm sync:pinecone` created index `gogetter-vehicles` (aws/us-east-1, llama-text-embed-v2) and upserted 102 listings + 16 knowledge entries; live-verified ("college student hatchback" → curated value picks; "CVT worries" → Jatco entry first)
+
+### Cloudinary (real CDN image delivery)
+- [x] `pnpm sync:cloudinary` de-dupes by source URL (6 unique images for 102 listings), uploads once with hash public_ids, writes committed manifest `server/inventory/photos.cloudinary.json`
+- [x] Runtime = pure URL builder (`server/images/cloudinary.ts`) swapping photo URLs to `f_auto,q_auto,w_1000` delivery at the provider chokepoint — zero client changes, verified 102/102 listings on the CDN + HTTP 200 delivery
+
+### Mapbox (new /map screen + real geocoding)
+- [x] NEW `/map` (lazy chunk — mapbox-gl never touches the main bundle): dark-v11, 102 gold price-pill pins (deterministic per-id jitter so same-ZIP pins never stack), themed popup report cards → /vehicle/:vin, price/body/risk filters, Geolocate + Navigation controls, branded keyless fallback; NavBar link added (and md-width nav padding tightened — caught by QA)
+- [x] `server/geo/mapboxGeocode.ts` (Geocoding v6, recalls-pattern cache/timeout) wired into buyer-ZIP distance resolution — out-of-table ZIPs now get REAL distances (live-verified: 90210 → 34.069/-118.403; cross-country buyer correctly gets zero in-radius matches where the mock fallback would have returned cars)
+
+### Brave Search (live market + web intel, metered-aware)
+- [x] `server/websearch/` (6h success-only cache, ~1.1s throttle, 429 never cached, marketplace tagger); find.liveMarket + vehicle.webIntel + advisor "WEB FINDINGS" context block
+- [x] Client: "Live market scan" panel on Find-My-Car (explicit opt-in click guards the metered API; Brave attribution) + "From the web" card on vehicle detail — live-verified with real Cars.com/TrueCar/CarGurus results for "used Mazda3 near Fairfax under $10,000"
+
+### Verification
+- [x] `pnpm check` clean · `pnpm test` **179 passing** (118 original untouched + 61 new) · `pnpm build` clean (MapExplorer isolated at ~502KB gz lazy; api/ functions bundle fine)
+- [x] E2E smoke over the live dev server (real tRPC HTTP): 15/15 — all five services live, semantic ranking applied, Z.AI narratives, Cloudinary URLs, vector similar, mapListings 102, live geocode, liveMarket + webIntel, full advisor reply
+- [x] `scripts/qa-browser.mjs` (now incl. /map): 11 routes × 4 breakpoints all-pass — zero console errors, zero overflow, 50 FPS landing sample; map page screenshots (desktop/popup/mobile) in qa-shots/
+- [ ] Follow-up: Z.AI account has no paid balance — recharge + set `LLM_MODEL=glm-4.7` (or `glm-5.1`) for higher-quality advisor prose
+- [ ] Follow-up: real listings feed (Marketcheck/Auto.dev) would flow real dealer photos through the same Cloudinary sync + Pinecone index unchanged

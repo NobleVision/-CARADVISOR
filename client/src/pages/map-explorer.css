@@ -1,0 +1,83 @@
+/* Midnight-showroom theming for Mapbox popups/controls on the /map page only. */
+.gg-map .mapboxgl-popup-content {
+  background: oklch(0.2 0.009 265);
+  color: oklch(0.93 0.006 80);
+  border: 1px solid oklch(0.32 0.009 265 / 60%);
+  border-radius: 0.75rem;
+  padding: 0;
+  overflow: hidden;
+  box-shadow: 0 18px 40px -18px oklch(0 0 0 / 70%);
+}
+
+.gg-map .mapboxgl-popup-anchor-bottom .mapboxgl-popup-tip {
+  border-top-color: oklch(0.2 0.009 265);
+}
+.gg-map .mapboxgl-popup-anchor-top .mapboxgl-popup-tip {
+  border-bottom-color: oklch(0.2 0.009 265);
+}
+.gg-map .mapboxgl-popup-anchor-left .mapboxgl-popup-tip {
+  border-right-color: oklch(0.2 0.009 265);
+}
+.gg-map .mapboxgl-popup-anchor-right .mapboxgl-popup-tip {
+  border-left-color: oklch(0.2 0.009 265);
+}
+
+.gg-map .mapboxgl-popup-close-button {
+  color: oklch(0.93 0.006 80);
+  font-size: 18px;
+  padding: 2px 8px;
+  z-index: 1;
+}
+.gg-map .mapboxgl-popup-close-button:hover {
+  background: transparent;
+  color: oklch(0.82 0.09 85);
+}
+
+.gg-map .mapboxgl-ctrl-group {
+  background: oklch(0.2 0.009 265 / 90%);
+  border: 1px solid oklch(0.32 0.009 265 / 60%);
+}
+.gg-map .mapboxgl-ctrl-group button + button {
+  border-top: 1px solid oklch(0.32 0.009 265 / 60%);
+}
+.gg-map .mapboxgl-ctrl button .mapboxgl-ctrl-icon {
+  filter: invert(0.85);
+}
+
+/* Gold price-pill markers. */
+.gg-pin {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 9px;
+  border-radius: 9999px;
+  background: oklch(0.16 0.008 265 / 92%);
+  border: 1px solid oklch(0.82 0.09 85 / 55%);
+  color: oklch(0.82 0.09 85);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  white-space: nowrap;
+  cursor: pointer;
+  transition:
+    transform 120ms ease,
+    border-color 120ms ease;
+}
+.gg-pin:hover {
+  transform: scale(1.08);
+  border-color: oklch(0.82 0.09 85);
+  z-index: 5;
+}
+.gg-pin[data-risk="high"] {
+  border-color: oklch(0.64 0.2 25 / 70%);
+  color: oklch(0.78 0.14 25);
+}
+.gg-pin[data-risk="caution"] {
+  border-color: oklch(0.78 0.14 80 / 60%);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .gg-pin {
+    transition: none;
+  }
+}

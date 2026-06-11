@@ -50,6 +50,55 @@ describe("find.checklist", () => {
   });
 });
 
+describe("find.similar", () => {
+  it("falls back to deterministic closeness-ranked picks when vector search is off", async () => {
+    const caller = appRouter.createCaller(publicCtx());
+    const subject = await caller.find.listing({ id: "lst_001" });
+    const r = await caller.find.similar({ listingId: "lst_001" });
+    expect(r.source).toBe("rules");
+    expect(r.items).toHaveLength(5);
+    for (const item of r.items) {
+      expect(item.id).not.toBe("lst_001");
+      expect(item.condition).toBe(subject.condition);
+      expect(item.label).toMatch(/^\d{4} /);
+      expect(item.qualityGrade).toBeTruthy();
+      expect(["clear", "caution", "high"]).toContain(item.riskLevel);
+    }
+    // Closeness-ordered: the nearest pick is within a sane price band.
+    expect(Math.abs(r.items[0].price - subject.price)).toBeLessThanOrEqual(subject.price);
+  });
+
+  it("returns an empty result for a VIN outside the seeded inventory", async () => {
+    const caller = appRouter.createCaller(publicCtx());
+    const r = await caller.find.similar({ vin: "1HGCM82633A004352" });
+    expect(r.source).toBe("none");
+    expect(r.items).toEqual([]);
+  });
+});
+
+describe("find.mapListings", () => {
+  it("returns map-ready coordinates for every seeded listing, deterministically", async () => {
+    const caller = appRouter.createCaller(publicCtx());
+    const a = await caller.find.mapListings();
+    const b = await caller.find.mapListings();
+    expect(a.count).toBeGreaterThan(100); // all 102 seeded ZIPs ship centroids
+    expect(a.items).toEqual(b.items); // jitter is per-id deterministic
+    for (const item of a.items.slice(0, 10)) {
+      // DC-metro envelope (jitter included).
+      expect(item.lat).toBeGreaterThan(37.5);
+      expect(item.lat).toBeLessThan(40.0);
+      expect(item.lng).toBeGreaterThan(-78.5);
+      expect(item.lng).toBeLessThan(-75.5);
+      expect(item.price).toBeGreaterThan(0);
+      expect(item.qualityGrade).toBeTruthy();
+      expect(["clear", "caution", "high"]).toContain(item.riskLevel);
+    }
+    // Same-ZIP pins must not stack: all coordinates pairwise distinct.
+    const coords = new Set(a.items.map((i) => `${i.lat.toFixed(6)},${i.lng.toFixed(6)}`));
+    expect(coords.size).toBe(a.items.length);
+  });
+});
+
 describe("find.search — criteria backward compatibility", () => {
   it("accepts a legacy criteria object without the new optional fields", async () => {
     const caller = appRouter.createCaller(publicCtx());
@@ -67,6 +116,7 @@ describe("find.search — criteria backward compatibility", () => {
     expect(r.scanned).toBeGreaterThan(0);
     expect(r.shortlisted).toBeGreaterThan(0);
     expect(r.hiddenAvoidCount).toBe(0); // budgetMode off
+    expect(r.semanticApplied).toBe(false); // vector search keyless in tests
     expect(Array.isArray(r.matches)).toBe(true);
     // Every match carries the new trust assessment.
     expect(r.matches.every((m) => m.trust && m.trust.level)).toBe(true);

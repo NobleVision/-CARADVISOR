@@ -1,4 +1,8 @@
 import { invokeLLM } from "./_core/llm";
+import { KNOWLEDGE_ENTRIES } from "./knowledge/data";
+import type { KnowledgeEntry } from "./knowledge/types";
+import { semanticSearchKnowledge, vectorConfigured } from "./vector/pinecone";
+import { braveConfigured, modelIntelSearch } from "./websearch/brave";
 import type { DecodedVehicle, ScoreBreakdown } from "../drizzle/schema";
 
 export type ChatMessage = { role: "user" | "assistant"; content: string };
@@ -98,10 +102,52 @@ export async function getAdvisorReply(args: {
   const context = buildVehicleContext(vehicle, score, mileage);
   const listingCtx = listing ? buildListingContext(listing) : "";
 
+  // Semantic recall (Pinecone): curated advisories relevant to the QUESTION
+  // itself — "should I worry about CVTs?" pulls the Jatco entry even when
+  // this vehicle has no exact-match advisory. Time-boxed inside the vector
+  // module and silently skipped when the index is offline.
+  let recallCtx = "";
+  if (vectorConfigured()) {
+    const hits = await semanticSearchKnowledge(question, 2);
+    if (hits && hits.length > 0) {
+      const attached = new Set((score.advisories ?? []).map((a) => a.title));
+      const lines = hits
+        .map((h) => KNOWLEDGE_ENTRIES.find((e) => e.id === h.id))
+        .filter((e): e is KnowledgeEntry => Boolean(e && !attached.has(e.title)))
+        .map(
+          (e) =>
+            `- [${e.severity}] ${e.make} ${e.models[0]} ${e.yearFrom}-${e.yearTo}: ${e.title} — ${e.detail}`,
+        );
+      if (lines.length > 0) {
+        recallCtx =
+          `RELATED CURATED KNOWLEDGE (GOGETTER Reliability Index — recalled for this question; ` +
+          `cite when relevant, ignore if off-topic):\n${lines.join("\n")}`;
+      }
+    }
+  }
+
+  // Web findings (Brave Search): owner-reported problems/reliability links
+  // for this model. Cached 6h with vehicle.webIntel, so the metered cost is
+  // at most one search per model-year; non-fatal and skipped when keyless.
+  let webCtx = "";
+  if (braveConfigured()) {
+    const results = await modelIntelSearch(vehicle.modelYear, vehicle.make, vehicle.model);
+    if (results && results.length > 0) {
+      const lines = results
+        .slice(0, 3)
+        .map((r) => `- ${r.title}: ${r.description} (source: ${r.url})`);
+      webCtx =
+        `WEB FINDINGS (Brave Search — unverified web content; corroborate with the decoded ` +
+        `data and curated knowledge, never present as fact):\n${lines.join("\n")}`;
+    }
+  }
+
   const messages = [
     { role: "system" as const, content: SYSTEM_PROMPT },
     { role: "system" as const, content: context },
     ...(listingCtx ? [{ role: "system" as const, content: listingCtx }] : []),
+    ...(recallCtx ? [{ role: "system" as const, content: recallCtx }] : []),
+    ...(webCtx ? [{ role: "system" as const, content: webCtx }] : []),
     ...history.slice(-8).map((m) => ({ role: m.role, content: m.content })),
     { role: "user" as const, content: question },
   ];

@@ -63,6 +63,63 @@ var systemRouter = router({
   }))
 });
 
+// server/_core/env.ts
+var customLlmApiUrl = process.env.LLM_API_URL ?? "";
+var customLlmApiKey = process.env.LLM_API_KEY ?? "";
+var zaiApiKey = process.env.ZAI_API_KEY ?? "";
+var usingZaiFallback = !customLlmApiUrl && !customLlmApiKey && Boolean(zaiApiKey);
+var ENV = {
+  cookieSecret: process.env.JWT_SECRET ?? "",
+  databaseUrl: process.env.DATABASE_URL ?? "",
+  ownerOpenId: process.env.OWNER_OPEN_ID ?? "",
+  isProduction: process.env.NODE_ENV === "production",
+  // OpenAI-compatible chat-completions endpoint (OpenAI, OpenRouter, Gemini,
+  // a local gateway, etc.). Leave blank to fall back to deterministic text —
+  // unless ZAI_API_KEY is set, which lights the same features up via Z.AI.
+  llmApiUrl: customLlmApiUrl || (usingZaiFallback ? "https://api.z.ai/api/paas/v4" : ""),
+  llmApiKey: customLlmApiKey || (usingZaiFallback ? zaiApiKey : ""),
+  // glm-4.5-flash is Z.AI's free tier and works without account balance
+  // (verified live); set LLM_MODEL=glm-4.7 / glm-5.1 after adding credit.
+  llmModel: process.env.LLM_MODEL || (usingZaiFallback ? "glm-4.5-flash" : ""),
+  // GLM (Z.AI) supports response_format `json_object` but not `json_schema`;
+  // when false, the LLM client downgrades schemas into a prompt instruction.
+  // Set LLM_JSON_SCHEMA=on to force native schema mode on the Z.AI path.
+  llmJsonSchemaSupported: !usingZaiFallback || process.env.LLM_JSON_SCHEMA === "on",
+  // Shared secret guarding the Vercel Cron monitor endpoint.
+  cronSecret: process.env.CRON_SECRET ?? "",
+  // --- Optional real-data services (every feature degrades gracefully) ----
+  // Pinecone vector index for semantic listing search / similarity.
+  pineconeApiKey: process.env.PINECONE_API_KEY ?? "",
+  // Cloudinary delivery (cloudinary://key:secret@cloud_name). The runtime only
+  // derives the public cloud name from it; uploads happen in the sync script.
+  cloudinaryUrl: process.env.CLOUDINARY_URL ?? "",
+  // Mapbox public (pk.) token — served to the browser for the /map page and
+  // used server-side for geocoding unknown buyer ZIPs.
+  mapboxToken: process.env.MAPBOX_TOKEN ?? "",
+  // Brave Search API (metered) — live market scan + model web intel.
+  braveSearchApiKey: process.env.BRAVE_SEARCH_API_KEY ?? ""
+};
+var SERVICES = {
+  /** LLM: advisor chat, match narratives, intent parsing, contact drafts. */
+  ai: Boolean(ENV.llmApiUrl && ENV.llmApiKey),
+  /** Pinecone: semantic search blend, similar vehicles, advisor recall. */
+  vector: Boolean(ENV.pineconeApiKey),
+  /** Cloudinary: optimized CDN delivery for listing photos. */
+  images: Boolean(ENV.cloudinaryUrl),
+  /** Mapbox: /map explorer + buyer-ZIP geocoding. */
+  map: Boolean(ENV.mapboxToken),
+  /** Brave Search: live market scan + "from the web" intel. */
+  websearch: Boolean(ENV.braveSearchApiKey)
+};
+
+// server/routers/config.ts
+var configRouter = router({
+  public: publicProcedure.query(() => ({
+    mapboxToken: ENV.mapboxToken || null,
+    services: { ...SERVICES }
+  }))
+});
+
 // server/routers/vehicle.ts
 import { z as z2 } from "zod";
 import { TRPCError as TRPCError2 } from "@trpc/server";
@@ -738,21 +795,6 @@ function scoreVehicle(vehicle, mileage) {
   };
 }
 
-// server/_core/env.ts
-var ENV = {
-  cookieSecret: process.env.JWT_SECRET ?? "",
-  databaseUrl: process.env.DATABASE_URL ?? "",
-  ownerOpenId: process.env.OWNER_OPEN_ID ?? "",
-  isProduction: process.env.NODE_ENV === "production",
-  // OpenAI-compatible chat-completions endpoint (OpenAI, OpenRouter, Gemini,
-  // a local gateway, etc.). Leave blank to fall back to deterministic text.
-  llmApiUrl: process.env.LLM_API_URL ?? "",
-  llmApiKey: process.env.LLM_API_KEY ?? "",
-  llmModel: process.env.LLM_MODEL ?? "",
-  // Shared secret guarding the Vercel Cron monitor endpoint.
-  cronSecret: process.env.CRON_SECRET ?? ""
-};
-
 // server/_core/llm.ts
 var ensureArray = (value) => Array.isArray(value) ? value : [value];
 var normalizeContentPart = (part) => {
@@ -824,12 +866,16 @@ var normalizeToolChoice = (toolChoice, tools) => {
   }
   return toolChoice;
 };
+var joinApiPath = (base, resource) => {
+  const root = base.replace(/\/$/, "");
+  return /\/v\d+$/.test(root) ? `${root}/${resource}` : `${root}/v1/${resource}`;
+};
 var resolveApiUrl = () => {
   const base = ENV.llmApiUrl?.trim();
   if (!base) {
     throw new Error("LLM is not configured (set LLM_API_URL)");
   }
-  return `${base.replace(/\/$/, "")}/v1/chat/completions`;
+  return joinApiPath(base, "chat/completions");
 };
 var assertApiKey = () => {
   if (!ENV.llmApiKey) {
@@ -864,6 +910,15 @@ var normalizeResponseFormat = ({
       ...typeof schema.strict === "boolean" ? { strict: schema.strict } : {}
     }
   };
+};
+var schemaInstructionMessage = (schema) => ({
+  role: "system",
+  content: `Respond with ONLY a single JSON object \u2014 no markdown fences, no prose. The JSON must match this JSON Schema ("${schema.name}"):
+` + JSON.stringify(schema.schema)
+});
+var stripJsonFences = (text2) => {
+  const match = text2.trim().match(/^```(?:json)?\s*([\s\S]*?)\s*```$/i);
+  return match ? match[1] : text2;
 };
 var RETRY_MAX_RETRIES = 4;
 var RETRY_BASE_DELAY_MS = 500;
@@ -961,8 +1016,17 @@ async function invokeLLM(params) {
     outputSchema,
     output_schema
   });
+  let schemaDowngraded = false;
   if (normalizedResponseFormat) {
-    payload.response_format = normalizedResponseFormat;
+    if (normalizedResponseFormat.type === "json_schema" && !ENV.llmJsonSchemaSupported) {
+      payload.messages.push(
+        schemaInstructionMessage(normalizedResponseFormat.json_schema)
+      );
+      payload.response_format = { type: "json_object" };
+      schemaDowngraded = true;
+    } else {
+      payload.response_format = normalizedResponseFormat;
+    }
   }
   const response = await fetchWithBackoff(resolveApiUrl(), {
     method: "POST",
@@ -978,7 +1042,156 @@ async function invokeLLM(params) {
       `LLM invoke failed: ${response.status} ${response.statusText} \u2013 ${errorText}`
     );
   }
-  return await response.json();
+  const result = await response.json();
+  if (schemaDowngraded && Array.isArray(result?.choices)) {
+    for (const choice of result.choices) {
+      const content = choice?.message?.content;
+      if (typeof content === "string") {
+        choice.message.content = stripJsonFences(content);
+      }
+    }
+  }
+  return result;
+}
+
+// server/vector/pinecone.ts
+var PINECONE_INDEX = "gogetter-vehicles";
+var LISTINGS_NAMESPACE = "listings";
+var KNOWLEDGE_NAMESPACE = "knowledge";
+var SEARCH_TIMEOUT_MS = 2500;
+var CACHE_TTL_MS = 10 * 60 * 1e3;
+var CACHE_MAX = 200;
+var cache = /* @__PURE__ */ new Map();
+var _client = null;
+function vectorConfigured() {
+  return Boolean(ENV.pineconeApiKey);
+}
+async function getClient() {
+  if (!_client) {
+    const { Pinecone: PineconeCtor } = await import("@pinecone-database/pinecone");
+    _client = new PineconeCtor({ apiKey: ENV.pineconeApiKey });
+  }
+  return _client;
+}
+async function searchNamespace(namespace, text2, topK) {
+  const pc = await getClient();
+  const ns = pc.index(PINECONE_INDEX).namespace(namespace);
+  const res = await ns.searchRecords({ query: { topK, inputs: { text: text2 } } });
+  const hits = res?.result?.hits ?? [];
+  return hits.map((h) => {
+    const raw = h;
+    return { id: String(raw._id ?? raw.id ?? ""), score: Number(raw._score ?? raw.score) };
+  }).filter((h) => h.id && Number.isFinite(h.score));
+}
+async function semanticSearch(namespace, text2, topK) {
+  const query = text2.trim();
+  if (!vectorConfigured() || !query) return null;
+  const key = `${namespace}|${topK}|${query.toLowerCase()}`;
+  const hit = cache.get(key);
+  if (hit && Date.now() - hit.at < CACHE_TTL_MS) return hit.value;
+  let value = null;
+  try {
+    value = await Promise.race([
+      searchNamespace(namespace, query, topK),
+      new Promise((resolve) => setTimeout(resolve, SEARCH_TIMEOUT_MS, null))
+    ]);
+  } catch {
+    value = null;
+  }
+  if (value !== null) {
+    if (cache.size >= CACHE_MAX) cache.delete(cache.keys().next().value);
+    cache.set(key, { at: Date.now(), value });
+  }
+  return value;
+}
+async function semanticSearchListings(text2, opts = {}) {
+  return semanticSearch(LISTINGS_NAMESPACE, text2, opts.topK ?? 40);
+}
+async function semanticSearchKnowledge(text2, topK = 2) {
+  return semanticSearch(KNOWLEDGE_NAMESPACE, text2, topK);
+}
+
+// server/websearch/brave.ts
+var SEARCH_URL = "https://api.search.brave.com/res/v1/web/search";
+var TIMEOUT_MS = 5e3;
+var CACHE_TTL_MS2 = 6 * 60 * 60 * 1e3;
+var CACHE_MAX2 = 100;
+var MIN_INTERVAL_MS = 1100;
+var cache2 = /* @__PURE__ */ new Map();
+var queue = Promise.resolve();
+var lastStartAt = 0;
+function braveConfigured() {
+  return Boolean(ENV.braveSearchApiKey);
+}
+function throttled(task) {
+  const run = queue.then(async () => {
+    const wait = lastStartAt + MIN_INTERVAL_MS - Date.now();
+    if (wait > 0) await new Promise((r) => setTimeout(r, wait));
+    lastStartAt = Date.now();
+    return task();
+  });
+  queue = run.then(
+    () => void 0,
+    () => void 0
+  );
+  return run;
+}
+var stripTags = (s) => s.replace(/<[^>]+>/g, "");
+async function braveSearch(q, opts = {}) {
+  const query = q.trim();
+  if (!braveConfigured() || !query) return null;
+  const count = Math.min(Math.max(opts.count ?? 10, 1), 20);
+  const key = `${query.toLowerCase()}|${count}|${opts.freshness ?? ""}`;
+  const hit = cache2.get(key);
+  if (hit && Date.now() - hit.at < CACHE_TTL_MS2) return hit.value;
+  let value = null;
+  try {
+    value = await throttled(async () => {
+      const controller = new AbortController();
+      const timer = setTimeout(() => controller.abort(), TIMEOUT_MS);
+      try {
+        const params = new URLSearchParams({
+          q: query,
+          count: String(count),
+          country: "us",
+          search_lang: "en"
+        });
+        if (opts.freshness) params.set("freshness", opts.freshness);
+        const res = await fetch(`${SEARCH_URL}?${params}`, {
+          signal: controller.signal,
+          headers: {
+            accept: "application/json",
+            "x-subscription-token": ENV.braveSearchApiKey
+          }
+        });
+        if (!res.ok) return null;
+        const json = await res.json();
+        const rows = json?.web?.results ?? [];
+        return rows.filter((r) => r.url && r.title).map((r) => ({
+          title: stripTags(r.title ?? ""),
+          url: r.url,
+          description: stripTags(r.description ?? ""),
+          age: r.age,
+          siteName: r.profile?.name ?? r.meta_url?.hostname,
+          thumbnail: r.thumbnail?.src
+        }));
+      } finally {
+        clearTimeout(timer);
+      }
+    });
+  } catch {
+    value = null;
+  }
+  if (value !== null) {
+    if (cache2.size >= CACHE_MAX2) cache2.delete(cache2.keys().next().value);
+    cache2.set(key, { at: Date.now(), value });
+  }
+  return value;
+}
+async function modelIntelSearch(yearLabel, make, model) {
+  const label = `${yearLabel} ${make} ${model}`.trim();
+  if (!label) return null;
+  return braveSearch(`${label} common problems reliability owner complaints`, { count: 6 });
 }
 
 // server/advisor.ts
@@ -1056,10 +1269,35 @@ async function getAdvisorReply(args) {
   const { vehicle, score, mileage, history, question, listing } = args;
   const context = buildVehicleContext(vehicle, score, mileage);
   const listingCtx = listing ? buildListingContext(listing) : "";
+  let recallCtx = "";
+  if (vectorConfigured()) {
+    const hits = await semanticSearchKnowledge(question, 2);
+    if (hits && hits.length > 0) {
+      const attached = new Set((score.advisories ?? []).map((a) => a.title));
+      const lines = hits.map((h) => KNOWLEDGE_ENTRIES.find((e) => e.id === h.id)).filter((e) => Boolean(e && !attached.has(e.title))).map(
+        (e) => `- [${e.severity}] ${e.make} ${e.models[0]} ${e.yearFrom}-${e.yearTo}: ${e.title} \u2014 ${e.detail}`
+      );
+      if (lines.length > 0) {
+        recallCtx = `RELATED CURATED KNOWLEDGE (GOGETTER Reliability Index \u2014 recalled for this question; cite when relevant, ignore if off-topic):
+${lines.join("\n")}`;
+      }
+    }
+  }
+  let webCtx = "";
+  if (braveConfigured()) {
+    const results = await modelIntelSearch(vehicle.modelYear, vehicle.make, vehicle.model);
+    if (results && results.length > 0) {
+      const lines = results.slice(0, 3).map((r) => `- ${r.title}: ${r.description} (source: ${r.url})`);
+      webCtx = `WEB FINDINGS (Brave Search \u2014 unverified web content; corroborate with the decoded data and curated knowledge, never present as fact):
+${lines.join("\n")}`;
+    }
+  }
   const messages = [
     { role: "system", content: SYSTEM_PROMPT },
     { role: "system", content: context },
     ...listingCtx ? [{ role: "system", content: listingCtx }] : [],
+    ...recallCtx ? [{ role: "system", content: recallCtx }] : [],
+    ...webCtx ? [{ role: "system", content: webCtx }] : [],
     ...history.slice(-8).map((m) => ({ role: m.role, content: m.content })),
     { role: "user", content: question }
   ];
@@ -1077,10 +1315,10 @@ async function getAdvisorReply(args) {
 
 // server/recalls.ts
 var RECALLS_URL = "https://api.nhtsa.gov/recalls/recallsByVehicle";
-var TIMEOUT_MS = 5e3;
-var CACHE_TTL_MS = 6 * 60 * 60 * 1e3;
-var CACHE_MAX = 200;
-var cache = /* @__PURE__ */ new Map();
+var TIMEOUT_MS2 = 5e3;
+var CACHE_TTL_MS3 = 6 * 60 * 60 * 1e3;
+var CACHE_MAX3 = 200;
+var cache3 = /* @__PURE__ */ new Map();
 function str(v) {
   return typeof v === "string" ? v : "";
 }
@@ -1097,13 +1335,13 @@ async function fetchRecalls(make, model, modelYear) {
   const year = String(modelYear).trim();
   if (!make.trim() || !model.trim() || !/^\d{4}$/.test(year)) return null;
   const key = `${make.trim().toLowerCase()}|${model.trim().toLowerCase()}|${year}`;
-  const hit = cache.get(key);
-  if (hit && Date.now() - hit.at < CACHE_TTL_MS) return hit.value;
+  const hit = cache3.get(key);
+  if (hit && Date.now() - hit.at < CACHE_TTL_MS3) return hit.value;
   let value = null;
   try {
     const url = `${RECALLS_URL}?make=${encodeURIComponent(make.trim())}&model=${encodeURIComponent(model.trim())}&modelYear=${encodeURIComponent(year)}`;
     const controller = new AbortController();
-    const timer = setTimeout(() => controller.abort(), TIMEOUT_MS);
+    const timer = setTimeout(() => controller.abort(), TIMEOUT_MS2);
     try {
       const res = await fetch(url, { signal: controller.signal, headers: { accept: "application/json" } });
       if (res.ok) {
@@ -1123,13 +1361,1008 @@ async function fetchRecalls(make, model, modelYear) {
     value = null;
   }
   if (value !== null) {
-    if (cache.size >= CACHE_MAX) {
-      const oldest = cache.keys().next().value;
-      if (oldest !== void 0) cache.delete(oldest);
+    if (cache3.size >= CACHE_MAX3) {
+      const oldest = cache3.keys().next().value;
+      if (oldest !== void 0) cache3.delete(oldest);
     }
-    cache.set(key, { at: Date.now(), value });
+    cache3.set(key, { at: Date.now(), value });
   }
   return value;
+}
+
+// server/inventory/photos.cloudinary.json
+var photos_cloudinary_default = {
+  lst_001: [
+    {
+      publicId: "gogetter/src/c08fb3cf6c6a39a4",
+      version: 1781193189,
+      format: "webp"
+    }
+  ],
+  lst_002: [
+    {
+      publicId: "gogetter/src/152cef0257e1b4e3",
+      version: 1781193190,
+      format: "webp"
+    }
+  ],
+  lst_003: [
+    {
+      publicId: "gogetter/src/152cef0257e1b4e3",
+      version: 1781193190,
+      format: "webp"
+    },
+    {
+      publicId: "gogetter/src/152cef0257e1b4e3",
+      version: 1781193190,
+      format: "webp"
+    },
+    {
+      publicId: "gogetter/src/152cef0257e1b4e3",
+      version: 1781193190,
+      format: "webp"
+    }
+  ],
+  lst_004: [
+    {
+      publicId: "gogetter/src/152cef0257e1b4e3",
+      version: 1781193190,
+      format: "webp"
+    }
+  ],
+  lst_005: [
+    {
+      publicId: "gogetter/src/152cef0257e1b4e3",
+      version: 1781193190,
+      format: "webp"
+    }
+  ],
+  lst_006: [
+    {
+      publicId: "gogetter/src/e485f9e3d3e03199",
+      version: 1781193190,
+      format: "webp"
+    }
+  ],
+  lst_007: [
+    {
+      publicId: "gogetter/src/152cef0257e1b4e3",
+      version: 1781193190,
+      format: "webp"
+    }
+  ],
+  lst_008: [
+    {
+      publicId: "gogetter/src/e485f9e3d3e03199",
+      version: 1781193190,
+      format: "webp"
+    },
+    {
+      publicId: "gogetter/src/e485f9e3d3e03199",
+      version: 1781193190,
+      format: "webp"
+    },
+    {
+      publicId: "gogetter/src/e485f9e3d3e03199",
+      version: 1781193190,
+      format: "webp"
+    }
+  ],
+  lst_009: [
+    {
+      publicId: "gogetter/src/152cef0257e1b4e3",
+      version: 1781193190,
+      format: "webp"
+    }
+  ],
+  lst_010: [
+    {
+      publicId: "gogetter/src/ede8f26b6059fef7",
+      version: 1781193191,
+      format: "webp"
+    }
+  ],
+  lst_011: [
+    {
+      publicId: "gogetter/src/e485f9e3d3e03199",
+      version: 1781193190,
+      format: "webp"
+    },
+    {
+      publicId: "gogetter/src/e485f9e3d3e03199",
+      version: 1781193190,
+      format: "webp"
+    },
+    {
+      publicId: "gogetter/src/e485f9e3d3e03199",
+      version: 1781193190,
+      format: "webp"
+    }
+  ],
+  lst_012: [
+    {
+      publicId: "gogetter/src/e485f9e3d3e03199",
+      version: 1781193190,
+      format: "webp"
+    }
+  ],
+  lst_013: [
+    {
+      publicId: "gogetter/src/e485f9e3d3e03199",
+      version: 1781193190,
+      format: "webp"
+    }
+  ],
+  lst_014: [
+    {
+      publicId: "gogetter/src/152cef0257e1b4e3",
+      version: 1781193190,
+      format: "webp"
+    }
+  ],
+  lst_015: [
+    {
+      publicId: "gogetter/src/152cef0257e1b4e3",
+      version: 1781193190,
+      format: "webp"
+    },
+    {
+      publicId: "gogetter/src/152cef0257e1b4e3",
+      version: 1781193190,
+      format: "webp"
+    },
+    {
+      publicId: "gogetter/src/152cef0257e1b4e3",
+      version: 1781193190,
+      format: "webp"
+    },
+    {
+      publicId: "gogetter/src/152cef0257e1b4e3",
+      version: 1781193190,
+      format: "webp"
+    }
+  ],
+  lst_016: [
+    {
+      publicId: "gogetter/src/e485f9e3d3e03199",
+      version: 1781193190,
+      format: "webp"
+    }
+  ],
+  lst_017: [
+    {
+      publicId: "gogetter/src/ede8f26b6059fef7",
+      version: 1781193191,
+      format: "webp"
+    },
+    {
+      publicId: "gogetter/src/ede8f26b6059fef7",
+      version: 1781193191,
+      format: "webp"
+    }
+  ],
+  lst_018: [
+    {
+      publicId: "gogetter/src/152cef0257e1b4e3",
+      version: 1781193190,
+      format: "webp"
+    },
+    {
+      publicId: "gogetter/src/152cef0257e1b4e3",
+      version: 1781193190,
+      format: "webp"
+    },
+    {
+      publicId: "gogetter/src/152cef0257e1b4e3",
+      version: 1781193190,
+      format: "webp"
+    }
+  ],
+  lst_019: [
+    {
+      publicId: "gogetter/src/c08fb3cf6c6a39a4",
+      version: 1781193189,
+      format: "webp"
+    },
+    {
+      publicId: "gogetter/src/c08fb3cf6c6a39a4",
+      version: 1781193189,
+      format: "webp"
+    },
+    {
+      publicId: "gogetter/src/c08fb3cf6c6a39a4",
+      version: 1781193189,
+      format: "webp"
+    }
+  ],
+  lst_020: [
+    {
+      publicId: "gogetter/src/ede8f26b6059fef7",
+      version: 1781193191,
+      format: "webp"
+    }
+  ],
+  lst_021: [
+    {
+      publicId: "gogetter/src/bc25d952348ed72f",
+      version: 1781193192,
+      format: "webp"
+    }
+  ],
+  lst_022: [
+    {
+      publicId: "gogetter/src/152cef0257e1b4e3",
+      version: 1781193190,
+      format: "webp"
+    },
+    {
+      publicId: "gogetter/src/152cef0257e1b4e3",
+      version: 1781193190,
+      format: "webp"
+    }
+  ],
+  lst_023: [
+    {
+      publicId: "gogetter/src/c08fb3cf6c6a39a4",
+      version: 1781193189,
+      format: "webp"
+    },
+    {
+      publicId: "gogetter/src/c08fb3cf6c6a39a4",
+      version: 1781193189,
+      format: "webp"
+    },
+    {
+      publicId: "gogetter/src/c08fb3cf6c6a39a4",
+      version: 1781193189,
+      format: "webp"
+    }
+  ],
+  lst_024: [
+    {
+      publicId: "gogetter/src/e485f9e3d3e03199",
+      version: 1781193190,
+      format: "webp"
+    }
+  ],
+  lst_025: [
+    {
+      publicId: "gogetter/src/152cef0257e1b4e3",
+      version: 1781193190,
+      format: "webp"
+    }
+  ],
+  lst_026: [
+    {
+      publicId: "gogetter/src/c907c059e9df8f97",
+      version: 1781193193,
+      format: "webp"
+    }
+  ],
+  lst_027: [
+    {
+      publicId: "gogetter/src/e485f9e3d3e03199",
+      version: 1781193190,
+      format: "webp"
+    }
+  ],
+  lst_028: [
+    {
+      publicId: "gogetter/src/ede8f26b6059fef7",
+      version: 1781193191,
+      format: "webp"
+    }
+  ],
+  lst_029: [
+    {
+      publicId: "gogetter/src/ede8f26b6059fef7",
+      version: 1781193191,
+      format: "webp"
+    }
+  ],
+  lst_030: [
+    {
+      publicId: "gogetter/src/e485f9e3d3e03199",
+      version: 1781193190,
+      format: "webp"
+    }
+  ],
+  lst_031: [
+    {
+      publicId: "gogetter/src/e485f9e3d3e03199",
+      version: 1781193190,
+      format: "webp"
+    }
+  ],
+  lst_032: [
+    {
+      publicId: "gogetter/src/bc25d952348ed72f",
+      version: 1781193192,
+      format: "webp"
+    }
+  ],
+  lst_033: [
+    {
+      publicId: "gogetter/src/e485f9e3d3e03199",
+      version: 1781193190,
+      format: "webp"
+    }
+  ],
+  lst_034: [
+    {
+      publicId: "gogetter/src/ede8f26b6059fef7",
+      version: 1781193191,
+      format: "webp"
+    },
+    {
+      publicId: "gogetter/src/ede8f26b6059fef7",
+      version: 1781193191,
+      format: "webp"
+    }
+  ],
+  lst_035: [
+    {
+      publicId: "gogetter/src/152cef0257e1b4e3",
+      version: 1781193190,
+      format: "webp"
+    }
+  ],
+  lst_036: [
+    {
+      publicId: "gogetter/src/e485f9e3d3e03199",
+      version: 1781193190,
+      format: "webp"
+    },
+    {
+      publicId: "gogetter/src/e485f9e3d3e03199",
+      version: 1781193190,
+      format: "webp"
+    }
+  ],
+  lst_037: [
+    {
+      publicId: "gogetter/src/152cef0257e1b4e3",
+      version: 1781193190,
+      format: "webp"
+    }
+  ],
+  lst_038: [
+    {
+      publicId: "gogetter/src/e485f9e3d3e03199",
+      version: 1781193190,
+      format: "webp"
+    },
+    {
+      publicId: "gogetter/src/e485f9e3d3e03199",
+      version: 1781193190,
+      format: "webp"
+    }
+  ],
+  lst_039: [
+    {
+      publicId: "gogetter/src/152cef0257e1b4e3",
+      version: 1781193190,
+      format: "webp"
+    },
+    {
+      publicId: "gogetter/src/152cef0257e1b4e3",
+      version: 1781193190,
+      format: "webp"
+    }
+  ],
+  lst_040: [
+    {
+      publicId: "gogetter/src/e485f9e3d3e03199",
+      version: 1781193190,
+      format: "webp"
+    }
+  ],
+  lst_041: [
+    {
+      publicId: "gogetter/src/c907c059e9df8f97",
+      version: 1781193193,
+      format: "webp"
+    }
+  ],
+  lst_042: [
+    {
+      publicId: "gogetter/src/e485f9e3d3e03199",
+      version: 1781193190,
+      format: "webp"
+    },
+    {
+      publicId: "gogetter/src/e485f9e3d3e03199",
+      version: 1781193190,
+      format: "webp"
+    },
+    {
+      publicId: "gogetter/src/e485f9e3d3e03199",
+      version: 1781193190,
+      format: "webp"
+    }
+  ],
+  lst_043: [
+    {
+      publicId: "gogetter/src/c08fb3cf6c6a39a4",
+      version: 1781193189,
+      format: "webp"
+    }
+  ],
+  lst_044: [
+    {
+      publicId: "gogetter/src/152cef0257e1b4e3",
+      version: 1781193190,
+      format: "webp"
+    }
+  ],
+  lst_045: [
+    {
+      publicId: "gogetter/src/e485f9e3d3e03199",
+      version: 1781193190,
+      format: "webp"
+    }
+  ],
+  lst_046: [
+    {
+      publicId: "gogetter/src/e485f9e3d3e03199",
+      version: 1781193190,
+      format: "webp"
+    },
+    {
+      publicId: "gogetter/src/e485f9e3d3e03199",
+      version: 1781193190,
+      format: "webp"
+    },
+    {
+      publicId: "gogetter/src/e485f9e3d3e03199",
+      version: 1781193190,
+      format: "webp"
+    }
+  ],
+  lst_047: [
+    {
+      publicId: "gogetter/src/e485f9e3d3e03199",
+      version: 1781193190,
+      format: "webp"
+    }
+  ],
+  lst_048: [
+    {
+      publicId: "gogetter/src/e485f9e3d3e03199",
+      version: 1781193190,
+      format: "webp"
+    },
+    {
+      publicId: "gogetter/src/e485f9e3d3e03199",
+      version: 1781193190,
+      format: "webp"
+    },
+    {
+      publicId: "gogetter/src/e485f9e3d3e03199",
+      version: 1781193190,
+      format: "webp"
+    },
+    {
+      publicId: "gogetter/src/e485f9e3d3e03199",
+      version: 1781193190,
+      format: "webp"
+    }
+  ],
+  lst_049: [
+    {
+      publicId: "gogetter/src/152cef0257e1b4e3",
+      version: 1781193190,
+      format: "webp"
+    }
+  ],
+  lst_050: [
+    {
+      publicId: "gogetter/src/e485f9e3d3e03199",
+      version: 1781193190,
+      format: "webp"
+    },
+    {
+      publicId: "gogetter/src/e485f9e3d3e03199",
+      version: 1781193190,
+      format: "webp"
+    },
+    {
+      publicId: "gogetter/src/e485f9e3d3e03199",
+      version: 1781193190,
+      format: "webp"
+    },
+    {
+      publicId: "gogetter/src/e485f9e3d3e03199",
+      version: 1781193190,
+      format: "webp"
+    }
+  ],
+  lst_051: [
+    {
+      publicId: "gogetter/src/e485f9e3d3e03199",
+      version: 1781193190,
+      format: "webp"
+    },
+    {
+      publicId: "gogetter/src/e485f9e3d3e03199",
+      version: 1781193190,
+      format: "webp"
+    },
+    {
+      publicId: "gogetter/src/e485f9e3d3e03199",
+      version: 1781193190,
+      format: "webp"
+    },
+    {
+      publicId: "gogetter/src/e485f9e3d3e03199",
+      version: 1781193190,
+      format: "webp"
+    }
+  ],
+  lst_052: [
+    {
+      publicId: "gogetter/src/e485f9e3d3e03199",
+      version: 1781193190,
+      format: "webp"
+    },
+    {
+      publicId: "gogetter/src/e485f9e3d3e03199",
+      version: 1781193190,
+      format: "webp"
+    },
+    {
+      publicId: "gogetter/src/e485f9e3d3e03199",
+      version: 1781193190,
+      format: "webp"
+    }
+  ],
+  lst_053: [
+    {
+      publicId: "gogetter/src/ede8f26b6059fef7",
+      version: 1781193191,
+      format: "webp"
+    }
+  ],
+  lst_054: [
+    {
+      publicId: "gogetter/src/152cef0257e1b4e3",
+      version: 1781193190,
+      format: "webp"
+    }
+  ],
+  lst_055: [
+    {
+      publicId: "gogetter/src/152cef0257e1b4e3",
+      version: 1781193190,
+      format: "webp"
+    }
+  ],
+  lst_056: [
+    {
+      publicId: "gogetter/src/e485f9e3d3e03199",
+      version: 1781193190,
+      format: "webp"
+    }
+  ],
+  lst_057: [
+    {
+      publicId: "gogetter/src/152cef0257e1b4e3",
+      version: 1781193190,
+      format: "webp"
+    },
+    {
+      publicId: "gogetter/src/152cef0257e1b4e3",
+      version: 1781193190,
+      format: "webp"
+    }
+  ],
+  lst_058: [
+    {
+      publicId: "gogetter/src/152cef0257e1b4e3",
+      version: 1781193190,
+      format: "webp"
+    }
+  ],
+  lst_059: [
+    {
+      publicId: "gogetter/src/ede8f26b6059fef7",
+      version: 1781193191,
+      format: "webp"
+    }
+  ],
+  lst_060: [
+    {
+      publicId: "gogetter/src/ede8f26b6059fef7",
+      version: 1781193191,
+      format: "webp"
+    },
+    {
+      publicId: "gogetter/src/ede8f26b6059fef7",
+      version: 1781193191,
+      format: "webp"
+    },
+    {
+      publicId: "gogetter/src/ede8f26b6059fef7",
+      version: 1781193191,
+      format: "webp"
+    }
+  ],
+  lst_061: [
+    {
+      publicId: "gogetter/src/152cef0257e1b4e3",
+      version: 1781193190,
+      format: "webp"
+    }
+  ],
+  lst_062: [
+    {
+      publicId: "gogetter/src/e485f9e3d3e03199",
+      version: 1781193190,
+      format: "webp"
+    }
+  ],
+  lst_063: [
+    {
+      publicId: "gogetter/src/152cef0257e1b4e3",
+      version: 1781193190,
+      format: "webp"
+    }
+  ],
+  lst_064: [
+    {
+      publicId: "gogetter/src/e485f9e3d3e03199",
+      version: 1781193190,
+      format: "webp"
+    }
+  ],
+  lst_065: [
+    {
+      publicId: "gogetter/src/152cef0257e1b4e3",
+      version: 1781193190,
+      format: "webp"
+    }
+  ],
+  lst_066: [
+    {
+      publicId: "gogetter/src/152cef0257e1b4e3",
+      version: 1781193190,
+      format: "webp"
+    }
+  ],
+  lst_067: [
+    {
+      publicId: "gogetter/src/bc25d952348ed72f",
+      version: 1781193192,
+      format: "webp"
+    }
+  ],
+  lst_068: [
+    {
+      publicId: "gogetter/src/c08fb3cf6c6a39a4",
+      version: 1781193189,
+      format: "webp"
+    }
+  ],
+  lst_069: [
+    {
+      publicId: "gogetter/src/bc25d952348ed72f",
+      version: 1781193192,
+      format: "webp"
+    }
+  ],
+  lst_070: [
+    {
+      publicId: "gogetter/src/c08fb3cf6c6a39a4",
+      version: 1781193189,
+      format: "webp"
+    }
+  ],
+  lst_071: [
+    {
+      publicId: "gogetter/src/e485f9e3d3e03199",
+      version: 1781193190,
+      format: "webp"
+    }
+  ],
+  lst_072: [
+    {
+      publicId: "gogetter/src/152cef0257e1b4e3",
+      version: 1781193190,
+      format: "webp"
+    }
+  ],
+  lst_073: [
+    {
+      publicId: "gogetter/src/152cef0257e1b4e3",
+      version: 1781193190,
+      format: "webp"
+    }
+  ],
+  lst_074: [
+    {
+      publicId: "gogetter/src/152cef0257e1b4e3",
+      version: 1781193190,
+      format: "webp"
+    }
+  ],
+  lst_075: [
+    {
+      publicId: "gogetter/src/e485f9e3d3e03199",
+      version: 1781193190,
+      format: "webp"
+    }
+  ],
+  lst_076: [
+    {
+      publicId: "gogetter/src/152cef0257e1b4e3",
+      version: 1781193190,
+      format: "webp"
+    }
+  ],
+  lst_077: [
+    {
+      publicId: "gogetter/src/152cef0257e1b4e3",
+      version: 1781193190,
+      format: "webp"
+    }
+  ],
+  lst_078: [
+    {
+      publicId: "gogetter/src/152cef0257e1b4e3",
+      version: 1781193190,
+      format: "webp"
+    }
+  ],
+  lst_079: [
+    {
+      publicId: "gogetter/src/152cef0257e1b4e3",
+      version: 1781193190,
+      format: "webp"
+    }
+  ],
+  lst_080: [
+    {
+      publicId: "gogetter/src/bc25d952348ed72f",
+      version: 1781193192,
+      format: "webp"
+    }
+  ],
+  lst_081: [
+    {
+      publicId: "gogetter/src/e485f9e3d3e03199",
+      version: 1781193190,
+      format: "webp"
+    }
+  ],
+  lst_082: [
+    {
+      publicId: "gogetter/src/ede8f26b6059fef7",
+      version: 1781193191,
+      format: "webp"
+    }
+  ],
+  lst_083: [
+    {
+      publicId: "gogetter/src/e485f9e3d3e03199",
+      version: 1781193190,
+      format: "webp"
+    }
+  ],
+  lst_084: [
+    {
+      publicId: "gogetter/src/152cef0257e1b4e3",
+      version: 1781193190,
+      format: "webp"
+    }
+  ],
+  lst_085: [
+    {
+      publicId: "gogetter/src/e485f9e3d3e03199",
+      version: 1781193190,
+      format: "webp"
+    }
+  ],
+  lst_086: [
+    {
+      publicId: "gogetter/src/e485f9e3d3e03199",
+      version: 1781193190,
+      format: "webp"
+    }
+  ],
+  lst_087: [
+    {
+      publicId: "gogetter/src/152cef0257e1b4e3",
+      version: 1781193190,
+      format: "webp"
+    }
+  ],
+  lst_088: [
+    {
+      publicId: "gogetter/src/e485f9e3d3e03199",
+      version: 1781193190,
+      format: "webp"
+    }
+  ],
+  lst_089: [
+    {
+      publicId: "gogetter/src/e485f9e3d3e03199",
+      version: 1781193190,
+      format: "webp"
+    }
+  ],
+  lst_090: [
+    {
+      publicId: "gogetter/src/152cef0257e1b4e3",
+      version: 1781193190,
+      format: "webp"
+    }
+  ],
+  lst_091: [
+    {
+      publicId: "gogetter/src/e485f9e3d3e03199",
+      version: 1781193190,
+      format: "webp"
+    }
+  ],
+  lst_092: [
+    {
+      publicId: "gogetter/src/c08fb3cf6c6a39a4",
+      version: 1781193189,
+      format: "webp"
+    }
+  ],
+  lst_093: [
+    {
+      publicId: "gogetter/src/e485f9e3d3e03199",
+      version: 1781193190,
+      format: "webp"
+    },
+    {
+      publicId: "gogetter/src/e485f9e3d3e03199",
+      version: 1781193190,
+      format: "webp"
+    },
+    {
+      publicId: "gogetter/src/e485f9e3d3e03199",
+      version: 1781193190,
+      format: "webp"
+    }
+  ],
+  lst_094: [
+    {
+      publicId: "gogetter/src/e485f9e3d3e03199",
+      version: 1781193190,
+      format: "webp"
+    }
+  ],
+  lst_095: [
+    {
+      publicId: "gogetter/src/e485f9e3d3e03199",
+      version: 1781193190,
+      format: "webp"
+    }
+  ],
+  lst_096: [
+    {
+      publicId: "gogetter/src/c08fb3cf6c6a39a4",
+      version: 1781193189,
+      format: "webp"
+    },
+    {
+      publicId: "gogetter/src/c08fb3cf6c6a39a4",
+      version: 1781193189,
+      format: "webp"
+    },
+    {
+      publicId: "gogetter/src/c08fb3cf6c6a39a4",
+      version: 1781193189,
+      format: "webp"
+    },
+    {
+      publicId: "gogetter/src/c08fb3cf6c6a39a4",
+      version: 1781193189,
+      format: "webp"
+    }
+  ],
+  lst_097: [
+    {
+      publicId: "gogetter/src/c08fb3cf6c6a39a4",
+      version: 1781193189,
+      format: "webp"
+    },
+    {
+      publicId: "gogetter/src/c08fb3cf6c6a39a4",
+      version: 1781193189,
+      format: "webp"
+    }
+  ],
+  lst_098: [
+    {
+      publicId: "gogetter/src/c08fb3cf6c6a39a4",
+      version: 1781193189,
+      format: "webp"
+    },
+    {
+      publicId: "gogetter/src/c08fb3cf6c6a39a4",
+      version: 1781193189,
+      format: "webp"
+    },
+    {
+      publicId: "gogetter/src/c08fb3cf6c6a39a4",
+      version: 1781193189,
+      format: "webp"
+    }
+  ],
+  lst_099: [
+    {
+      publicId: "gogetter/src/c907c059e9df8f97",
+      version: 1781193193,
+      format: "webp"
+    },
+    {
+      publicId: "gogetter/src/c907c059e9df8f97",
+      version: 1781193193,
+      format: "webp"
+    },
+    {
+      publicId: "gogetter/src/c907c059e9df8f97",
+      version: 1781193193,
+      format: "webp"
+    }
+  ],
+  lst_100: [
+    {
+      publicId: "gogetter/src/e485f9e3d3e03199",
+      version: 1781193190,
+      format: "webp"
+    }
+  ],
+  lst_101: [
+    {
+      publicId: "gogetter/src/e485f9e3d3e03199",
+      version: 1781193190,
+      format: "webp"
+    },
+    {
+      publicId: "gogetter/src/e485f9e3d3e03199",
+      version: 1781193190,
+      format: "webp"
+    },
+    {
+      publicId: "gogetter/src/e485f9e3d3e03199",
+      version: 1781193190,
+      format: "webp"
+    }
+  ],
+  lst_102: [
+    {
+      publicId: "gogetter/src/c08fb3cf6c6a39a4",
+      version: 1781193189,
+      format: "webp"
+    }
+  ]
+};
+
+// server/images/cloudinary.ts
+var MANIFEST = photos_cloudinary_default;
+function cloudNameFromUrl(cloudinaryUrl) {
+  const match = /^cloudinary:\/\/[^:@]+:[^@]+@([a-z0-9][a-z0-9_-]*)/i.exec(cloudinaryUrl.trim());
+  return match ? match[1] : null;
+}
+var CLOUD_NAME = cloudNameFromUrl(ENV.cloudinaryUrl);
+var DEFAULT_TRANSFORM = "f_auto,q_auto,w_1000,c_limit";
+function deliveryUrl(entry, transform = DEFAULT_TRANSFORM, cloudName = CLOUD_NAME) {
+  if (!entry || !cloudName) return null;
+  return `https://res.cloudinary.com/${cloudName}/image/upload/${transform}/v${entry.version}/${entry.publicId}.${entry.format}`;
+}
+function applyManifest(listingId, photos, manifest = MANIFEST, cloudName = CLOUD_NAME) {
+  if (!cloudName) return photos;
+  const entries = manifest[listingId];
+  if (!entries || entries.length === 0) return photos;
+  return photos.map((photo, i) => {
+    const url = deliveryUrl(entries[i] ?? null, DEFAULT_TRANSFORM, cloudName);
+    return url ? { ...photo, url } : photo;
+  });
 }
 
 // server/inventory/data.json
@@ -4168,7 +5401,7 @@ function loadListings() {
   const rows = [...data_default, ...data_curated_default];
   const listings = rows.map((row) => {
     const { _photoKind, _photoCount, ...rest } = row;
-    return { ...rest, photos: buildPhotos(row) };
+    return { ...rest, photos: applyManifest(row.id, buildPhotos(row)) };
   });
   _cache = listings;
   return listings;
@@ -4599,6 +5832,23 @@ var vehicleRouter = router({
       modelYear: z2.union([z2.string().min(2), z2.number().int()])
     })
   ).query(({ input }) => fetchRecalls(input.make, input.model, input.modelYear)),
+  /**
+   * "From the web" model intel (Brave Search): real owner-reported problem /
+   * reliability links for this model-year. Metered API — cached 6h server-
+   * side and shared with the advisor's web-context block; `available:false`
+   * hides the card when keyless.
+   */
+  webIntel: publicProcedure.input(
+    z2.object({
+      make: z2.string().min(1).max(40),
+      model: z2.string().min(1).max(60),
+      modelYear: z2.union([z2.string().min(2), z2.number().int()])
+    })
+  ).query(async ({ input }) => {
+    if (!braveConfigured()) return { available: false, results: [] };
+    const results = await modelIntelSearch(input.modelYear, input.make, input.model);
+    return { available: true, results: results ?? [] };
+  }),
   /** Conversational advisor reply. */
   advisor: publicProcedure.input(
     z2.object({
@@ -5269,6 +6519,56 @@ function listingToDecodedVehicle(l) {
   };
 }
 
+// server/geo/mapboxGeocode.ts
+var GEOCODE_URL = "https://api.mapbox.com/search/geocode/v6/forward";
+var TIMEOUT_MS3 = 5e3;
+var CACHE_TTL_MS4 = 6 * 60 * 60 * 1e3;
+var CACHE_MAX4 = 200;
+var cache4 = /* @__PURE__ */ new Map();
+function geoConfigured() {
+  return Boolean(ENV.mapboxToken);
+}
+async function geocodeZip(zip) {
+  if (!geoConfigured() || !/^\d{5}$/.test(zip)) return null;
+  const hit = cache4.get(zip);
+  if (hit && Date.now() - hit.at < CACHE_TTL_MS4) return hit.value;
+  let value = null;
+  try {
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), TIMEOUT_MS3);
+    try {
+      const params = new URLSearchParams({
+        q: zip,
+        country: "us",
+        types: "postcode",
+        limit: "1",
+        access_token: ENV.mapboxToken
+      });
+      const res = await fetch(`${GEOCODE_URL}?${params}`, {
+        signal: controller.signal,
+        headers: { accept: "application/json" }
+      });
+      if (res.ok) {
+        const json = await res.json();
+        const coords = json?.features?.[0]?.geometry?.coordinates;
+        if (Array.isArray(coords) && coords.length >= 2) {
+          const [lng, lat] = coords;
+          if (Number.isFinite(lat) && Number.isFinite(lng)) value = { lat, lng };
+        }
+      }
+    } finally {
+      clearTimeout(timer);
+    }
+  } catch {
+    value = null;
+  }
+  if (value !== null) {
+    if (cache4.size >= CACHE_MAX4) cache4.delete(cache4.keys().next().value);
+    cache4.set(zip, { at: Date.now(), value });
+  }
+  return value;
+}
+
 // server/inventory/geo.ts
 var ZIP_CENTROIDS = {
   // Dealer / seller ZIPs (Northern VA, MD, DC)
@@ -5333,14 +6633,31 @@ function haversineMiles(a, b) {
   const h = Math.sin(dLat / 2) ** 2 + Math.cos(lat1) * Math.cos(lat2) * Math.sin(dLng / 2) ** 2;
   return 2 * R * Math.asin(Math.min(1, Math.sqrt(h)));
 }
-function isKnownZip(zip) {
-  return !!zip && /^\d{5}$/.test(zip) && zip in ZIP_CENTROIDS;
+function centroidForZip(zip) {
+  if (!zip || !/^\d{5}$/.test(zip)) return null;
+  return ZIP_CENTROIDS[zip] ?? null;
 }
-function distanceFromZip(buyerZip, listingZip) {
-  if (!buyerZip || !(buyerZip in ZIP_CENTROIDS)) return null;
-  if (!(listingZip in ZIP_CENTROIDS)) return null;
-  const d = haversineMiles(ZIP_CENTROIDS[buyerZip], ZIP_CENTROIDS[listingZip]);
-  return Math.max(1, Math.round(d));
+function distanceFromPoint(point, listingZip) {
+  const target = ZIP_CENTROIDS[listingZip];
+  if (!target) return null;
+  return Math.max(1, Math.round(haversineMiles(point, target)));
+}
+async function resolveBuyerPoint(zip) {
+  const local = centroidForZip(zip);
+  if (local) return local;
+  if (!zip || !/^\d{5}$/.test(zip)) return null;
+  return geocodeZip(zip);
+}
+function jitterForId(id) {
+  let h = 2166136261;
+  for (let i = 0; i < id.length; i++) {
+    h ^= id.charCodeAt(i);
+    h = Math.imul(h, 16777619);
+  }
+  const a = (h >>> 0) % 1e3 / 1e3 - 0.5;
+  const h2 = Math.imul((h ^ 2654435769) >>> 0, 16777619);
+  const b = (h2 >>> 0) % 1e3 / 1e3 - 0.5;
+  return { dLat: a * 0.016, dLng: b * 0.016 };
 }
 
 // server/inventory/options.ts
@@ -5846,6 +7163,88 @@ function checklistToText(c) {
   return lines.join("\n");
 }
 
+// server/vector/blend.ts
+function blendSemantic(matches, hits, weight = 0.25) {
+  if (matches.length === 0 || hits.length === 0) return matches;
+  let min = Infinity;
+  let max = -Infinity;
+  for (const h of hits) {
+    if (h.score < min) min = h.score;
+    if (h.score > max) max = h.score;
+  }
+  const span = max - min;
+  const semById = new Map(
+    hits.map((h) => [h.id, span > 0 ? (h.score - min) / span : 1])
+  );
+  const blended = matches.map((m) => {
+    const sem = semById.get(m.listing.id);
+    if (sem === void 0) return m;
+    const matchScore = Math.round((1 - weight) * m.matchScore + weight * sem * 100);
+    return { ...m, matchScore };
+  });
+  blended.sort(
+    (a, b) => b.matchScore - a.matchScore || b.qualityScore - a.qualityScore || a.listing.price - b.listing.price
+  );
+  return blended;
+}
+
+// server/vector/text.ts
+var severityPhrase = (a) => {
+  if (a.waivedByManual) return `note: ${a.title} (waived \u2014 manual transmission)`;
+  if (a.severity === "avoid") return `known defect, avoid: ${a.title}`;
+  if (a.severity === "caution") return `caution: ${a.title}`;
+  return `proven value pick: ${a.title}`;
+};
+function buildListingText(listing, advisories) {
+  const l = listing;
+  const parts = [
+    `${l.year} ${l.make} ${l.model}${l.trim ? ` ${l.trim}` : ""}`,
+    `${l.condition.toLowerCase()} ${l.bodyStyle.toLowerCase()}`,
+    `${l.fuel === "EV" ? "electric" : l.fuel.toLowerCase()} ${l.fuel === "EV" ? `${l.mpg} MPGe` : `${l.mpg} mpg`}`,
+    `$${l.price.toLocaleString("en-US")}`,
+    l.condition === "Used" ? `${l.mileage.toLocaleString("en-US")} miles` : "new, delivery miles",
+    l.exteriorColor.toLowerCase(),
+    `sold by ${l.sellerType.toLowerCase()} ${l.dealerName} in ${l.city}, ${l.state}`
+  ];
+  if (advisories.length > 0) {
+    parts.push(advisories.map(severityPhrase).join("; "));
+  }
+  if (l.dealerBlurb) parts.push(l.dealerBlurb);
+  return parts.join(". ").slice(0, 1200);
+}
+
+// server/websearch/marketplaces.ts
+var MARKETPLACES = [
+  { name: "Cars.com", domains: ["cars.com"] },
+  { name: "AutoTrader", domains: ["autotrader.com"] },
+  { name: "CarGurus", domains: ["cargurus.com"] },
+  { name: "Carfax", domains: ["carfax.com"] },
+  { name: "Edmunds", domains: ["edmunds.com"] },
+  { name: "TrueCar", domains: ["truecar.com"] },
+  { name: "CarMax", domains: ["carmax.com"] },
+  { name: "Carvana", domains: ["carvana.com"] },
+  { name: "Craigslist", domains: ["craigslist.org"] },
+  { name: "Facebook Marketplace", domains: ["facebook.com"] }
+];
+function hostnameOf(url) {
+  try {
+    return new URL(url).hostname.toLowerCase();
+  } catch {
+    return null;
+  }
+}
+function marketplaceFor(url) {
+  const host = hostnameOf(url);
+  if (!host) return null;
+  for (const m of MARKETPLACES) {
+    if (m.domains.some((d) => host === d || host.endsWith(`.${d}`))) return m.name;
+  }
+  return null;
+}
+function tagAndRankResults(results) {
+  return results.map((r, i) => ({ ...r, marketplace: marketplaceFor(r.url), i })).sort((a, b) => Number(b.marketplace !== null) - Number(a.marketplace !== null) || a.i - b.i).map(({ i: _i, ...rest }) => rest);
+}
+
 // server/routers/find.ts
 async function saveListingForUser(userId, listing) {
   const vehicle = listingToDecodedVehicle(listing);
@@ -5903,12 +7302,16 @@ var criteriaSchema = z3.object({
   budgetMode: z3.boolean().optional(),
   makes: z3.array(z3.string().min(1)).max(8).optional()
 });
-function applyZipDistance(inventory, zip) {
-  if (!isKnownZip(zip)) return inventory;
-  return inventory.map((l) => {
-    const d = distanceFromZip(zip, l.zip);
-    return d == null ? l : { ...l, distanceMiles: d };
-  });
+async function applyZipDistance(inventory, zip) {
+  const point = await resolveBuyerPoint(zip);
+  if (!point) return { inventory, zipApplied: false };
+  return {
+    zipApplied: true,
+    inventory: inventory.map((l) => {
+      const d = distanceFromPoint(point, l.zip);
+      return d == null ? l : { ...l, distanceMiles: d };
+    })
+  };
 }
 function describeCriteria(c) {
   const parts = [];
@@ -5946,7 +7349,7 @@ var findRouter = router({
    */
   search: publicProcedure.input(criteriaSchema).mutation(async ({ input }) => {
     const rawInventory = await inventoryProvider.getInventory();
-    const inventory = applyZipDistance(rawInventory, input.zip);
+    const { inventory, zipApplied } = await applyZipDistance(rawInventory, input.zip);
     const criteria = {
       condition: input.condition,
       maxPrice: input.maxPrice,
@@ -5967,7 +7370,19 @@ var findRouter = router({
     const eligibleListings = inventory.filter((l) => passesHardFilters(l, criteria));
     const eligibleCount = eligibleListings.length;
     const hiddenAvoidCount = criteria.budgetMode === true ? eligibleListings.filter((l) => hasAvoidAdvisory(advisoriesForListing(l))).length : 0;
-    const matches = rankInventory(inventory, criteria, input.limit ?? 5);
+    const limit = input.limit ?? 5;
+    const semanticQuery = criteria.searchText?.trim() ?? "";
+    const wantSemantic = semanticQuery.length > 0 && vectorConfigured();
+    let semanticApplied = false;
+    let matches = rankInventory(inventory, criteria, wantSemantic ? Math.max(limit * 3, 15) : limit);
+    if (wantSemantic) {
+      const hits = await semanticSearchListings(semanticQuery, { topK: 40 });
+      if (hits && hits.length > 0) {
+        matches = blendSemantic(matches, hits);
+        semanticApplied = true;
+      }
+    }
+    matches = matches.slice(0, limit);
     const narratives = await generateNarratives(matches, criteria);
     const suggestions = [];
     let valuePickAlternatives = [];
@@ -6014,8 +7429,9 @@ var findRouter = router({
       scanned: inventory.length,
       eligible: eligibleCount,
       shortlisted: matches.length,
-      zipApplied: isKnownZip(input.zip),
+      zipApplied,
       hiddenAvoidCount,
+      semanticApplied,
       suggestions,
       valuePickAlternatives,
       matches: matches.map((m) => ({
@@ -6157,6 +7573,46 @@ var findRouter = router({
     });
     return { count: models.length, models };
   }),
+  /**
+   * Every listing with map-ready coordinates for the /map explorer. Lat/lng
+   * is the listing ZIP's centroid plus a small deterministic per-id jitter so
+   * same-ZIP pins don't stack; quality grade and risk ride along for the pin
+   * badges and popups. No geocoding API needed — all seeded ZIPs ship
+   * centroids.
+   */
+  mapListings: publicProcedure.query(async () => {
+    const inventory = await inventoryProvider.getInventory();
+    const items = inventory.flatMap((l) => {
+      const center = centroidForZip(l.zip);
+      if (!center) return [];
+      const quality = qualityScoreForListing(l);
+      const { dLat, dLng } = jitterForId(l.id);
+      return [
+        {
+          id: l.id,
+          vin: l.vin,
+          label: `${l.year} ${l.make} ${l.model}`,
+          trim: l.trim,
+          condition: l.condition,
+          price: l.price,
+          mileage: l.mileage,
+          bodyStyle: l.bodyStyle,
+          fuel: l.fuel,
+          photo: l.photos[0]?.url ?? null,
+          dealerName: l.dealerName,
+          sellerType: l.sellerType,
+          city: l.city,
+          state: l.state,
+          lat: center.lat + dLat,
+          lng: center.lng + dLng,
+          qualityScore: quality.score,
+          qualityGrade: quality.grade,
+          riskLevel: riskLevelFor(advisoriesForListing(l))
+        }
+      ];
+    });
+    return { count: items.length, items };
+  }),
   /** Fetch a single listing by id (for a detail view / deep link). */
   listing: publicProcedure.input(z3.object({ id: z3.string() })).query(async ({ input }) => {
     const listing = await inventoryProvider.getListingById(input.id);
@@ -6178,6 +7634,62 @@ var findRouter = router({
     const vehicle = listingToDecodedVehicle(listing);
     const score = scoreVehicle(vehicle, listing.condition === "New" ? void 0 : listing.mileage);
     return { source: "inventory", listing, vehicle, score };
+  }),
+  /**
+   * "More like this": semantic nearest neighbors from the Pinecone vector
+   * index when configured, with a deterministic same-body/price-window
+   * fallback so the section renders either way. Accepts a VIN (detail page
+   * deep link) or a listing id. Real user-entered VINs aren't in seeded
+   * inventory — those return an empty list and the UI hides the section.
+   */
+  similar: publicProcedure.input(
+    z3.object({ vin: z3.string().optional(), listingId: z3.string().optional() }).refine((i) => Boolean(i.vin || i.listingId), { message: "Provide a vin or listingId." })
+  ).query(async ({ input }) => {
+    const subject = input.listingId ? await inventoryProvider.getListingById(input.listingId) : await inventoryProvider.getListingByVin(input.vin);
+    if (!subject) return { source: "none", items: [] };
+    const inventory = await inventoryProvider.getInventory();
+    let picks = null;
+    let source = "rules";
+    if (vectorConfigured()) {
+      const hits = await semanticSearchListings(
+        buildListingText(subject, advisoriesForListing(subject)),
+        { topK: 8 }
+      );
+      if (hits && hits.length > 0) {
+        const byId = new Map(inventory.map((l) => [l.id, l]));
+        const fromHits = hits.filter((h) => h.id !== subject.id).map((h) => byId.get(h.id)).filter((l) => Boolean(l)).slice(0, 5);
+        if (fromHits.length > 0) {
+          picks = fromHits;
+          source = "vector";
+        }
+      }
+    }
+    if (!picks) {
+      picks = inventory.filter((l) => l.id !== subject.id && l.condition === subject.condition).map((l) => ({
+        l,
+        closeness: Math.abs(l.price - subject.price) / Math.max(subject.price, 1) + (l.bodyStyle === subject.bodyStyle ? 0 : 0.35) + (l.fuel === subject.fuel ? 0 : 0.15) + Math.min(Math.abs(l.year - subject.year), 8) * 0.03
+      })).sort((a, b) => a.closeness - b.closeness).slice(0, 5).map((x) => x.l);
+    }
+    return {
+      source,
+      items: picks.map((l) => {
+        const quality = qualityScoreForListing(l);
+        return {
+          id: l.id,
+          vin: l.vin,
+          label: `${l.year} ${l.make} ${l.model}${l.trim ? ` ${l.trim}` : ""}`,
+          price: l.price,
+          mileage: l.mileage,
+          condition: l.condition,
+          photo: l.photos[0]?.url ?? null,
+          city: l.city,
+          state: l.state,
+          qualityScore: quality.score,
+          qualityGrade: quality.grade,
+          riskLevel: riskLevelFor(advisoriesForListing(l))
+        };
+      })
+    };
   }),
   /** Save a single match (by listing id) to the signed-in user's Garage. */
   saveMatch: protectedProcedure.input(z3.object({ listingId: z3.string() })).mutation(async ({ ctx, input }) => {
@@ -6229,6 +7741,39 @@ var findRouter = router({
   priceHistory: publicProcedure.input(z3.object({ listingId: z3.string() })).query(async ({ input }) => {
     const rows = await getPriceHistory(input.listingId, 60);
     return rows.map((r) => ({ price: r.price, at: r.recordedAt })).reverse();
+  }),
+  /**
+   * Live market scan (Brave Search): one composed real-web query for cars
+   * matching the buyer's intent, with results badged by marketplace. Metered
+   * API — only called from explicit user actions, cached 6h server-side, and
+   * `available:false` lets the client hide the panel entirely when keyless.
+   */
+  liveMarket: publicProcedure.input(
+    z3.object({
+      make: z3.string().max(40).optional(),
+      model: z3.string().max(60).optional(),
+      maxPrice: z3.number().int().positive().optional(),
+      city: z3.string().max(60).optional(),
+      state: z3.string().max(20).optional(),
+      zip: z3.string().regex(/^\d{5}$/).optional(),
+      condition: z3.enum(["New", "Used", "Any"]).optional()
+    })
+  ).query(async ({ input }) => {
+    if (!braveConfigured()) {
+      return { available: false, query: null, results: [] };
+    }
+    const subject = [input.make, input.model].filter(Boolean).join(" ") || "cars";
+    const parts = [`${input.condition === "New" ? "new" : "used"} ${subject} for sale`];
+    if (input.maxPrice) parts.push(`under $${input.maxPrice.toLocaleString("en-US")}`);
+    const near = input.city ? `${input.city}${input.state ? `, ${input.state}` : ""}` : input.zip;
+    if (near) parts.push(`near ${near}`);
+    const query = parts.join(" ");
+    const results = await braveSearch(query, { count: 10 });
+    return {
+      available: true,
+      query,
+      results: results ? tagAndRankResults(results) : []
+    };
   }),
   /** New-car trim configurator: the option/package catalog for the UI. */
   configOptions: publicProcedure.query(() => CONFIG_OPTIONS),
@@ -6746,6 +8291,7 @@ var appRouter = router({
       };
     })
   }),
+  config: configRouter,
   vehicle: vehicleRouter,
   find: findRouter,
   contact: contactRouter,

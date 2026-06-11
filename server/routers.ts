@@ -2,6 +2,7 @@ import { z } from "zod";
 import { TRPCError } from "@trpc/server";
 import { systemRouter } from "./_core/systemRouter";
 import { publicProcedure, router } from "./_core/trpc";
+import { configRouter } from "./routers/config";
 import { vehicleRouter } from "./routers/vehicle";
 import { findRouter } from "./routers/find";
 import { contactRouter } from "./routers/contact";
@@ -46,6 +47,7 @@ export const appRouter = router({
       } as const;
     }),
   }),
+  config: configRouter,
   vehicle: vehicleRouter,
   find: findRouter,
   contact: contactRouter,

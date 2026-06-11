@@ -19,6 +19,8 @@ import NewCars from "./pages/NewCars";
 // The landing page carries GSAP + the Three.js hero — lazy-loaded so none of
 // it lands in the main app chunk.
 const Landing = lazy(() => import("./pages/Landing"));
+// The map explorer carries mapbox-gl (~230KB gz) — same lazy-chunk treatment.
+const MapExplorer = lazy(() => import("./pages/MapExplorer"));
 
 /** wouter has no scroll restoration — reset to top on every route change. */
 function ScrollToTop() {
@@ -50,6 +52,7 @@ function Router() {
         <Route path="/lookup" component={Lookup} />
         <Route path="/login" component={Login} />
         <Route path="/find" component={FindMyCar} />
+        <Route path="/map" component={MapExplorer} />
         <Route path="/new-cars" component={NewCars} />
         <Route path="/compare" component={Compare} />
         <Route path="/saved" component={Saved} />

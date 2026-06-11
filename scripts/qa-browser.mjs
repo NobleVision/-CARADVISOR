@@ -15,7 +15,7 @@ const CHROME = "C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe";
 const SHOTS = "qa-shots";
 mkdirSync(SHOTS, { recursive: true });
 
-const ROUTES = ["/", "/lookup", "/login", "/find", "/new-cars", "/compare", "/saved", "/history", "/premium", "/definitely-missing"];
+const ROUTES = ["/", "/lookup", "/login", "/find", "/map", "/new-cars", "/compare", "/saved", "/history", "/premium", "/definitely-missing"];
 const VIEWPORTS = [
   { name: "mobile-375", width: 375, height: 812 },
   { name: "tablet-768", width: 768, height: 1024 },

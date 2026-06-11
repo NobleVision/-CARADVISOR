@@ -1,3 +1,4 @@
+import { applyManifest } from "../images/cloudinary";
 import type { BodyStyle, InventoryProvider, Listing, ListingPhoto } from "./types";
 import rawData from "./data.json" with { type: "json" };
 // Curated "buyer story" listings (reliability traps + proven value picks) live
@@ -75,7 +76,9 @@ function loadListings(): Listing[] {
   const rows = [...(rawData as SeedRow[]), ...(curatedData as SeedRow[])];
   const listings = rows.map((row) => {
     const { _photoKind, _photoCount, ...rest } = row;
-    return { ...rest, photos: buildPhotos(row) } as Listing;
+    // Cloudinary manifest swap: optimized CDN URLs when the sync has run and
+    // CLOUDINARY_URL is configured; byte-identical photos otherwise.
+    return { ...rest, photos: applyManifest(row.id, buildPhotos(row)) } as Listing;
   });
   _cache = listings;
   return listings;

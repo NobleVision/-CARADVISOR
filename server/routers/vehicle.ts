@@ -5,6 +5,7 @@ import { decodeVin, isValidVin } from "../vin";
 import { scoreVehicle } from "../scoring";
 import { getAdvisorReply } from "../advisor";
 import { fetchRecalls } from "../recalls";
+import { braveConfigured, modelIntelSearch } from "../websearch/brave";
 import { inventoryProvider } from "../inventory/provider";
 import {
   addSearchHistory,
@@ -140,6 +141,26 @@ export const vehicleRouter = router({
       }),
     )
     .query(({ input }) => fetchRecalls(input.make, input.model, input.modelYear)),
+
+  /**
+   * "From the web" model intel (Brave Search): real owner-reported problem /
+   * reliability links for this model-year. Metered API — cached 6h server-
+   * side and shared with the advisor's web-context block; `available:false`
+   * hides the card when keyless.
+   */
+  webIntel: publicProcedure
+    .input(
+      z.object({
+        make: z.string().min(1).max(40),
+        model: z.string().min(1).max(60),
+        modelYear: z.union([z.string().min(2), z.number().int()]),
+      }),
+    )
+    .query(async ({ input }) => {
+      if (!braveConfigured()) return { available: false as const, results: [] };
+      const results = await modelIntelSearch(input.modelYear, input.make, input.model);
+      return { available: true as const, results: results ?? [] };
+    }),
 
   /** Conversational advisor reply. */
   advisor: publicProcedure

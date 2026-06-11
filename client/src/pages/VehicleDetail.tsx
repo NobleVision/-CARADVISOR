@@ -4,7 +4,9 @@ import { VehicleResult } from "@/components/VehicleResult";
 import { AdvisorChat } from "@/components/AdvisorChat";
 import { ChecklistCard } from "@/components/ChecklistCard";
 import { ContactSellerDialog } from "@/components/ContactSellerDialog";
+import { FromTheWeb } from "@/components/FromTheWeb";
 import { PublicRecords } from "@/components/PublicRecords";
+import { SimilarVehicles } from "@/components/SimilarVehicles";
 import { Button } from "@/components/ui/button";
 import { Spinner } from "@/components/ui/spinner";
 import { Badge } from "@/components/ui/badge";
@@ -211,6 +213,14 @@ export default function VehicleDetail() {
                     : undefined
                 }
               />
+              {/* Real owner-reported intel from the web (Brave; hidden when keyless) */}
+              <FromTheWeb
+                make={result.vehicle.make}
+                model={result.vehicle.model}
+                modelYear={result.vehicle.modelYear}
+              />
+              {/* Semantic nearest neighbors (Pinecone; deterministic fallback) */}
+              <SimilarVehicles vin={vin} />
             </div>
 
             {showAdvisor && (

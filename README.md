@@ -62,7 +62,19 @@ The project runs **React 19 + Tailwind 4** on the client and a **tRPC 11** API o
 
 ## Deployment (Vercel)
 
-`vercel.json` configures the static build (`vite build` → `dist/public`), SPA rewrites, the serverless API (`api/trpc/[trpc].ts`), and a daily cron that runs the price-drop / new-match monitor (`api/cron/monitor.ts`). Set `DATABASE_URL`, `JWT_SECRET`, optionally `LLM_API_URL`/`LLM_API_KEY`/`LLM_MODEL`, and `CRON_SECRET` in the Vercel project, run `pnpm db:push` once against the production database, and deploy. See [LOCAL_SETUP.md](LOCAL_SETUP.md) for the full walkthrough and the landing-page b-roll prompts in [docs/landing-video-prompts.md](docs/landing-video-prompts.md).
+`vercel.json` configures the static build (`vite build` → `dist/public`), SPA rewrites, the serverless API (`api/trpc/[trpc].ts`), and a daily cron that runs the price-drop / new-match monitor (`api/cron/monitor.ts`). Set `DATABASE_URL`, `JWT_SECRET`, and `CRON_SECRET` in the Vercel project (plus any of the optional service keys below), run `pnpm db:push` once against the production database, and deploy. See [LOCAL_SETUP.md](LOCAL_SETUP.md) for the full walkthrough and the landing-page b-roll prompts in [docs/landing-video-prompts.md](docs/landing-video-prompts.md).
+
+## Real-data cloud services (v7)
+
+Five optional services replace mock paths with live data. **Every key is optional** — when one is missing, the matching feature falls back to the previous deterministic/seeded behavior (the full matrix lives in `.env.local.example`). Keys are read from env only and never logged; the client receives nothing but boolean service flags and the public Mapbox token via `config.public`.
+
+| Service | Env var(s) | Powers |
+|---|---|---|
+| **Z.AI (GLM)** | `ZAI_API_KEY` | AI Advisor chat, per-match narratives, natural-language search parsing, contact drafts — via the existing OpenAI-compatible client (`server/_core/llm.ts`), which auto-targets Z.AI when the generic `LLM_*` vars are blank and downgrades `json_schema` → `json_object` (GLM doesn't support schemas). Default model `glm-4.5-flash` (free tier); set `LLM_MODEL=glm-4.7`/`glm-5.1` after funding the account. |
+| **Pinecone** | `PINECONE_API_KEY` | Semantic search blended into Find-My-Car ranking (`semanticApplied`), the "More like this" section on vehicle detail, and advisor knowledge recall. Integrated-inference index (`gogetter-vehicles`, aws/us-east-1, Pinecone-hosted `llama-text-embed-v2` — no embedding key needed). Populate with **`pnpm sync:pinecone`** (idempotent; re-run after inventory/knowledge edits). |
+| **Cloudinary** | `CLOUDINARY_URL` (+ key/secret for the sync script) | Optimized `f_auto,q_auto` CDN delivery for all listing photos. **`pnpm sync:cloudinary`** uploads each *unique* source image once and writes the committed manifest `server/inventory/photos.cloudinary.json`; the runtime is a pure URL builder (`server/images/cloudinary.ts`) — no SDK on the request path. |
+| **Mapbox** | `MAPBOX_TOKEN` (public `pk.`, URL-restrict it) | The **`/map`** inventory explorer (dark-v11, gold price pins, popup report cards, filters — mapbox-gl ships in its own lazy chunk) and server-side Geocoding v6 for buyer ZIPs outside the seeded centroid table, so distance filtering uses real geography nationwide. |
+| **Brave Search** | `BRAVE_SEARCH_API_KEY` | "Live market scan" on Find-My-Car (real Cars.com/AutoTrader/CarGurus/Craigslist listings for your criteria — opt-in click, since the API is metered) and the "From the web" owner-intel card + advisor web context on vehicle detail. Cached 6h server-side, ~1 rps throttled, never fired on page load. |
 
 ## Landing page & brand (v6)
 
@@ -78,7 +90,7 @@ Drop your clips into **`client/public/videos/`** (MP4) and list them in `LANDING
 
 ## Roadmap (not yet wired)
 
-A licensed real-listings API (the provider boundary is ready), live Carfax/CarGurus history behind the premium tier, and email/SMS delivery for alerts (currently in-app only).
+A licensed real-listings API (the provider boundary is ready — Marketcheck/Auto.dev feeds would also bring real per-car dealer photos straight through the Cloudinary sync), NMVTIS vehicle history (e.g. VinAudit) behind the premium tier, real valuations (VinAudit/Marketcheck price APIs), dealer reputation (Google Places/Yelp), free NHTSA complaints + SafetyRatings and EPA fueleconomy.gov enrichment, and email/SMS delivery for alerts (currently in-app only).
 
 ## Project Structure
 

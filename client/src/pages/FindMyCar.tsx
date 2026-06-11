@@ -1,5 +1,6 @@
 import { NavBar } from "@/components/NavBar";
 import { SiteFooter } from "@/components/SiteFooter";
+import { LiveMarketPanel } from "@/components/LiveMarketPanel";
 import { MatchCard } from "@/components/MatchCard";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -652,6 +653,12 @@ export default function FindMyCar() {
                       {result.hiddenAvoidCount} known-trouble car{result.hiddenAvoidCount === 1 ? "" : "s"} hidden by Budget Buyer Mode
                     </span>
                   )}
+                  {result.semanticApplied && (
+                    <span className="inline-flex items-center gap-1 rounded-full border border-primary/30 bg-primary/10 px-2 py-0.5 text-[11px] font-medium text-primary">
+                      <Wand2 className="size-3.5" />
+                      AI semantic ranking applied
+                    </span>
+                  )}
                 </div>
                 <span className="text-xs text-muted-foreground">
                   {result.zipApplied ? "Distances from your ZIP · " : ""}Ranked by your priorities ({tradeoffLabel.toLowerCase()})
@@ -776,6 +783,15 @@ export default function FindMyCar() {
                   </div>
                 </>
               )}
+
+              {/* Real web listings for the same criteria (Brave; opt-in click) */}
+              <LiveMarketPanel
+                key={`${makes[0] ?? ""}|${maxPrice}|${zipValid ? zip : ""}|${condition}`}
+                make={makes[0]}
+                maxPrice={maxPrice}
+                zip={zipValid ? zip : undefined}
+                condition={condition}
+              />
             </>
           )}
         </main>

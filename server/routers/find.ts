@@ -2,15 +2,30 @@ import { z } from "zod";
 import { TRPCError } from "@trpc/server";
 import { protectedProcedure, publicProcedure, router } from "../_core/trpc";
 import { inventoryProvider } from "../inventory/provider";
-import { advisoriesForListing, passesHardFilters, rankInventory } from "../inventory/matching";
+import {
+  advisoriesForListing,
+  passesHardFilters,
+  qualityScoreForListing,
+  rankInventory,
+} from "../inventory/matching";
 import { generateNarratives } from "../inventory/recommend";
 import { listingToDecodedVehicle } from "../inventory/adapt";
-import { distanceFromZip, isKnownZip } from "../inventory/geo";
+import {
+  centroidForZip,
+  distanceFromPoint,
+  jitterForId,
+  resolveBuyerPoint,
+} from "../inventory/geo";
 import { scoreVehicle, letterGrade } from "../scoring";
 import { CONFIG_OPTIONS } from "../inventory/options";
 import { parseSearchIntent } from "../search/intent";
 import { buildChecklist, checklistToText } from "../checklist";
-import { findAdvisories, hasAvoidAdvisory } from "../knowledge/lookup";
+import { findAdvisories, hasAvoidAdvisory, riskLevelFor } from "../knowledge/lookup";
+import { semanticSearchListings, vectorConfigured } from "../vector/pinecone";
+import { blendSemantic } from "../vector/blend";
+import { buildListingText } from "../vector/text";
+import { braveConfigured, braveSearch } from "../websearch/brave";
+import { tagAndRankResults } from "../websearch/marketplaces";
 import type { BuyerCriteria } from "../inventory/types";
 import {
   saveVehicle,
@@ -79,15 +94,24 @@ const criteriaSchema = z.object({
 });
 
 /**
- * Apply buyer ZIP to recompute each listing's distance from the buyer. Falls
- * back to the seeded distance when ZIPs are unknown.
+ * Apply buyer ZIP to recompute each listing's distance from the buyer.
+ * Resolution order: seeded centroid table, then live Mapbox geocoding for
+ * any other US ZIP. Falls back to the seeded distances (zipApplied: false)
+ * only when both miss or no ZIP was given.
  */
-function applyZipDistance(inventory: Listing[], zip: string | undefined): Listing[] {
-  if (!isKnownZip(zip)) return inventory;
-  return inventory.map((l) => {
-    const d = distanceFromZip(zip, l.zip);
-    return d == null ? l : { ...l, distanceMiles: d };
-  });
+async function applyZipDistance(
+  inventory: Listing[],
+  zip: string | undefined,
+): Promise<{ inventory: Listing[]; zipApplied: boolean }> {
+  const point = await resolveBuyerPoint(zip);
+  if (!point) return { inventory, zipApplied: false };
+  return {
+    zipApplied: true,
+    inventory: inventory.map((l) => {
+      const d = distanceFromPoint(point, l.zip);
+      return d == null ? l : { ...l, distanceMiles: d };
+    }),
+  };
 }
 
 /** Human-readable summary used as a default name for a saved search. */
@@ -131,7 +155,7 @@ export const findRouter = router({
     .input(criteriaSchema)
     .mutation(async ({ input }) => {
       const rawInventory = await inventoryProvider.getInventory();
-      const inventory = applyZipDistance(rawInventory, input.zip);
+      const { inventory, zipApplied } = await applyZipDistance(rawInventory, input.zip);
       const criteria: BuyerCriteria = {
         condition: input.condition,
         maxPrice: input.maxPrice,
@@ -160,7 +184,23 @@ export const findRouter = router({
           ? eligibleListings.filter((l) => hasAvoidAdvisory(advisoriesForListing(l))).length
           : 0;
 
-      const matches = rankInventory(inventory, criteria, input.limit ?? 5);
+      // Semantic re-rank (Pinecone): when the buyer typed free text and the
+      // vector index is live, rank a wider deterministic pool, blend in
+      // semantic relevance, then cut the shortlist. Keyless or no-text
+      // searches take the exact pre-existing path.
+      const limit = input.limit ?? 5;
+      const semanticQuery = criteria.searchText?.trim() ?? "";
+      const wantSemantic = semanticQuery.length > 0 && vectorConfigured();
+      let semanticApplied = false;
+      let matches = rankInventory(inventory, criteria, wantSemantic ? Math.max(limit * 3, 15) : limit);
+      if (wantSemantic) {
+        const hits = await semanticSearchListings(semanticQuery, { topK: 40 });
+        if (hits && hits.length > 0) {
+          matches = blendSemantic(matches, hits);
+          semanticApplied = true;
+        }
+      }
+      matches = matches.slice(0, limit);
       const narratives = await generateNarratives(matches, criteria);
 
       // Zero results → advise which criteria to loosen (each suggestion is
@@ -222,8 +262,9 @@ export const findRouter = router({
         scanned: inventory.length,
         eligible: eligibleCount,
         shortlisted: matches.length,
-        zipApplied: isKnownZip(input.zip),
+        zipApplied,
         hiddenAvoidCount,
+        semanticApplied,
         suggestions,
         valuePickAlternatives,
         matches: matches.map((m) => ({
@@ -386,6 +427,47 @@ export const findRouter = router({
       return { count: models.length, models };
     }),
 
+  /**
+   * Every listing with map-ready coordinates for the /map explorer. Lat/lng
+   * is the listing ZIP's centroid plus a small deterministic per-id jitter so
+   * same-ZIP pins don't stack; quality grade and risk ride along for the pin
+   * badges and popups. No geocoding API needed — all seeded ZIPs ship
+   * centroids.
+   */
+  mapListings: publicProcedure.query(async () => {
+    const inventory = await inventoryProvider.getInventory();
+    const items = inventory.flatMap((l) => {
+      const center = centroidForZip(l.zip);
+      if (!center) return [];
+      const quality = qualityScoreForListing(l);
+      const { dLat, dLng } = jitterForId(l.id);
+      return [
+        {
+          id: l.id,
+          vin: l.vin,
+          label: `${l.year} ${l.make} ${l.model}`,
+          trim: l.trim,
+          condition: l.condition,
+          price: l.price,
+          mileage: l.mileage,
+          bodyStyle: l.bodyStyle,
+          fuel: l.fuel,
+          photo: l.photos[0]?.url ?? null,
+          dealerName: l.dealerName,
+          sellerType: l.sellerType,
+          city: l.city,
+          state: l.state,
+          lat: center.lat + dLat,
+          lng: center.lng + dLng,
+          qualityScore: quality.score,
+          qualityGrade: quality.grade,
+          riskLevel: riskLevelFor(advisoriesForListing(l)),
+        },
+      ];
+    });
+    return { count: items.length, items };
+  }),
+
   /** Fetch a single listing by id (for a detail view / deep link). */
   listing: publicProcedure
     .input(z.object({ id: z.string() }))
@@ -412,6 +494,89 @@ export const findRouter = router({
       const vehicle = listingToDecodedVehicle(listing);
       const score = scoreVehicle(vehicle, listing.condition === "New" ? undefined : listing.mileage);
       return { source: "inventory" as const, listing, vehicle, score };
+    }),
+
+  /**
+   * "More like this": semantic nearest neighbors from the Pinecone vector
+   * index when configured, with a deterministic same-body/price-window
+   * fallback so the section renders either way. Accepts a VIN (detail page
+   * deep link) or a listing id. Real user-entered VINs aren't in seeded
+   * inventory — those return an empty list and the UI hides the section.
+   */
+  similar: publicProcedure
+    .input(
+      z
+        .object({ vin: z.string().optional(), listingId: z.string().optional() })
+        .refine((i) => Boolean(i.vin || i.listingId), { message: "Provide a vin or listingId." }),
+    )
+    .query(async ({ input }) => {
+      const subject = input.listingId
+        ? await inventoryProvider.getListingById(input.listingId)
+        : await inventoryProvider.getListingByVin(input.vin!);
+      if (!subject) return { source: "none" as const, items: [] };
+
+      const inventory = await inventoryProvider.getInventory();
+      let picks: Listing[] | null = null;
+      let source: "vector" | "rules" = "rules";
+
+      if (vectorConfigured()) {
+        const hits = await semanticSearchListings(
+          buildListingText(subject, advisoriesForListing(subject)),
+          { topK: 8 },
+        );
+        if (hits && hits.length > 0) {
+          const byId = new Map(inventory.map((l) => [l.id, l]));
+          const fromHits = hits
+            .filter((h) => h.id !== subject.id)
+            .map((h) => byId.get(h.id))
+            .filter((l): l is Listing => Boolean(l))
+            .slice(0, 5);
+          if (fromHits.length > 0) {
+            picks = fromHits;
+            source = "vector";
+          }
+        }
+      }
+
+      if (!picks) {
+        // Graded closeness instead of a hard window so unusual listings (the
+        // only cheap EV hatchback, say) still get sensible neighbors: relative
+        // price distance, with body/fuel mismatches and year gaps priced in.
+        picks = inventory
+          .filter((l) => l.id !== subject.id && l.condition === subject.condition)
+          .map((l) => ({
+            l,
+            closeness:
+              Math.abs(l.price - subject.price) / Math.max(subject.price, 1) +
+              (l.bodyStyle === subject.bodyStyle ? 0 : 0.35) +
+              (l.fuel === subject.fuel ? 0 : 0.15) +
+              Math.min(Math.abs(l.year - subject.year), 8) * 0.03,
+          }))
+          .sort((a, b) => a.closeness - b.closeness)
+          .slice(0, 5)
+          .map((x) => x.l);
+      }
+
+      return {
+        source,
+        items: picks.map((l) => {
+          const quality = qualityScoreForListing(l);
+          return {
+            id: l.id,
+            vin: l.vin,
+            label: `${l.year} ${l.make} ${l.model}${l.trim ? ` ${l.trim}` : ""}`,
+            price: l.price,
+            mileage: l.mileage,
+            condition: l.condition,
+            photo: l.photos[0]?.url ?? null,
+            city: l.city,
+            state: l.state,
+            qualityScore: quality.score,
+            qualityGrade: quality.grade,
+            riskLevel: riskLevelFor(advisoriesForListing(l)),
+          };
+        }),
+      };
     }),
 
   /** Save a single match (by listing id) to the signed-in user's Garage. */
@@ -483,6 +648,45 @@ export const findRouter = router({
       const rows = await getPriceHistory(input.listingId, 60);
       // Ascending by time for charting.
       return rows.map((r) => ({ price: r.price, at: r.recordedAt })).reverse();
+    }),
+
+  /**
+   * Live market scan (Brave Search): one composed real-web query for cars
+   * matching the buyer's intent, with results badged by marketplace. Metered
+   * API — only called from explicit user actions, cached 6h server-side, and
+   * `available:false` lets the client hide the panel entirely when keyless.
+   */
+  liveMarket: publicProcedure
+    .input(
+      z.object({
+        make: z.string().max(40).optional(),
+        model: z.string().max(60).optional(),
+        maxPrice: z.number().int().positive().optional(),
+        city: z.string().max(60).optional(),
+        state: z.string().max(20).optional(),
+        zip: z.string().regex(/^\d{5}$/).optional(),
+        condition: z.enum(["New", "Used", "Any"]).optional(),
+      }),
+    )
+    .query(async ({ input }) => {
+      if (!braveConfigured()) {
+        return { available: false as const, query: null, results: [] };
+      }
+      const subject = [input.make, input.model].filter(Boolean).join(" ") || "cars";
+      const parts = [`${input.condition === "New" ? "new" : "used"} ${subject} for sale`];
+      if (input.maxPrice) parts.push(`under $${input.maxPrice.toLocaleString("en-US")}`);
+      const near = input.city
+        ? `${input.city}${input.state ? `, ${input.state}` : ""}`
+        : input.zip;
+      if (near) parts.push(`near ${near}`);
+      const query = parts.join(" ");
+
+      const results = await braveSearch(query, { count: 10 });
+      return {
+        available: true as const,
+        query,
+        results: results ? tagAndRankResults(results) : [],
+      };
     }),
 
   /** New-car trim configurator: the option/package catalog for the UI. */

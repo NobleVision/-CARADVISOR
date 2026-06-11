@@ -11,6 +11,8 @@
  * API (`distanceFromZip`) stays identical.
  */
 
+import { geocodeZip } from "../geo/mapboxGeocode";
+
 type LatLng = { lat: number; lng: number };
 
 // Approximate centroids (good enough for a metro-scale distance estimate).
@@ -70,4 +72,46 @@ export function distanceFromZip(buyerZip: string | undefined, listingZip: string
   if (!(listingZip in ZIP_CENTROIDS)) return null;
   const d = haversineMiles(ZIP_CENTROIDS[buyerZip], ZIP_CENTROIDS[listingZip]);
   return Math.max(1, Math.round(d));
+}
+
+/** Centroid for a seeded ZIP (all listing ZIPs ship one); null otherwise. */
+export function centroidForZip(zip: string | undefined): LatLng | null {
+  if (!zip || !/^\d{5}$/.test(zip)) return null;
+  return ZIP_CENTROIDS[zip] ?? null;
+}
+
+/** Distance in miles from an arbitrary point to a listing's ZIP centroid. */
+export function distanceFromPoint(point: LatLng, listingZip: string): number | null {
+  const target = ZIP_CENTROIDS[listingZip];
+  if (!target) return null;
+  return Math.max(1, Math.round(haversineMiles(point, target)));
+}
+
+/**
+ * Resolve the buyer's location: the seeded centroid table first (free,
+ * instant), then live Mapbox geocoding for any other US ZIP — the real-data
+ * replacement this file's header promised. Null when both miss (caller keeps
+ * the seeded-distance fallback).
+ */
+export async function resolveBuyerPoint(zip: string | undefined): Promise<LatLng | null> {
+  const local = centroidForZip(zip);
+  if (local) return local;
+  if (!zip || !/^\d{5}$/.test(zip)) return null;
+  return geocodeZip(zip);
+}
+
+/**
+ * Deterministic per-listing map jitter (~±0.008° ≈ ±0.55 mi) so pins sharing
+ * a ZIP centroid don't stack. FNV-1a over the id → stable across requests.
+ */
+export function jitterForId(id: string): { dLat: number; dLng: number } {
+  let h = 2166136261;
+  for (let i = 0; i < id.length; i++) {
+    h ^= id.charCodeAt(i);
+    h = Math.imul(h, 16777619);
+  }
+  const a = ((h >>> 0) % 1000) / 1000 - 0.5;
+  const h2 = Math.imul((h ^ 0x9e3779b9) >>> 0, 16777619);
+  const b = ((h2 >>> 0) % 1000) / 1000 - 0.5;
+  return { dLat: a * 0.016, dLng: b * 0.016 };
 }

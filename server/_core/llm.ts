@@ -212,12 +212,19 @@ const normalizeToolChoice = (
   return toolChoice;
 };
 
+// Bases that already pin an API version (e.g. Z.AI's `/api/paas/v4`) get the
+// resource path appended directly; bare hosts keep the OpenAI-style `/v1`.
+const joinApiPath = (base: string, resource: string) => {
+  const root = base.replace(/\/$/, "");
+  return /\/v\d+$/.test(root) ? `${root}/${resource}` : `${root}/v1/${resource}`;
+};
+
 const resolveApiUrl = () => {
   const base = ENV.llmApiUrl?.trim();
   if (!base) {
     throw new Error("LLM is not configured (set LLM_API_URL)");
   }
-  return `${base.replace(/\/$/, "")}/v1/chat/completions`;
+  return joinApiPath(base, "chat/completions");
 };
 
 const assertApiKey = () => {
@@ -269,6 +276,25 @@ const normalizeResponseFormat = ({
       ...(typeof schema.strict === "boolean" ? { strict: schema.strict } : {}),
     },
   };
+};
+
+// Some OpenAI-compatible providers (notably Z.AI's GLM endpoint) accept
+// response_format `json_object` but reject `json_schema`. When
+// ENV.llmJsonSchemaSupported is false we downgrade: the schema moves into a
+// system instruction and the request asks for plain JSON mode instead.
+const schemaInstructionMessage = (schema: JsonSchema) => ({
+  role: "system" as const,
+  content:
+    `Respond with ONLY a single JSON object — no markdown fences, no prose. ` +
+    `The JSON must match this JSON Schema ("${schema.name}"):\n` +
+    JSON.stringify(schema.schema),
+});
+
+// GLM models occasionally wrap JSON-mode replies in a markdown fence; strip
+// it only when the entire reply is one fenced block.
+const stripJsonFences = (text: string): string => {
+  const match = text.trim().match(/^```(?:json)?\s*([\s\S]*?)\s*```$/i);
+  return match ? match[1] : text;
 };
 
 const RETRY_MAX_RETRIES = 4;
@@ -401,8 +427,20 @@ export async function invokeLLM(params: InvokeParams): Promise<InvokeResult> {
     output_schema,
   });
 
+  let schemaDowngraded = false;
   if (normalizedResponseFormat) {
-    payload.response_format = normalizedResponseFormat;
+    if (
+      normalizedResponseFormat.type === "json_schema" &&
+      !ENV.llmJsonSchemaSupported
+    ) {
+      (payload.messages as unknown[]).push(
+        schemaInstructionMessage(normalizedResponseFormat.json_schema)
+      );
+      payload.response_format = { type: "json_object" };
+      schemaDowngraded = true;
+    } else {
+      payload.response_format = normalizedResponseFormat;
+    }
   }
 
   const response = await fetchWithBackoff(resolveApiUrl(), {
@@ -421,7 +459,18 @@ export async function invokeLLM(params: InvokeParams): Promise<InvokeResult> {
     );
   }
 
-  return (await response.json()) as InvokeResult;
+  const result = (await response.json()) as InvokeResult;
+
+  if (schemaDowngraded && Array.isArray(result?.choices)) {
+    for (const choice of result.choices) {
+      const content = choice?.message?.content;
+      if (typeof content === "string") {
+        choice.message.content = stripJsonFences(content);
+      }
+    }
+  }
+
+  return result;
 }
 
 export type ModelInfo = {
@@ -443,7 +492,7 @@ export async function listLLMModels(): Promise<ModelsResponse> {
   if (!base) {
     throw new Error("LLM is not configured (set LLM_API_URL)");
   }
-  const url = `${base.replace(/\/$/, "")}/v1/models`;
+  const url = joinApiPath(base, "models");
 
   const response = await fetchWithBackoff(url, {
     headers: { authorization: `Bearer ${ENV.llmApiKey}` },
