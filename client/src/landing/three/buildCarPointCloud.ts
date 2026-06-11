@@ -1,4 +1,4 @@
-import { CAR_PROFILE, WHEELS, halfWidth, pointInProfile } from "./carProfile";
+import { BODY, CAR_PROFILE, WHEELS, bodyHalfWidth, halfWidth, pointInProfile } from "./carProfile";
 
 export type CarPointCloud = {
   /** Assembled target positions (xyz triplets). */
@@ -19,17 +19,19 @@ function insideWheelArch(x: number, y: number): boolean {
 }
 
 /**
- * Builds the particle car: ~50% volumetric body fill, ~28% silhouette shell
- * along the profile edges (what makes it READ as a car), ~22% wheel rings.
+ * Builds the particle car: ~47% volumetric body fill, ~28% silhouette shell
+ * along the profile edges (what makes it READ as a car), ~3% beltline accent
+ * (the shoulder crease separating greenhouse from body), ~22% wheel rings.
  */
 export function buildCarPointCloud(count = 14000): CarPointCloud {
   const positions = new Float32Array(count * 3);
   const scatter = new Float32Array(count * 3);
   const rand = new Float32Array(count);
 
-  const nBody = Math.floor(count * 0.5);
+  const nBody = Math.floor(count * 0.47);
   const nShell = Math.floor(count * 0.28);
-  const nWheels = count - nBody - nShell;
+  const nBelt = Math.floor(count * 0.03);
+  const nWheels = count - nBody - nShell - nBelt;
 
   let i = 0;
   const put = (x: number, y: number, z: number) => {
@@ -47,15 +49,16 @@ export function buildCarPointCloud(count = 14000): CarPointCloud {
     i++;
   };
 
-  // ── Volumetric body fill (rejection sampling, arches excluded) ──
+  // ── Volumetric body fill (rejection sampling; wells excluded by the
+  //    polygon's arch arcs, with the disc test as a cheap early-out) ──
   let placed = 0;
   let guard = 0;
   while (placed < nBody && guard < nBody * 40) {
     guard++;
-    const x = (Math.random() * 2 - 1) * 2.18;
-    const y = Math.random() * 1.1;
-    if (!pointInProfile(x, y) || insideWheelArch(x, y)) continue;
-    const z = (Math.random() * 2 - 1) * halfWidth(x);
+    const x = (Math.random() * 2 - 1) * 2.21;
+    const y = 0.14 + Math.random() * 1.17;
+    if (insideWheelArch(x, y) || !pointInProfile(x, y)) continue;
+    const z = (Math.random() * 2 - 1) * halfWidth(x, y);
     put(x, y, z);
     placed++;
   }
@@ -85,20 +88,32 @@ export function buildCarPointCloud(count = 14000): CarPointCloud {
     const x = edge.ax + (edge.bx - edge.ax) * t + (Math.random() * 2 - 1) * 0.02;
     const y = edge.ay + (edge.by - edge.ay) * t + (Math.random() * 2 - 1) * 0.02;
     const side = Math.random() < 0.5 ? -1 : 1;
-    const z = side * halfWidth(x) * (0.86 + Math.random() * 0.14);
+    const z = side * halfWidth(x, y) * (0.86 + Math.random() * 0.14);
     put(x, y, z);
   }
 
-  // ── Wheels: a rim band + sparse hub ring per wheel per side ──
+  // ── Beltline accent: the shoulder crease at the greenhouse step ──
+  for (let b = 0; b < nBelt; b++) {
+    const x = BODY.cabinRearX - 0.35 + Math.random() * (BODY.cabinFrontX - BODY.cabinRearX + 0.35);
+    const y = BODY.beltY + (Math.random() * 2 - 1) * 0.015;
+    const side = Math.random() < 0.5 ? -1 : 1;
+    const z = side * bodyHalfWidth(x) * (0.97 + Math.random() * 0.03);
+    put(x, y, z);
+  }
+
+  // ── Wheels: tire band + sparse hub ring per wheel per side, tucked just
+  //    inside the fender at BODY width (never the greenhouse tier) ──
   for (let w = 0; w < nWheels; w++) {
     const cx = WHEELS.centers[w % 2];
     const side = w % 4 < 2 ? 1 : -1;
     const theta = Math.random() * Math.PI * 2;
     const isHub = Math.random() < 0.16;
-    const radius = isHub ? 0.05 + Math.random() * 0.07 : 0.25 + Math.random() * 0.09;
+    const radius = isHub
+      ? WHEELS.radius * (0.14 + Math.random() * 0.24)
+      : WHEELS.radius * (0.72 + Math.random() * 0.28);
     const x = cx + radius * Math.cos(theta);
     const y = WHEELS.centerY + radius * Math.sin(theta);
-    const z = side * (halfWidth(cx) * (0.92 + Math.random() * 0.1));
+    const z = side * (bodyHalfWidth(cx) - 0.02 - Math.random() * 0.03);
     put(x, y, z);
   }
 
@@ -108,7 +123,7 @@ export function buildCarPointCloud(count = 14000): CarPointCloud {
     const t = Math.random();
     const x = edge.ax + (edge.bx - edge.ax) * t;
     const y = edge.ay + (edge.by - edge.ay) * t;
-    put(x, y, (Math.random() < 0.5 ? -1 : 1) * halfWidth(x));
+    put(x, y, (Math.random() < 0.5 ? -1 : 1) * halfWidth(x, y));
   }
 
   return { positions, scatter, rand };

@@ -90,7 +90,7 @@ const ParticleCarScene = forwardRef<ParticleCarSceneHandle, ParticleCarSceneProp
       const points = new THREE.Points(geometry, material);
       const group = new THREE.Group();
       group.add(points);
-      group.position.y = -0.5; // car spans y 0..1.08 — optically center it
+      group.position.y = -0.65; // car spans y 0..1.31 — optically center it
       const baseRotX = 0.07;
       const baseRotY = -0.55; // three-quarter view
       group.rotation.set(baseRotX, baseRotY, 0);

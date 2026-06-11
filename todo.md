@@ -214,3 +214,10 @@ Built from the June 9, 2026 strategy meeting + the real-world car-search researc
 - [x] `pnpm check` clean · `pnpm test` 118 passing · `pnpm build` clean; bundle audit: main chunk unchanged, gsap/three confined to lazy landing chunks (guardrail grep)
 - [x] Scripted Chrome DevTools QA (`scripts/qa-browser.mjs`, puppeteer-core + system Chrome): 10 routes × 4 breakpoints (375/768/1024/1440) — zero console errors, zero horizontal overflow (top + mid-scroll), 57 FPS scroll sample under software GL, mid-pin navigation leaves no ghost pins + ScrollToTop verified, reduced-motion emulation shows static fallback with finished content, demo login lands on /lookup, all brand assets 200
 - [x] Caught & fixed by QA: shader precision mismatch (uTime highp/mediump), the /new-cars overflow
+
+### v6.1 — Particle car: real sedan proportions
+- [x] Rebuilt the hero point-cloud geometry from a real midsize sedan's published dimensions (10th-gen Honda Accord ratios): H/L 0.297, W/L 0.381, WB/L 0.580, wheel ⌀/L 0.135, asymmetric overhangs; wheel-arch arcs traced into the profile; two-tier width model (body + inset greenhouse with tumblehome and shoulder step at the beltline); 3% beltline-accent particles
+- [x] Sourcing investigated first: no CC0 + realistic + non-interactively-downloadable sedan GLB exists (three.js ferrari upstream disabled/NC-suspected; Poly Haven has no car; poly.pizza/Khronos stylized; Sketchfab login-gated) → dimension-accurate procedural wins (zero asset, zero perf delta, no license surface)
+- [x] New `scripts/preview-car-points.mts` verification loop: 6 proportion gates (all pass) + side/front/3-4 orthographic PNG renders, checked before browser
+- [x] Verified: pnpm check/test (118)/build clean; browser QA suite all-pass, 57 FPS unchanged, zero console errors, zero mobile overflow
+- [ ] Follow-up: static fallback art `/img/hero-car.svg` (reduced-motion/no-WebGL path) still shows the old stylized art — could be retraced to match
