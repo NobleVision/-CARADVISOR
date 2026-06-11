@@ -8,13 +8,15 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { LogOut, Menu, Sparkles } from "lucide-react";
+import { Compass, LogOut, Menu, Sparkles } from "lucide-react";
 import { Link, useLocation } from "wouter";
 import { cn } from "@/lib/utils";
 import { useState } from "react";
 import { SignInDialog } from "./SignInDialog";
 import { NotificationsBell } from "./NotificationsBell";
 import { Logo } from "./Logo";
+import { HelpMenu } from "@/tour/HelpMenu";
+import { useTour } from "@/tour/TourProvider";
 
 const links = [
   { href: "/lookup", label: "Lookup" },
@@ -29,6 +31,7 @@ const links = [
 
 export function NavBar() {
   const { user, isAuthenticated, logout, refresh } = useAuth();
+  const { startTour } = useTour();
   const [location] = useLocation();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [signInOpen, setSignInOpen] = useState(false);
@@ -70,6 +73,7 @@ export function NavBar() {
         </nav>
 
         <div className="flex items-center gap-2">
+          <HelpMenu />
           <NotificationsBell />
           {isAuthenticated ? (
             <DropdownMenu>
@@ -84,6 +88,9 @@ export function NavBar() {
               <DropdownMenuContent align="end" className="w-48">
                 <div className="px-2 py-1.5 text-xs text-muted-foreground">{user?.email ?? "Signed in"}</div>
                 <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={() => startTour("full")}>
+                  <Compass className="mr-2 size-4" /> Take the tour
+                </DropdownMenuItem>
                 <DropdownMenuItem onClick={() => logout()}>
                   <LogOut className="mr-2 size-4" /> Sign out
                 </DropdownMenuItem>

@@ -18,6 +18,17 @@ export const notificationTypeEnum = pgEnum("notification_type", [
 ]);
 
 /**
+ * Onboarding-tour state persisted per account (anonymous visitors use
+ * localStorage instead). jsonb so future onboarding flags can ride along.
+ */
+export type OnboardingState = {
+  status: "completed" | "dismissed";
+  variant: "quick" | "full";
+  /** ISO timestamp of when the state was recorded. */
+  at: string;
+};
+
+/**
  * Core user table backing auth flow.
  */
 export const users = pgTable("users", {
@@ -27,6 +38,8 @@ export const users = pgTable("users", {
   email: varchar("email", { length: 320 }),
   loginMethod: varchar("loginMethod", { length: 64 }),
   role: userRoleEnum("role").default("user").notNull(),
+  /** Guided-tour completion/dismissal; null = never prompted-and-resolved. */
+  onboarding: jsonb("onboarding").$type<OnboardingState | null>(),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt")
     .defaultNow()

@@ -7,6 +7,8 @@ import { ContactSellerDialog } from "@/components/ContactSellerDialog";
 import { FromTheWeb } from "@/components/FromTheWeb";
 import { PublicRecords } from "@/components/PublicRecords";
 import { SimilarVehicles } from "@/components/SimilarVehicles";
+import { TOUR_ADVISOR_TRANSCRIPT } from "@/tour/fixtures";
+import { useTour } from "@/tour/TourProvider";
 import { Button } from "@/components/ui/button";
 import { Spinner } from "@/components/ui/spinner";
 import { Badge } from "@/components/ui/badge";
@@ -43,6 +45,7 @@ export default function VehicleDetail() {
   }, []);
 
   const { isAuthenticated } = useAuth();
+  const { isTourActive } = useTour();
   const [result, setResult] = useState<DecodeResult | null>(null);
   const [listing, setListing] = useState<ListingContext | null>(null);
   const [saved, setSaved] = useState(false);
@@ -223,10 +226,16 @@ export default function VehicleDetail() {
               <SimilarVehicles vin={vin} />
             </div>
 
-            {showAdvisor && (
+            {(showAdvisor || isTourActive) && (
               <div ref={advisorRef} className="mt-10 scroll-mt-20">
                 <h3 className="mb-4 font-serif text-2xl font-semibold">AI Advisor</h3>
-                <AdvisorChat result={result} />
+                {/* During the guided tour: scripted transcript, sending disabled. */}
+                <AdvisorChat
+                  key={isTourActive ? "tour" : "live"}
+                  result={result}
+                  initialMessages={isTourActive ? TOUR_ADVISOR_TRANSCRIPT : undefined}
+                  readOnly={isTourActive}
+                />
               </div>
             )}
           </>

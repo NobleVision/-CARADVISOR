@@ -4785,6 +4785,8 @@ var users = pgTable("users", {
   email: varchar("email", { length: 320 }),
   loginMethod: varchar("loginMethod", { length: 64 }),
   role: userRoleEnum("role").default("user").notNull(),
+  /** Guided-tour completion/dismissal; null = never prompted-and-resolved. */
+  onboarding: jsonb("onboarding").$type(),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().notNull().$onUpdate(() => /* @__PURE__ */ new Date()),
   lastSignedIn: timestamp("lastSignedIn").defaultNow().notNull()

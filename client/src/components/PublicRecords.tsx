@@ -8,6 +8,7 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion";
 import { trpc } from "@/lib/trpc";
+import { useTour } from "@/tour/TourProvider";
 import { FileSearch, ShieldCheck, WifiOff } from "lucide-react";
 
 type Props = {
@@ -20,9 +21,12 @@ type Props = {
  * Free public-records enrichment: open recall campaigns from NHTSA's public
  * database, queried by make/model/year (works for demo listings and real VINs
  * alike). The first live slice of the "micro layer" — no key, no cost.
+ * Hidden during the guided tour, which must make no live external calls.
  */
 export function PublicRecords({ make, model, modelYear }: Props) {
-  const enabled = Boolean(make && model && /^\d{4}$/.test(String(modelYear)));
+  const { isTourActive } = useTour();
+  const enabled =
+    Boolean(make && model && /^\d{4}$/.test(String(modelYear))) && !isTourActive;
   const query = trpc.vehicle.recalls.useQuery(
     { make, model, modelYear: String(modelYear) },
     { enabled, retry: false, refetchOnWindowFocus: false },

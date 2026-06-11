@@ -1,7 +1,7 @@
 import { eq } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/neon-http";
 import { neon } from "@neondatabase/serverless";
-import { InsertUser, users } from "../drizzle/schema";
+import { InsertUser, OnboardingState, users } from "../drizzle/schema";
 import { ENV } from './_core/env';
 
 let _db: ReturnType<typeof drizzle> | null = null;
@@ -202,6 +202,21 @@ export async function updateSavedVehicleMeta(
     .update(savedVehicles)
     .set(meta)
     .where(and(eq(savedVehicles.userId, userId), eq(savedVehicles.id, id)));
+}
+
+/**
+ * Persist the guided-tour completion/dismissal state for an account.
+ * Returns false when the database is unavailable so the caller can tell the
+ * client to keep relying on localStorage.
+ */
+export async function updateUserOnboarding(
+  userId: number,
+  state: OnboardingState,
+): Promise<boolean> {
+  const db = await getDb();
+  if (!db) return false;
+  await db.update(users).set({ onboarding: state }).where(eq(users.id, userId));
+  return true;
 }
 
 // ----- Price-drop tracker, saved searches & notifications -----

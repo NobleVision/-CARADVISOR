@@ -31,21 +31,23 @@ export default function Saved() {
   return (
     <div className="min-h-screen">
       <NavBar />
-      <PageHero
-        eyebrow="My Garage"
-        icon={<Bookmark className="size-4" />}
-        title="Your shortlist, on watch."
-        description="Vehicles you've saved to track and compare — price drops surface here automatically."
-        actions={
-          isAuthenticated && (savedQuery.data?.length ?? 0) >= 2 ? (
-            <Link href="/compare">
-              <Button variant="outline" className="gap-2 bg-card">
-                <GitCompare className="size-4" /> Compare saved
-              </Button>
-            </Link>
-          ) : undefined
-        }
-      />
+      <div data-tour="garage">
+        <PageHero
+          eyebrow="My Garage"
+          icon={<Bookmark className="size-4" />}
+          title="Your shortlist, on watch."
+          description="Vehicles you've saved to track and compare — price drops surface here automatically."
+          actions={
+            isAuthenticated && (savedQuery.data?.length ?? 0) >= 2 ? (
+              <Link href="/compare">
+                <Button variant="outline" className="gap-2 bg-card">
+                  <GitCompare className="size-4" /> Compare saved
+                </Button>
+              </Link>
+            ) : undefined
+          }
+        />
+      </div>
       <div className="container py-10">
 
         {isAuthenticated && <SavedSearches />}

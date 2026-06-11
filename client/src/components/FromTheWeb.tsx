@@ -1,6 +1,7 @@
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { trpc } from "@/lib/trpc";
+import { useTour } from "@/tour/TourProvider";
 import { ExternalLink, Globe } from "lucide-react";
 
 /**
@@ -18,7 +19,9 @@ export function FromTheWeb({
   modelYear: string;
 }) {
   const config = trpc.config.public.useQuery(undefined, { staleTime: Infinity });
-  const enabled = Boolean(config.data?.services.websearch && make && model && modelYear);
+  const { isTourActive } = useTour(); // tour = sample data only, no Brave calls
+  const enabled =
+    Boolean(config.data?.services.websearch && make && model && modelYear) && !isTourActive;
   const intel = trpc.vehicle.webIntel.useQuery(
     { make, model, modelYear },
     { enabled, retry: false, staleTime: Infinity },

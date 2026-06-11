@@ -167,6 +167,89 @@ try {
     note(status === 200, `${asset} → ${status}`);
   }
 
+  // ── Guided tour: prompt → quick tour → completion → no re-prompt ──
+  const tourPage = await browser.newPage();
+  await tourPage.setViewport({ width: 1440, height: 900 });
+  const tourErrors = [];
+  tourPage.on("pageerror", (e) => tourErrors.push(String(e).slice(0, 200)));
+  // Fresh visitor: clear tour state + session.
+  await tourPage.goto(BASE + "/", { waitUntil: "networkidle2", timeout: 45000 });
+  await tourPage.evaluate(() => {
+    localStorage.removeItem("gg-tour");
+    document.cookie = "app_session_id=; Max-Age=0; path=/";
+  });
+  await tourPage.reload({ waitUntil: "networkidle2" });
+
+  const promptSel = "[data-tour-prompt]";
+  const prompt = await tourPage.waitForSelector(promptSel, { timeout: 8000 }).catch(() => null);
+  note(Boolean(prompt), "tour prompt slides in for a fresh visitor on /");
+
+  if (prompt) {
+    await tourPage.screenshot({ path: `${SHOTS}/tour-prompt.png` });
+    // Start the quick tour from the prompt's first button.
+    await tourPage.evaluate(() => {
+      const card = document.querySelector("[data-tour-prompt]");
+      card?.querySelector("button:not([aria-label])")?.click();
+    });
+    const popover = await tourPage
+      .waitForSelector(".driver-popover.gg-tour-popover", { timeout: 10000 })
+      .catch(() => null);
+    note(Boolean(popover), "quick tour starts: themed driver popover visible");
+
+    if (popover) {
+      const first = await tourPage.evaluate(() => ({
+        progress: document.querySelector(".driver-popover-progress-text")?.textContent ?? "",
+        title: document.querySelector(".driver-popover-title")?.textContent ?? "",
+        z: getComputedStyle(document.querySelector(".driver-popover")).zIndex,
+        path: location.pathname,
+      }));
+      note(first.progress.trim() === "1 of 6", `progress indicator reads "1 of 6" (got "${first.progress.trim()}")`);
+      note(first.path === "/lookup", `first step navigated to /lookup (got ${first.path})`);
+      note(Number(first.z) > 50, `tour overlay stacks above the nav (z=${first.z})`);
+      await tourPage.screenshot({ path: `${SHOTS}/tour-step1.png` });
+
+      // Drive through all 6 steps. driver re-creates the popover DOM on each
+      // transition, so a click can land between renders — retry until the
+      // progress text changes (or the tour closes) instead of counting clicks.
+      let completed = false;
+      let lastProgress = first.progress.trim();
+      for (let attempt = 0; attempt < 16; attempt++) {
+        await tourPage
+          .evaluate(() => document.querySelector(".driver-popover-next-btn")?.click())
+          .catch(() => {});
+        await new Promise((r) => setTimeout(r, 1800));
+        const stillOpen = await tourPage.$(".driver-popover");
+        if (!stillOpen) {
+          completed = true;
+          break;
+        }
+        const progress = await tourPage.evaluate(
+          () => document.querySelector(".driver-popover-progress-text")?.textContent?.trim() ?? "",
+        );
+        if (progress === "3 of 6" && progress !== lastProgress) {
+          await tourPage.screenshot({ path: `${SHOTS}/tour-mid.png` });
+        }
+        lastProgress = progress;
+      }
+      note(completed, "quick tour drives through to completion");
+
+      const stored = await tourPage.evaluate(() => localStorage.getItem("gg-tour"));
+      let storedOk = false;
+      try {
+        const parsed = JSON.parse(stored ?? "null");
+        storedOk = parsed?.status === "completed" && parsed?.variant === "quick";
+      } catch { /* leave false */ }
+      note(storedOk, `completion recorded in localStorage (${(stored ?? "null").slice(0, 60)})`);
+
+      await tourPage.goto(BASE + "/", { waitUntil: "networkidle2" });
+      await new Promise((r) => setTimeout(r, 2600));
+      const promptAgain = await tourPage.$(promptSel);
+      note(!promptAgain, "no re-prompt after completing the tour");
+    }
+  }
+  note(tourErrors.length === 0, `tour run free of page errors${tourErrors.length ? " — " + tourErrors[0] : ""}`);
+  await tourPage.close();
+
   console.log("\n────────────────────────────");
   if (failures.length) {
     console.log(`FAILURES (${failures.length}):`);

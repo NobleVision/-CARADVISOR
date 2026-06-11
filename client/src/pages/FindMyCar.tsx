@@ -47,9 +47,11 @@ import {
   Wand2,
   X,
 } from "lucide-react";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Link, useLocation } from "wouter";
 import { toast } from "sonner";
+import { TOUR_SEARCH_RESULT } from "@/tour/fixtures";
+import { useTour } from "@/tour/TourProvider";
 
 const BODY_HINTS: Record<BodyStyle, string> = {
   Sedan: "Comfort & efficiency",
@@ -88,6 +90,18 @@ export default function FindMyCar() {
 
   const [result, setResult] = useState<SearchResult | null>(null);
   const [savedIds, setSavedIds] = useState<Set<string>>(new Set());
+
+  // Guided tour: show the sample shortlist (a live search would call the LLM
+  // for narratives). Cleared when the tour ends, unless the user searched.
+  const { isTourActive } = useTour();
+  useEffect(() => {
+    if (isTourActive) {
+      setResult(TOUR_SEARCH_RESULT);
+      setSavedIds(new Set());
+    } else {
+      setResult((prev) => (prev === TOUR_SEARCH_RESULT ? null : prev));
+    }
+  }, [isTourActive]);
 
   const facets = trpc.find.facets.useQuery();
   const search = trpc.find.search.useMutation({
@@ -290,10 +304,10 @@ export default function FindMyCar() {
       <div className="container grid gap-8 py-8 lg:grid-cols-[380px_1fr]">
         {/* Criteria panel */}
         <aside className="lg:sticky lg:top-20 lg:self-start">
-          <Card className="border-border/60 bg-card/60 backdrop-blur">
+          <Card data-tour="criteria" className="border-border/60 bg-card/60 backdrop-blur">
             <CardContent className="space-y-6 p-5">
               {/* Hybrid natural-language search */}
-              <div>
+              <div data-tour="nl-search">
                 <Label className="mb-2 flex items-center gap-1.5 text-sm">
                   <Wand2 className="size-4 text-primary" /> Describe what you need
                   <span className="text-xs font-normal text-muted-foreground">(optional)</span>
@@ -387,7 +401,7 @@ export default function FindMyCar() {
 
               {/* Budget Buyer Mode — productizes the budget golden rules */}
               {!isNew && (
-                <div className="rounded-lg border border-border/60 bg-secondary/30 p-3">
+                <div data-tour="budget-mode" className="rounded-lg border border-border/60 bg-secondary/30 p-3">
                   <div className="flex items-center justify-between gap-3">
                     <Label htmlFor="budget-mode" className="flex items-center gap-1.5 text-sm">
                       <PiggyBank className="size-4 text-primary" /> Budget Buyer Mode
@@ -611,7 +625,7 @@ export default function FindMyCar() {
         </aside>
 
         {/* Results */}
-        <main className="min-w-0 space-y-4">
+        <main data-tour="results" className="min-w-0 space-y-4">
           {!result && !search.isPending && (
             <Card className="border-dashed border-border/60 bg-card/30">
               <CardContent className="flex flex-col items-center justify-center gap-3 py-16 text-center">

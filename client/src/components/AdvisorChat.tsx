@@ -5,11 +5,17 @@ import { useState } from "react";
 import { toast } from "sonner";
 import { Sparkles } from "lucide-react";
 
-type Props = { result: DecodeResult };
+type Props = {
+  result: DecodeResult;
+  /** Pre-seeded transcript (guided tour) — rendered without any network call. */
+  initialMessages?: Message[];
+  /** Disables sending; used by the tour so the preview can't hit the LLM. */
+  readOnly?: boolean;
+};
 
-export function AdvisorChat({ result }: Props) {
+export function AdvisorChat({ result, initialMessages, readOnly = false }: Props) {
   const { vehicle, score, mileage } = result;
-  const [messages, setMessages] = useState<Message[]>([]);
+  const [messages, setMessages] = useState<Message[]>(initialMessages ?? []);
 
   const advisor = trpc.vehicle.advisor.useMutation({
     onSuccess: (data) => {
@@ -22,6 +28,7 @@ export function AdvisorChat({ result }: Props) {
   });
 
   const handleSend = (content: string) => {
+    if (readOnly) return;
     const history = messages
       .filter((m) => m.role !== "system")
       .map((m) => ({ role: m.role as "user" | "assistant", content: m.content }));
@@ -36,7 +43,7 @@ export function AdvisorChat({ result }: Props) {
   };
 
   return (
-    <div className="space-y-3">
+    <div className="space-y-3" data-tour="advisor-chat">
       <div className="flex items-center gap-2 text-sm text-muted-foreground">
         <Sparkles className="size-4 text-primary" />
         <span>
@@ -49,14 +56,22 @@ export function AdvisorChat({ result }: Props) {
         onSendMessage={handleSend}
         isLoading={advisor.isPending}
         height="560px"
-        placeholder="Ask about reliability, what to inspect, the score, fair price range…"
+        placeholder={
+          readOnly
+            ? "Tour preview — finish the tour to chat live"
+            : "Ask about reliability, what to inspect, the score, fair price range…"
+        }
         emptyStateMessage="Ask the GOGETTER advisor anything about this vehicle"
-        suggestedPrompts={[
-          "Why did this car get this score?",
-          "What should I inspect before buying?",
-          "Is this a reliable vehicle long-term?",
-          "What questions should I ask the seller?",
-        ]}
+        suggestedPrompts={
+          readOnly
+            ? []
+            : [
+                "Why did this car get this score?",
+                "What should I inspect before buying?",
+                "Is this a reliable vehicle long-term?",
+                "What questions should I ask the seller?",
+              ]
+        }
       />
     </div>
   );

@@ -74,7 +74,7 @@ export function VehicleResult({ result, onAskAdvisor, onSave, isSaved, isSaving,
 
         {/* Score */}
         <div className="space-y-6">
-          <Card>
+          <Card data-tour="score-card">
             <CardHeader className="border-b border-border/60">
               <CardTitle className="text-base font-medium">GOGETTER Score</CardTitle>
             </CardHeader>
@@ -98,7 +98,9 @@ export function VehicleResult({ result, onAskAdvisor, onSave, isSaved, isSaving,
       </div>
 
       {/* Curated model-year knowledge (GOGETTER Reliability Index) */}
-      <AdvisoryCallout advisories={score.advisories} riskLevel={score.riskLevel} />
+      <div data-tour="advisory">
+        <AdvisoryCallout advisories={score.advisories} riskLevel={score.riskLevel} />
+      </div>
 
       {/* Insights + Safety */}
       <div className="grid gap-6 lg:grid-cols-2">

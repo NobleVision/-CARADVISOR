@@ -257,3 +257,14 @@ Built from the June 9, 2026 strategy meeting + the real-world car-search researc
 - [x] `scripts/qa-browser.mjs` (now incl. /map): 11 routes × 4 breakpoints all-pass — zero console errors, zero overflow, 50 FPS landing sample; map page screenshots (desktop/popup/mobile) in qa-shots/
 - [ ] Follow-up: Z.AI account has no paid balance — recharge + set `LLM_MODEL=glm-4.7` (or `glm-5.1`) for higher-quality advisor prose
 - [ ] Follow-up: real listings feed (Marketcheck/Auto.dev) would flow real dealer photos through the same Cloudinary sync + Pinecone index unchanged
+
+## v8 — Guided onboarding tour + env template audit
+
+- [x] driver.js v1.4 engine (`client/src/tour/`): TourProvider (lazy-loads driver.js on first start; cross-route steps via navigate + waitForElement; ESC/✕ records a permanent dismissal), midnight/gold popover theme, progress text, reduced-motion aware
+- [x] Two modes: Quick (6 steps: VIN form → score → Reliability Index → scripted advisor → "?" menu → finish) and Full (14 steps: + checklist w/ the 3 dealer questions, NL search, criteria, Budget Buyer Mode, fixture shortlist w/ the RUN trap, Compare deep-link, Garage, History)
+- [x] Sample data only: seeded-VIN detail pages (reportByVin = local), TOUR_SEARCH_RESULT fixture (typed off the real client mirrors — drift breaks pnpm check), scripted advisor transcript (AdvisorChat gained additive initialMessages/readOnly props); PublicRecords/FromTheWeb/SimilarVehicles queries gated off during the tour → zero NHTSA/LLM/Pinecone/Brave calls
+- [x] Entry points: corner slide-in TourPrompt on / and /lookup (1.5s delay, only when never completed/dismissed; bottom-sheet on mobile), "?" HelpMenu in the NavBar, "Take the tour" in the user dropdown
+- [x] Auto demo login: anonymous Full-tour users are signed into admin/admin at the Garage stop (beforeEnter hook, non-fatal on failure)
+- [x] Tracking: localStorage `gg-tour` for visitors; `users.onboarding` jsonb (migration applied via db:push) + auth.setOnboarding mutation for accounts; two-way login reconciliation; the SHARED demo account is exempt from server persistence (server-enforced) so demo visitors don't poison each other
+- [x] .env.local.example: audited (all 17 live vars documented) + commented FUTURE/PLANNED section (Marketcheck/Auto.dev, VinAudit, Google Places/Yelp, Resend/Twilio, production auth, Sentry)
+- [x] Tests: 184 passing (5 new auth.setOnboarding router tests: anonymous rejected, persists shape, DB-null persisted:false, demo-account no-op, invalid status)

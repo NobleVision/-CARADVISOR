@@ -5,6 +5,7 @@ import { Route, Switch, useLocation } from "wouter";
 import { Suspense, lazy, useLayoutEffect } from "react";
 import ErrorBoundary from "./components/ErrorBoundary";
 import { ThemeProvider } from "./contexts/ThemeContext";
+import { TourProvider } from "./tour/TourProvider";
 import { Logo } from "./components/Logo";
 import Lookup from "./pages/Lookup";
 import Login from "./pages/Login";
@@ -71,9 +72,11 @@ function App() {
     <ErrorBoundary>
       <ThemeProvider defaultTheme="dark">
         <TooltipProvider>
-          <Toaster />
-          <ScrollToTop />
-          <Router />
+          <TourProvider>
+            <Toaster />
+            <ScrollToTop />
+            <Router />
+          </TourProvider>
         </TooltipProvider>
       </ThemeProvider>
     </ErrorBoundary>

@@ -1058,7 +1058,7 @@ async function invokeLLM(params) {
 var PINECONE_INDEX = "gogetter-vehicles";
 var LISTINGS_NAMESPACE = "listings";
 var KNOWLEDGE_NAMESPACE = "knowledge";
-var SEARCH_TIMEOUT_MS = 2500;
+var SEARCH_TIMEOUT_MS = 3500;
 var CACHE_TTL_MS = 10 * 60 * 1e3;
 var CACHE_MAX = 200;
 var cache = /* @__PURE__ */ new Map();
@@ -1089,19 +1089,22 @@ async function semanticSearch(namespace, text2, topK) {
   const key = `${namespace}|${topK}|${query.toLowerCase()}`;
   const hit = cache.get(key);
   if (hit && Date.now() - hit.at < CACHE_TTL_MS) return hit.value;
-  let value = null;
-  try {
-    value = await Promise.race([
-      searchNamespace(namespace, query, topK),
-      new Promise((resolve) => setTimeout(resolve, SEARCH_TIMEOUT_MS, null))
-    ]);
-  } catch {
-    value = null;
-  }
-  if (value !== null) {
+  const inFlight = searchNamespace(namespace, query, topK).catch(() => null);
+  const value = await Promise.race([
+    inFlight,
+    new Promise((resolve) => setTimeout(resolve, SEARCH_TIMEOUT_MS, null))
+  ]);
+  const store = (hits) => {
     if (cache.size >= CACHE_MAX) cache.delete(cache.keys().next().value);
-    cache.set(key, { at: Date.now(), value });
+    cache.set(key, { at: Date.now(), value: hits });
+  };
+  if (value === null) {
+    void inFlight.then((late) => {
+      if (late !== null) store(late);
+    });
+    return null;
   }
+  store(value);
   return value;
 }
 async function semanticSearchListings(text2, opts = {}) {
@@ -5449,6 +5452,8 @@ var users = pgTable("users", {
   email: varchar("email", { length: 320 }),
   loginMethod: varchar("loginMethod", { length: 64 }),
   role: userRoleEnum("role").default("user").notNull(),
+  /** Guided-tour completion/dismissal; null = never prompted-and-resolved. */
+  onboarding: jsonb("onboarding").$type(),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().notNull().$onUpdate(() => /* @__PURE__ */ new Date()),
   lastSignedIn: timestamp("lastSignedIn").defaultNow().notNull()
@@ -5666,6 +5671,12 @@ async function updateSavedVehicleMeta(userId, id, meta) {
   const db = await getDb();
   if (!db) return;
   await db.update(savedVehicles).set(meta).where(and(eq(savedVehicles.userId, userId), eq(savedVehicles.id, id)));
+}
+async function updateUserOnboarding(userId, state) {
+  const db = await getDb();
+  if (!db) return false;
+  await db.update(users).set({ onboarding: state }).where(eq(users.id, userId));
+  return true;
 }
 async function recordPrice(entry) {
   const db = await getDb();
@@ -8289,6 +8300,28 @@ var appRouter = router({
       return {
         success: true
       };
+    }),
+    /**
+     * Persist guided-tour completion/dismissal on the signed-in account so it
+     * follows the user across devices (anonymous visitors use localStorage).
+     * The SHARED demo account is exempt — persisting there would mark the
+     * tour as taken for every future demo visitor — so it reports
+     * persisted:false and the client keeps localStorage authoritative.
+     */
+    setOnboarding: protectedProcedure.input(
+      z6.object({
+        status: z6.enum(["completed", "dismissed"]),
+        variant: z6.enum(["quick", "full"])
+      })
+    ).mutation(async ({ ctx, input }) => {
+      const isDemoAccount = DEMO_ACCOUNTS.some((a) => a.openId === ctx.user.openId);
+      if (isDemoAccount) return { persisted: false };
+      const persisted = await updateUserOnboarding(ctx.user.id, {
+        status: input.status,
+        variant: input.variant,
+        at: (/* @__PURE__ */ new Date()).toISOString()
+      });
+      return { persisted };
     })
   }),
   config: configRouter,

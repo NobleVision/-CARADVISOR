@@ -99,11 +99,23 @@ describe("semanticSearchListings", () => {
     const first = mod.semanticSearchListings("slow query");
     await vi.advanceTimersByTimeAsync(3600);
     expect(await first).toBeNull(); // timed out
+
+    // Real timers for the late-resolution half: fake-timer microtask flushing
+    // is not deterministic across the multi-hop .then chain.
+    vi.useRealTimers();
     resolveLate(HITS_RESPONSE); // …but the in-flight search lands later
-    await vi.advanceTimersByTimeAsync(0);
+    await new Promise((r) => setTimeout(r, 0));
+    // Outcome-based proof of cache warmth: any NEW network call from here on
+    // would return the decoy — so getting the original hits back can only
+    // mean they were served from the cache the late resolve populated.
+    searchRecordsMock.mockResolvedValue({
+      result: { hits: [{ _id: "decoy", _score: 0.01, fields: {} }] },
+    });
     const second = await mod.semanticSearchListings("slow query");
-    expect(second).toHaveLength(2); // served from the warmed cache
-    expect(searchRecordsMock).toHaveBeenCalledTimes(2); // warmup + slow, no third
+    expect(second).toEqual([
+      { id: "lst_001", score: 0.91 },
+      { id: "lst_044", score: 0.83 },
+    ]);
   });
 });
 

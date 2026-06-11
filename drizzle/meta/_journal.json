@@ -8,6 +8,13 @@
       "when": 1781021808601,
       "tag": "0000_ambiguous_yellow_claw",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1781197478732,
+      "tag": "0001_careful_mole_man",
+      "breakpoints": true
     }
   ]
 }

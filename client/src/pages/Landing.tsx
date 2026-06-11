@@ -9,6 +9,7 @@ import { FeatureGridSection } from "@/landing/FeatureGridSection";
 import { HowItWorksSection } from "@/landing/HowItWorksSection";
 import { StorySection } from "@/landing/StorySection";
 import { CtaBandSection } from "@/landing/CtaBandSection";
+import { TourPrompt } from "@/tour/TourPrompt";
 
 /**
  * The public brand home: a scroll story from "evidence, not hope" through the
@@ -32,6 +33,8 @@ export default function Landing() {
         <CtaBandSection />
       </main>
       <SiteFooter />
+      {/* First-visit tour offer — overlay sibling, never touches the GSAP scroll story */}
+      <TourPrompt />
     </div>
   );
 }

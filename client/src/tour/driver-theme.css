@@ -1,0 +1,97 @@
+/* Midnight-showroom theme for the driver.js tour popover. Loaded lazily with
+   the tour itself; scoped via popoverClass: "gg-tour-popover". */
+
+.driver-popover.gg-tour-popover {
+  background: oklch(0.2 0.009 265);
+  color: oklch(0.93 0.006 80);
+  border: 1px solid oklch(0.82 0.09 85 / 35%);
+  border-radius: 0.75rem;
+  box-shadow: 0 22px 60px -22px oklch(0 0 0 / 85%);
+  max-width: 360px;
+  padding: 16px 18px 14px;
+}
+
+.gg-tour-popover .driver-popover-title {
+  font-family: "Fraunces", ui-serif, Georgia, serif;
+  font-size: 1.08rem;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  color: oklch(0.93 0.006 80);
+}
+
+.gg-tour-popover .driver-popover-description {
+  margin-top: 6px;
+  font-size: 0.84rem;
+  line-height: 1.55;
+  color: oklch(0.72 0.008 80);
+}
+
+.gg-tour-popover .driver-popover-progress-text {
+  color: oklch(0.82 0.09 85);
+  font-size: 0.68rem;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.gg-tour-popover .driver-popover-footer {
+  margin-top: 12px;
+  gap: 8px;
+}
+
+.gg-tour-popover .driver-popover-footer button {
+  background: oklch(0.26 0.009 265);
+  color: oklch(0.9 0.006 80);
+  border: 1px solid oklch(0.32 0.009 265 / 70%);
+  border-radius: 0.5rem;
+  padding: 5px 12px;
+  font-size: 0.78rem;
+  font-weight: 500;
+  text-shadow: none;
+  transition: border-color 120ms ease, background 120ms ease;
+}
+
+.gg-tour-popover .driver-popover-footer button:hover {
+  background: oklch(0.28 0.012 265);
+  border-color: oklch(0.82 0.09 85 / 50%);
+}
+
+.gg-tour-popover .driver-popover-next-btn {
+  background: oklch(0.82 0.09 85);
+  color: oklch(0.18 0.01 70);
+  border-color: oklch(0.82 0.09 85);
+  font-weight: 600;
+}
+
+.gg-tour-popover .driver-popover-next-btn:hover {
+  background: oklch(0.86 0.09 85);
+  border-color: oklch(0.86 0.09 85);
+}
+
+.gg-tour-popover .driver-popover-close-btn {
+  color: oklch(0.66 0.008 80);
+}
+
+.gg-tour-popover .driver-popover-close-btn:hover {
+  color: oklch(0.93 0.006 80);
+}
+
+/* Arrow color must match the popover background per side. */
+.gg-tour-popover.driver-popover-arrow-side-top .driver-popover-arrow {
+  border-top-color: oklch(0.2 0.009 265);
+}
+.gg-tour-popover.driver-popover-arrow-side-bottom .driver-popover-arrow {
+  border-bottom-color: oklch(0.2 0.009 265);
+}
+.gg-tour-popover.driver-popover-arrow-side-left .driver-popover-arrow {
+  border-left-color: oklch(0.2 0.009 265);
+}
+.gg-tour-popover.driver-popover-arrow-side-right .driver-popover-arrow {
+  border-right-color: oklch(0.2 0.009 265);
+}
+
+@media (max-width: 480px) {
+  .driver-popover.gg-tour-popover {
+    max-width: calc(100vw - 24px);
+  }
+}

@@ -1,13 +1,14 @@
 import { z } from "zod";
 import { TRPCError } from "@trpc/server";
 import { systemRouter } from "./_core/systemRouter";
-import { publicProcedure, router } from "./_core/trpc";
+import { protectedProcedure, publicProcedure, router } from "./_core/trpc";
 import { configRouter } from "./routers/config";
 import { vehicleRouter } from "./routers/vehicle";
 import { findRouter } from "./routers/find";
 import { contactRouter } from "./routers/contact";
 import { notificationsRouter } from "./routers/notifications";
-import { authenticateDemo } from "./demoAuth";
+import { authenticateDemo, DEMO_ACCOUNTS } from "./demoAuth";
+import { updateUserOnboarding } from "./db";
 
 export const appRouter = router({
   system: systemRouter,
@@ -46,6 +47,30 @@ export const appRouter = router({
         success: true,
       } as const;
     }),
+    /**
+     * Persist guided-tour completion/dismissal on the signed-in account so it
+     * follows the user across devices (anonymous visitors use localStorage).
+     * The SHARED demo account is exempt — persisting there would mark the
+     * tour as taken for every future demo visitor — so it reports
+     * persisted:false and the client keeps localStorage authoritative.
+     */
+    setOnboarding: protectedProcedure
+      .input(
+        z.object({
+          status: z.enum(["completed", "dismissed"]),
+          variant: z.enum(["quick", "full"]),
+        }),
+      )
+      .mutation(async ({ ctx, input }) => {
+        const isDemoAccount = DEMO_ACCOUNTS.some((a) => a.openId === ctx.user.openId);
+        if (isDemoAccount) return { persisted: false } as const;
+        const persisted = await updateUserOnboarding(ctx.user.id, {
+          status: input.status,
+          variant: input.variant,
+          at: new Date().toISOString(),
+        });
+        return { persisted };
+      }),
   }),
   config: configRouter,
   vehicle: vehicleRouter,

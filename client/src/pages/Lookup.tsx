@@ -1,5 +1,6 @@
 import { NavBar } from "@/components/NavBar";
 import { SiteFooter } from "@/components/SiteFooter";
+import { TourPrompt } from "@/tour/TourPrompt";
 import { VinSearchForm } from "@/components/VinSearchForm";
 import { VehicleResult } from "@/components/VehicleResult";
 import { AdvisorChat } from "@/components/AdvisorChat";
@@ -116,7 +117,10 @@ export default function Lookup() {
             </p>
           </div>
 
-          <Card className="glass mt-10 max-w-3xl border-border/70 motion-safe:fade-rise [animation-delay:260ms]">
+          <Card
+            data-tour="vin-form"
+            className="glass mt-10 max-w-3xl border-border/70 motion-safe:fade-rise [animation-delay:260ms]"
+          >
             <CardContent className="p-6 sm:p-7">
               <VinSearchForm
                 onSubmit={(vin, mileage) => decode.mutate({ vin, mileage })}
@@ -177,6 +181,8 @@ export default function Lookup() {
       )}
 
       <SiteFooter compact />
+      {/* Post-login tour offer (same visibility rules as the landing page) */}
+      <TourPrompt />
     </div>
   );
 }

@@ -1,6 +1,7 @@
 import { Badge } from "@/components/ui/badge";
 import { formatUSD } from "@/lib/inventory";
 import { trpc } from "@/lib/trpc";
+import { useTour } from "@/tour/TourProvider";
 import { ShieldAlert, Sparkles, TriangleAlert } from "lucide-react";
 import { Link } from "wouter";
 
@@ -10,9 +11,10 @@ import { Link } from "wouter";
  * outside the seeded inventory (the query returns an empty list).
  */
 export function SimilarVehicles({ vin }: { vin: string }) {
+  const { isTourActive } = useTour(); // tour = sample data only, no Pinecone calls
   const similar = trpc.find.similar.useQuery(
     { vin },
-    { enabled: vin.length > 0, retry: false, staleTime: 10 * 60 * 1000 },
+    { enabled: vin.length > 0 && !isTourActive, retry: false, staleTime: 10 * 60 * 1000 },
   );
 
   const items = similar.data?.items ?? [];

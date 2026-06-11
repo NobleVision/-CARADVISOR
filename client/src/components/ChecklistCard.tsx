@@ -60,7 +60,7 @@ export function ChecklistCard({ listingId, vehicle, useCase }: Props) {
   };
 
   return (
-    <Card>
+    <Card data-tour="checklist">
       <CardHeader className="flex-row items-center justify-between space-y-0 border-b border-border/60">
         <div className="flex items-center gap-2">
           <ClipboardCheck className="size-4 text-primary" />

@@ -116,12 +116,14 @@ export default function Compare() {
   return (
     <div className="min-h-screen">
       <NavBar />
-      <PageHero
-        eyebrow="Compare"
-        icon={<GitCompareArrows className="size-4" />}
-        title="Two VINs enter. The truth comes out."
-        description="Decode up to three VINs and weigh their specs and scores side by side."
-      />
+      <div data-tour="compare">
+        <PageHero
+          eyebrow="Compare"
+          icon={<GitCompareArrows className="size-4" />}
+          title="Two VINs enter. The truth comes out."
+          description="Decode up to three VINs and weigh their specs and scores side by side."
+        />
+      </div>
       <div className="container py-10">
 
         {/* Input row */}

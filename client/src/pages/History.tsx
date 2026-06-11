@@ -32,6 +32,7 @@ export default function History() {
   return (
     <div className="min-h-screen">
       <NavBar />
+      <div data-tour="history">
       <PageHero
         eyebrow="Search History"
         icon={<HistoryIcon className="size-4" />}
@@ -45,6 +46,7 @@ export default function History() {
           ) : undefined
         }
       />
+      </div>
       <div className="container py-10">
 
         {!isAuthenticated && !loading ? (
