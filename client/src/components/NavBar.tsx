@@ -8,15 +8,16 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Gauge, LogOut, Menu, Sparkles } from "lucide-react";
+import { LogOut, Menu, Sparkles } from "lucide-react";
 import { Link, useLocation } from "wouter";
 import { cn } from "@/lib/utils";
 import { useState } from "react";
 import { SignInDialog } from "./SignInDialog";
 import { NotificationsBell } from "./NotificationsBell";
+import { Logo } from "./Logo";
 
 const links = [
-  { href: "/", label: "Lookup" },
+  { href: "/lookup", label: "Lookup" },
   { href: "/find", label: "Find My Car" },
   { href: "/new-cars", label: "New Cars" },
   { href: "/compare", label: "Compare" },
@@ -34,10 +35,8 @@ export function NavBar() {
   return (
     <header className="sticky top-0 z-50 border-b border-border/60 bg-background/80 backdrop-blur-xl">
       <div className="container flex h-16 items-center justify-between">
-        <Link href="/" className="flex items-center gap-2.5">
-          <div className="flex size-9 items-center justify-center rounded-lg bg-primary/15 ring-1 ring-primary/30">
-            <Gauge className="size-5 text-primary" />
-          </div>
+        <Link href="/" className="flex items-center gap-2.5" aria-label="GOGETTER home">
+          <Logo size={36} />
           <div className="leading-none">
             <span className="block font-serif text-lg font-semibold tracking-tight">GOGETTER</span>
             <span className="block text-[10px] uppercase tracking-[0.2em] text-muted-foreground">

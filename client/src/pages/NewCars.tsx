@@ -1,4 +1,6 @@
 import { NavBar } from "@/components/NavBar";
+import { PageHero } from "@/components/PageHero";
+import { SiteFooter } from "@/components/SiteFooter";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -47,27 +49,17 @@ export default function NewCars() {
     <div className="min-h-screen">
       <NavBar />
 
-      {/* Hero */}
-      <section className="border-b border-border/60 bg-gradient-to-b from-emerald-500/5 to-transparent">
-        <div className="container py-10">
-          <div className="flex items-center gap-2 text-emerald-400">
-            <BadgeCheck className="size-5" />
-            <span className="text-xs font-medium uppercase tracking-[0.2em]">New Cars</span>
-          </div>
-          <h1 className="mt-3 max-w-2xl font-serif text-3xl font-semibold leading-tight sm:text-4xl">
-            Shopping new? Buy on reputation, warranty, and value — not history.
-          </h1>
-          <p className="mt-3 max-w-2xl text-muted-foreground">
-            New cars have no accident or ownership history to check. So GOGETTER evaluates them differently:
-            model reputation and reliability track record, factory warranty, fuel efficiency, and price against MSRP.
-            Browse models below, then open any one for a full breakdown and to ask the advisor.
-          </p>
-        </div>
-      </section>
+      <PageHero
+        tone="emerald"
+        eyebrow="New Cars"
+        icon={<BadgeCheck className="size-4" />}
+        title="Shopping new? Buy on reputation, warranty, and value — not history."
+        description="New cars have no accident or ownership history to check. So GOGETTER evaluates them differently: model reputation and reliability track record, factory warranty, fuel efficiency, and price against MSRP."
+      />
 
       <div className="container py-8">
         {/* Filters */}
-        <div className="mb-6 flex flex-col gap-4 rounded-xl border border-border/60 bg-card/50 p-4 lg:flex-row lg:items-center lg:justify-between">
+        <div className="mb-6 flex flex-col gap-4 rounded-xl border border-border/60 bg-card/50 p-4 lg:flex-row lg:flex-wrap lg:items-center lg:justify-between">
           <div className="flex flex-wrap items-center gap-2">
             <span className="inline-flex items-center gap-1.5 text-xs font-medium text-muted-foreground">
               <Car className="size-3.5" /> Body
@@ -112,7 +104,7 @@ export default function NewCars() {
               );
             })}
           </div>
-          <div className="flex items-center gap-1.5">
+          <div className="flex flex-wrap items-center gap-1.5">
             <span className="text-xs font-medium text-muted-foreground">Sort</span>
             {(
               [
@@ -241,6 +233,7 @@ export default function NewCars() {
           </div>
         )}
       </div>
+      <SiteFooter compact />
     </div>
   );
 }

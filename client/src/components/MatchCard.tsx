@@ -63,7 +63,7 @@ export function MatchCard({ match, rank, isTop, onSave, saved, saving }: MatchCa
   const isNew = l.condition === "New";
 
   return (
-    <Card className="overflow-hidden border-border/60 bg-card/60 backdrop-blur">
+    <Card className="card-lift overflow-hidden border-border/60 bg-card/60 backdrop-blur">
       <div className="grid gap-0 md:grid-cols-[300px_1fr]">
         {/* Image + rank */}
         <div className="relative min-h-[200px] bg-gradient-to-br from-muted/40 to-background">

@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none">
+  <!-- Favicon tile variant: simplified G-Gauge on a dark ink tile (survives 16px). -->
+  <defs>
+    <linearGradient id="ggf-gold" x1="0" y1="0" x2="64" y2="64" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#F6D488"/>
+      <stop offset="1" stop-color="#C9A24A"/>
+    </linearGradient>
+  </defs>
+  <rect width="64" height="64" rx="14" fill="#12141A"/>
+  <path d="M 42.5 13.8 A 21 21 0 1 0 52.69 28.35"
+        stroke="url(#ggf-gold)" stroke-width="6" stroke-linecap="round"/>
+  <line x1="52.4" y1="28.5" x2="45.2" y2="29.8"
+        stroke="url(#ggf-gold)" stroke-width="6" stroke-linecap="round"/>
+  <line x1="32" y1="32" x2="46.75" y2="21.67"
+        stroke="url(#ggf-gold)" stroke-width="6" stroke-linecap="round"/>
+  <circle cx="32" cy="32" r="4.5" fill="url(#ggf-gold)"/>
+</svg>

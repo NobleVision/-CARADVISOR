@@ -1,0 +1,47 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 630" fill="none">
+  <!-- Social card source (rasterized to og-image.png by scripts/render-brand-pngs.mjs). -->
+  <defs>
+    <linearGradient id="og-gold" x1="430" y1="170" x2="770" y2="460" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#F6D488"/>
+      <stop offset="1" stop-color="#C9A24A"/>
+    </linearGradient>
+    <radialGradient id="og-glow" cx="0.5" cy="0.42" r="0.65">
+      <stop offset="0" stop-color="#C9A24A" stop-opacity="0.22"/>
+      <stop offset="1" stop-color="#C9A24A" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="og-bg" x1="0" y1="0" x2="0" y2="630" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#14161D"/>
+      <stop offset="1" stop-color="#0C0E14"/>
+    </linearGradient>
+  </defs>
+
+  <rect width="1200" height="630" fill="url(#og-bg)"/>
+  <rect width="1200" height="630" fill="url(#og-glow)"/>
+
+  <!-- G-Gauge mark, centered above the wordmark (scaled 3x from the 64 grid) -->
+  <g transform="translate(504 96) scale(3)">
+    <path d="M 43 12.95 A 22 22 0 1 0 53.67 28.18"
+          stroke="url(#og-gold)" stroke-width="5" stroke-linecap="round"/>
+    <line x1="53.45" y1="28.25" x2="45.6" y2="29.6"
+          stroke="url(#og-gold)" stroke-width="5" stroke-linecap="round"/>
+    <g stroke="#E9C97A" stroke-opacity="0.55" stroke-width="2" stroke-linecap="round">
+      <line x1="16.50" y1="37.64" x2="13.68" y2="38.67"/>
+      <line x1="21.39" y1="44.64" x2="19.47" y2="46.94"/>
+      <line x1="29.14" y1="48.25" x2="28.61" y2="51.20"/>
+      <line x1="37.64" y1="47.51" x2="38.67" y2="50.32"/>
+      <line x1="44.64" y1="42.61" x2="46.94" y2="44.53"/>
+    </g>
+    <line x1="40.25" y1="17.71" x2="41.75" y2="15.11"
+          stroke="#E5484D" stroke-width="2.5" stroke-linecap="round"/>
+    <line x1="32" y1="32" x2="47.56" y2="21.10"
+          stroke="url(#og-gold)" stroke-width="5" stroke-linecap="round"/>
+    <circle cx="32" cy="32" r="4" fill="url(#og-gold)"/>
+  </g>
+
+  <text x="600" y="394" text-anchor="middle" font-family="Georgia, 'Times New Roman', serif"
+        font-weight="600" font-size="64" letter-spacing="3" fill="#F3F4F6">GOGETTER</text>
+  <text x="600" y="438" text-anchor="middle" font-family="Georgia, 'Times New Roman', serif"
+        font-size="22" letter-spacing="10" fill="#C9A24A">CAR ADVISOR</text>
+  <text x="600" y="512" text-anchor="middle" font-family="Georgia, 'Times New Roman', serif"
+        font-size="28" fill="#9AA3B2">Don't buy on hope. Buy on evidence.</text>
+</svg>

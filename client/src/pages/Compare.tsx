@@ -1,4 +1,6 @@
 import { NavBar } from "@/components/NavBar";
+import { PageHero } from "@/components/PageHero";
+import { SiteFooter } from "@/components/SiteFooter";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
@@ -6,7 +8,7 @@ import { Spinner } from "@/components/ui/spinner";
 import { ScoreGauge, SubscoreBar } from "@/components/ScoreGauge";
 import { trpc } from "@/lib/trpc";
 import { scoreColor, specRows, vehicleTitle, type DecodeResult } from "@/lib/vehicle";
-import { Plus, Search, X } from "lucide-react";
+import { GitCompareArrows, Plus, Search, X } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 
@@ -114,18 +116,18 @@ export default function Compare() {
   return (
     <div className="min-h-screen">
       <NavBar />
+      <PageHero
+        eyebrow="Compare"
+        icon={<GitCompareArrows className="size-4" />}
+        title="Two VINs enter. The truth comes out."
+        description="Decode up to three VINs and weigh their specs and scores side by side."
+      />
       <div className="container py-10">
-        <div className="mb-8">
-          <h1 className="font-serif text-3xl font-semibold tracking-tight">Compare Vehicles</h1>
-          <p className="mt-1 text-sm text-muted-foreground">
-            Decode up to three VINs and weigh their specs and scores side by side.
-          </p>
-        </div>
 
         {/* Input row */}
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
           {slots.map((slot, idx) => (
-            <Card key={slot.id} className="border-border/70">
+            <Card key={slot.id} className="card-lift border-border/70">
               <CardContent className="space-y-3 p-4">
                 <div className="flex items-center justify-between">
                   <span className="text-xs uppercase tracking-wider text-muted-foreground">Vehicle {idx + 1}</span>
@@ -242,6 +244,7 @@ export default function Compare() {
           </div>
         )}
       </div>
+      <SiteFooter compact />
     </div>
   );
 }

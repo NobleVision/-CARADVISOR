@@ -1,4 +1,5 @@
 import { NavBar } from "@/components/NavBar";
+import { SiteFooter } from "@/components/SiteFooter";
 import { VehicleResult } from "@/components/VehicleResult";
 import { AdvisorChat } from "@/components/AdvisorChat";
 import { ChecklistCard } from "@/components/ChecklistCard";
@@ -222,7 +223,7 @@ export default function VehicleDetail() {
         ) : notFound ? (
           <div className="py-24 text-center">
             <p className="text-muted-foreground">This VIN could not be decoded.</p>
-            <Link href="/"><Button className="mt-4">Try another VIN</Button></Link>
+            <Link href="/lookup"><Button className="mt-4">Try another VIN</Button></Link>
           </div>
         ) : (
           <div className="flex flex-col items-center gap-3 py-24 text-muted-foreground">
@@ -230,6 +231,7 @@ export default function VehicleDetail() {
           </div>
         )}
       </div>
+      <SiteFooter compact />
     </div>
   );
 }

@@ -1,4 +1,5 @@
 import { NavBar } from "@/components/NavBar";
+import { SiteFooter } from "@/components/SiteFooter";
 import { MatchCard } from "@/components/MatchCard";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -779,6 +780,7 @@ export default function FindMyCar() {
           )}
         </main>
       </div>
+      <SiteFooter compact />
     </div>
   );
 }

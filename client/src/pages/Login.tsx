@@ -7,8 +7,9 @@ import { LANDING_VIDEOS, LANDING_POSTER } from "@/lib/landingVideos";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Gauge, Loader2, ShieldCheck, Sparkles } from "lucide-react";
+import { Loader2, ShieldCheck, Sparkles } from "lucide-react";
 import { toast } from "sonner";
+import { Logo } from "@/components/Logo";
 
 const HIGHLIGHTS = [
   "Transparent 0–100 quality score for any VIN",
@@ -23,14 +24,15 @@ export default function Login() {
   const [password, setPassword] = useState("admin");
 
   useEffect(() => {
-    if (isAuthenticated) navigate("/");
+    // Signed-in users land in the product, not the pitch.
+    if (isAuthenticated) navigate("/lookup");
   }, [isAuthenticated, navigate]);
 
   const demoLogin = trpc.auth.demoLogin.useMutation({
     onSuccess: (data) => {
       toast.success(`Welcome, ${data.name}`);
       refresh();
-      navigate("/");
+      navigate("/lookup");
     },
     onError: (err) => toast.error(err.message || "Sign in failed"),
   });
@@ -46,18 +48,10 @@ export default function Login() {
 
       {/* Brand bar */}
       <header className="container flex h-16 items-center justify-between">
-        <div className="flex items-center gap-2.5">
-          <div className="flex size-9 items-center justify-center rounded-lg bg-primary/15 ring-1 ring-primary/30 backdrop-blur">
-            <Gauge className="size-5 text-primary" />
-          </div>
-          <div className="leading-none">
-            <span className="block font-serif text-lg font-semibold tracking-tight">GOGETTER</span>
-            <span className="block text-[10px] uppercase tracking-[0.2em] text-muted-foreground">
-              Car Advisor
-            </span>
-          </div>
-        </div>
-        <Button variant="ghost" size="sm" onClick={() => navigate("/")}>
+        <button type="button" onClick={() => navigate("/")} aria-label="GOGETTER home">
+          <Logo size={36} withWordmark />
+        </button>
+        <Button variant="ghost" size="sm" onClick={() => navigate("/lookup")}>
           Explore the demo →
         </Button>
       </header>

@@ -189,3 +189,28 @@ Built from the June 9, 2026 strategy meeting + the real-world car-search researc
 - [ ] Monetization: premium subscriptions (deep history, exports, priority alerts), non-conflicting affiliates (financing/insurance/warranty/repair), dealer "Trust Stamp" program, B2B auction/clearinghouse tooling
 - [ ] Crowdsourced prior-owner feedback ("Private Investigator") — opt-in, anonymized, consented
 - [ ] Marketing: problem→solution micro-drama commercial, shareable "My AI Car Find" cards, social engagement pipeline
+
+## v6 — Awards-worthy landing page, UI refresh & G-Gauge brand
+
+### Brand
+- [x] Hand-crafted SVG "G-Gauge" monogram (G ring whose mouth is a speedometer redline gap; crossbar = needle; gold gradient #F6D488→#C9A24A from the existing palette) — mark, lockup, favicon tile, OG card in `client/public/brand/`
+- [x] PNG set rendered via `scripts/render-brand-pngs.mjs` (resvg-js, dev-only): favicon-32, apple-touch-icon 180, icon-512, og-image 1200×630
+- [x] `Logo` component (inline SVG, useId-namespaced gradients) in NavBar, Login, footer, 404, route fallback
+- [x] index.html: favicon links, theme-color, description, OG/Twitter cards, new title
+
+### Landing page (`/`, lazy chunk ~54KB gz + three.js chunk ~128KB gz)
+- [x] Three.js particle hero: ~14k champagne particles assemble into a procedural fastback silhouette (no model download), pointer parallax, scroll dispersal, idle shimmer; pauses off-screen/hidden-tab; WebGL probe + context-loss + reduced-motion → static fallback; full dispose on unmount
+- [x] GSAP ScrollTrigger story: masked-line hero reveal, marquee strip, pinned "One honest number. Five real inputs." score build (38→92 + bars), the RUN stamp demo (real AdvisoryCallout over a mock trap listing), cinematic b-roll interlude (LazyMount — 35MB of clips never load early), feature grid stagger, how-it-works rail draw, Eric-story quote + counters, gold CTA band
+- [x] All motion inside `gsap.matchMedia("(prefers-reduced-motion: no-preference)")` — reduced-motion users get a fully static, fully visible page
+- [x] Routing: `/` = landing, VIN lookup moved to `/lookup` (NavBar, Login, empty-state links updated); ScrollToTop on route change; Suspense outside Switch (wouter patch constraint)
+
+### UI refresh
+- [x] Shared `PageHero` (eyebrow + serif headline + hairline + grain) and `SiteFooter` (full + compact) across find/new-cars/compare/saved/history/premium/vehicle/lookup
+- [x] CSS utilities: `fade-rise` entrance, `card-lift` hover glow, `marquee-track` — all reduced-motion safe; applied across cards/heroes
+- [x] NotFound re-skinned to the midnight-showroom brand (was off-brand light slate)
+- [x] Fixed pre-existing 17px horizontal overflow on /new-cars at 1024px (sort group couldn't wrap)
+
+### Verification
+- [x] `pnpm check` clean · `pnpm test` 118 passing · `pnpm build` clean; bundle audit: main chunk unchanged, gsap/three confined to lazy landing chunks (guardrail grep)
+- [x] Scripted Chrome DevTools QA (`scripts/qa-browser.mjs`, puppeteer-core + system Chrome): 10 routes × 4 breakpoints (375/768/1024/1440) — zero console errors, zero horizontal overflow (top + mid-scroll), 57 FPS scroll sample under software GL, mid-pin navigation leaves no ghost pins + ScrollToTop verified, reduced-motion emulation shows static fallback with finished content, demo login lands on /lookup, all brand assets 200
+- [x] Caught & fixed by QA: shader precision mismatch (uTime highp/mediump), the /new-cars overflow

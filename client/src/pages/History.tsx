@@ -1,4 +1,6 @@
 import { NavBar } from "@/components/NavBar";
+import { PageHero } from "@/components/PageHero";
+import { SiteFooter } from "@/components/SiteFooter";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -30,18 +32,20 @@ export default function History() {
   return (
     <div className="min-h-screen">
       <NavBar />
-      <div className="container py-10">
-        <div className="mb-8 flex items-end justify-between">
-          <div>
-            <h1 className="font-serif text-3xl font-semibold tracking-tight">Search History</h1>
-            <p className="mt-1 text-sm text-muted-foreground">Every VIN you've decoded, newest first.</p>
-          </div>
-          {isAuthenticated && (historyQuery.data?.length ?? 0) > 0 && (
+      <PageHero
+        eyebrow="Search History"
+        icon={<HistoryIcon className="size-4" />}
+        title="Every VIN, remembered."
+        description="Every vehicle you've decoded, newest first — jump back into any report."
+        actions={
+          isAuthenticated && (historyQuery.data?.length ?? 0) > 0 ? (
             <Button variant="outline" className="gap-2 bg-card" onClick={() => clearAll.mutate()} disabled={clearAll.isPending}>
               <Trash2 className="size-4" /> Clear all
             </Button>
-          )}
-        </div>
+          ) : undefined
+        }
+      />
+      <div className="container py-10">
 
         {!isAuthenticated && !loading ? (
           <SignInPrompt />
@@ -54,12 +58,12 @@ export default function History() {
               <EmptyTitle>No searches yet</EmptyTitle>
               <EmptyDescription>Decode your first VIN to start building your history.</EmptyDescription>
             </EmptyHeader>
-            <Link href="/"><Button className="mt-2 gap-2"><Search className="size-4" /> Decode a VIN</Button></Link>
+            <Link href="/lookup"><Button className="mt-2 gap-2"><Search className="size-4" /> Decode a VIN</Button></Link>
           </Empty>
         ) : (
           <div className="space-y-3">
             {historyQuery.data!.map((h) => (
-              <Card key={h.id} className="transition-colors hover:border-primary/40">
+              <Card key={h.id} className="transition-[border-color,transform] duration-200 hover:border-primary/40 motion-safe:hover:translate-x-0.5">
                 <CardContent className="flex items-center justify-between gap-4 p-4">
                   <div className="flex items-center gap-4">
                     <div className="flex size-12 flex-col items-center justify-center rounded-lg bg-secondary">
@@ -91,6 +95,7 @@ export default function History() {
           </div>
         )}
       </div>
+      <SiteFooter compact />
     </div>
   );
 }

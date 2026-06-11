@@ -1,4 +1,6 @@
 import { NavBar } from "@/components/NavBar";
+import { PageHero } from "@/components/PageHero";
+import { SiteFooter } from "@/components/SiteFooter";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -29,20 +31,22 @@ export default function Saved() {
   return (
     <div className="min-h-screen">
       <NavBar />
-      <div className="container py-10">
-        <div className="mb-8 flex items-end justify-between">
-          <div>
-            <h1 className="font-serif text-3xl font-semibold tracking-tight">My Garage</h1>
-            <p className="mt-1 text-sm text-muted-foreground">Vehicles you've saved to track and compare.</p>
-          </div>
-          {isAuthenticated && (savedQuery.data?.length ?? 0) >= 2 && (
+      <PageHero
+        eyebrow="My Garage"
+        icon={<Bookmark className="size-4" />}
+        title="Your shortlist, on watch."
+        description="Vehicles you've saved to track and compare — price drops surface here automatically."
+        actions={
+          isAuthenticated && (savedQuery.data?.length ?? 0) >= 2 ? (
             <Link href="/compare">
               <Button variant="outline" className="gap-2 bg-card">
                 <GitCompare className="size-4" /> Compare saved
               </Button>
             </Link>
-          )}
-        </div>
+          ) : undefined
+        }
+      />
+      <div className="container py-10">
 
         {isAuthenticated && <SavedSearches />}
 
@@ -64,12 +68,16 @@ export default function Saved() {
               <EmptyTitle>Your Garage is empty</EmptyTitle>
               <EmptyDescription>Decode a VIN and tap "Save to Garage" to keep it here.</EmptyDescription>
             </EmptyHeader>
-            <Link href="/"><Button className="mt-2 gap-2"><Search className="size-4" /> Decode a VIN</Button></Link>
+            <Link href="/lookup"><Button className="mt-2 gap-2"><Search className="size-4" /> Decode a VIN</Button></Link>
           </Empty>
         ) : (
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {savedQuery.data!.map((v) => (
-              <Card key={v.id} className="flex flex-col transition-colors hover:border-primary/40">
+            {savedQuery.data!.map((v, i) => (
+              <Card
+                key={v.id}
+                className="card-lift flex flex-col motion-safe:fade-rise"
+                style={{ animationDelay: `${Math.min(i * 60, 360)}ms` }}
+              >
                 <CardContent className="flex flex-1 flex-col p-5">
                   <div className="flex items-start justify-between">
                     <div className="flex size-14 flex-col items-center justify-center rounded-xl bg-secondary">
@@ -103,6 +111,7 @@ export default function Saved() {
           </div>
         )}
       </div>
+      <SiteFooter compact />
     </div>
   );
 }

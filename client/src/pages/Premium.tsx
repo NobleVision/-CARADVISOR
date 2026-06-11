@@ -1,4 +1,6 @@
 import { NavBar } from "@/components/NavBar";
+import { PageHero } from "@/components/PageHero";
+import { SiteFooter } from "@/components/SiteFooter";
 import { PremiumTeaser } from "@/components/PremiumTeaser";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -40,27 +42,31 @@ export default function Premium() {
   return (
     <div className="min-h-screen">
       <NavBar />
-      <div className="container py-12">
-        <div className="mx-auto max-w-2xl text-center">
-          <div className="inline-flex items-center gap-2 rounded-full border border-primary/30 bg-primary/10 px-3 py-1 text-xs text-primary">
-            <Sparkles className="size-3.5" /> GOGETTER Premium
-          </div>
-          <h1 className="mt-5 font-serif text-4xl font-semibold tracking-tight sm:text-5xl">
-            Go beyond the spec sheet
-          </h1>
-          <p className="mt-4 text-lg text-muted-foreground">
+      <PageHero
+        align="center"
+        eyebrow="GOGETTER Premium"
+        icon={<Sparkles className="size-4" />}
+        title="Go beyond the spec sheet"
+        description={
+          <>
             Our free tier decodes what a vehicle <em>is</em>. Premium reveals what it has{" "}
             <em>been through</em> — by layering private history data from{" "}
             <span className="font-medium text-foreground">Carfax</span> and{" "}
             <span className="font-medium text-foreground">CarGurus</span> on top of public VIN intelligence.
-          </p>
-        </div>
+          </>
+        }
+      />
+      <div className="container py-12">
 
         <div className="mx-auto mt-12 grid max-w-4xl gap-6 md:grid-cols-2">
           {TIERS.map((tier) => (
             <Card
               key={tier.name}
-              className={tier.highlight ? "relative border-primary/50 ring-1 ring-primary/20" : ""}
+              className={`card-lift motion-safe:fade-rise ${
+                tier.highlight
+                  ? "relative border-primary/50 ring-1 ring-primary/20 shadow-[0_24px_64px_-32px_oklch(0.82_0.09_85_/_0.35)] [animation-delay:120ms]"
+                  : ""
+              }`}
             >
               <CardContent className="p-7">
                 <div className="flex items-center justify-between">
@@ -93,6 +99,7 @@ export default function Premium() {
           <PremiumTeaser variant="full" />
         </div>
       </div>
+      <SiteFooter compact />
     </div>
   );
 }

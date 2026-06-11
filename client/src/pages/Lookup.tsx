@@ -1,4 +1,5 @@
 import { NavBar } from "@/components/NavBar";
+import { SiteFooter } from "@/components/SiteFooter";
 import { VinSearchForm } from "@/components/VinSearchForm";
 import { VehicleResult } from "@/components/VehicleResult";
 import { AdvisorChat } from "@/components/AdvisorChat";
@@ -24,7 +25,7 @@ const FEATURES = [
   { icon: ShieldCheck, title: "Track your shortlist", desc: "Save vehicles to your garage and revisit your full search history any time." },
 ];
 
-export default function Home() {
+export default function Lookup() {
   const { isAuthenticated, loading } = useAuth();
   // Cinematic b-roll only for logged-out visitors; once signed in, the hero
   // settles to a calm static background.
@@ -103,19 +104,19 @@ export default function Home() {
         <div className="absolute inset-0 z-[1] bg-gradient-to-t from-background via-transparent to-transparent" />
         <div className="container relative z-10 py-20 sm:py-28">
           <div className="max-w-2xl">
-            <div className="inline-flex items-center gap-2 rounded-full border border-primary/30 bg-primary/10 px-3 py-1 text-xs text-primary">
+            <div className="inline-flex items-center gap-2 rounded-full border border-primary/30 bg-primary/10 px-3 py-1 text-xs text-primary motion-safe:fade-rise">
               <Sparkles className="size-3.5" /> AI-powered used-car intelligence
             </div>
-            <h1 className="mt-5 font-serif text-5xl font-semibold leading-[1.05] tracking-tight sm:text-6xl">
+            <h1 className="mt-5 font-serif text-5xl font-semibold leading-[1.05] tracking-tight motion-safe:fade-rise sm:text-6xl [animation-delay:90ms]">
               Buy your next used car with <span className="text-gold-gradient">confidence</span>.
             </h1>
-            <p className="mt-5 max-w-xl text-lg leading-relaxed text-muted-foreground">
+            <p className="mt-5 max-w-xl text-lg leading-relaxed text-muted-foreground motion-safe:fade-rise [animation-delay:180ms]">
               Enter a VIN to instantly decode the full vehicle profile, get a clear quality score, and ask our AI
               advisor exactly what to look for — before you ever step onto the lot.
             </p>
           </div>
 
-          <Card className="glass mt-10 max-w-3xl border-border/70">
+          <Card className="glass mt-10 max-w-3xl border-border/70 motion-safe:fade-rise [animation-delay:260ms]">
             <CardContent className="p-6 sm:p-7">
               <VinSearchForm
                 onSubmit={(vin, mileage) => decode.mutate({ vin, mileage })}
@@ -161,7 +162,7 @@ export default function Home() {
         <section className="container py-20">
           <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
             {FEATURES.map((f) => (
-              <Card key={f.title} className="border-border/60 transition-colors hover:border-primary/40">
+              <Card key={f.title} className="card-lift border-border/60">
                 <CardContent className="p-6">
                   <div className="flex size-11 items-center justify-center rounded-xl bg-primary/12 ring-1 ring-primary/25">
                     <f.icon className="size-5 text-primary" />
@@ -175,12 +176,7 @@ export default function Home() {
         </section>
       )}
 
-      <footer className="border-t border-border/60 py-8">
-        <div className="container flex flex-col items-center justify-between gap-2 text-xs text-muted-foreground sm:flex-row">
-          <span>GOGETTER AI Used Car Advisor</span>
-          <span>VIN data provided by the NHTSA vPIC public database. Scores are advisory estimates.</span>
-        </div>
-      </footer>
+      <SiteFooter compact />
     </div>
   );
 }

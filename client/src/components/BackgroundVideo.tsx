@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
+import { usePrefersReducedMotion } from "@/hooks/usePrefersReducedMotion";
 import { cn } from "@/lib/utils";
 
 type BackgroundVideoProps = {
@@ -12,19 +13,6 @@ type BackgroundVideoProps = {
   /** Crossfade duration between clips, in ms. */
   fadeMs?: number;
 };
-
-function usePrefersReducedMotion() {
-  const [reduce, setReduce] = useState(false);
-  useEffect(() => {
-    if (typeof window === "undefined" || !window.matchMedia) return;
-    const mq = window.matchMedia("(prefers-reduced-motion: reduce)");
-    setReduce(mq.matches);
-    const handler = () => setReduce(mq.matches);
-    mq.addEventListener?.("change", handler);
-    return () => mq.removeEventListener?.("change", handler);
-  }, []);
-  return reduce;
-}
 
 function shuffle<T>(arr: T[]): T[] {
   const a = arr.slice();

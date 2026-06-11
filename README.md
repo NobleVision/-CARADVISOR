@@ -64,7 +64,13 @@ The project runs **React 19 + Tailwind 4** on the client and a **tRPC 11** API o
 
 `vercel.json` configures the static build (`vite build` → `dist/public`), SPA rewrites, the serverless API (`api/trpc/[trpc].ts`), and a daily cron that runs the price-drop / new-match monitor (`api/cron/monitor.ts`). Set `DATABASE_URL`, `JWT_SECRET`, optionally `LLM_API_URL`/`LLM_API_KEY`/`LLM_MODEL`, and `CRON_SECRET` in the Vercel project, run `pnpm db:push` once against the production database, and deploy. See [LOCAL_SETUP.md](LOCAL_SETUP.md) for the full walkthrough and the landing-page b-roll prompts in [docs/landing-video-prompts.md](docs/landing-video-prompts.md).
 
-## Landing page (cinematic video background)
+## Landing page & brand (v6)
+
+`/` is now the public brand home — a GSAP scroll story under a **Three.js particle hero**: ~14,000 champagne-gold particles assemble into a procedural fastback silhouette (no 3D model download), parallax with the pointer, and disperse as you scroll into the story (pinned score build → the RUN stamp demo → cinematic b-roll → product tour). Everything degrades to a fully static page under `prefers-reduced-motion`, falls back to poster art without WebGL, and ships in lazy chunks (`Landing` ~54KB gz, three.js ~128KB gz) so the main app bundle is untouched. The VIN lookup moved to **`/lookup`**.
+
+The **G-Gauge monogram** (a letter G whose mouth is a speedometer's redline gap, crossbar doubling as the needle) lives in `client/public/brand/` as hand-crafted SVG with PNG derivatives (`scripts/render-brand-pngs.mjs`), wired into the favicon set, OG/Twitter cards, NavBar, and footer. Browser QA is scripted in `scripts/qa-browser.mjs` (puppeteer-core + system Chrome): all routes × 4 breakpoints, console/overflow/FPS/reduced-motion checks.
+
+## Login page (cinematic video background)
 
 The `/login` route is a full-screen landing page with a **rotating background video**: muted, autoplaying, `playsInline` clips that play in a **shuffled order** (never the same one twice in a row) and **crossfade** into each other via two stacked, preloaded `<video>` layers. A dark "midnight showroom" scrim keeps the sign-in card and hero copy readable. It respects `prefers-reduced-motion` (shows a static poster), skips clips that fail to load, and falls back to the poster if none play — so the page always looks intentional.
 
