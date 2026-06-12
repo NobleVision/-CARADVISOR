@@ -33,6 +33,7 @@ As of v7/v8 the app also runs on **live cloud services** wherever a key is confi
 | Guided Onboarding Tour | First visitors choose a Quick (~2 min) or Full (~5 min) spotlight walkthrough of every feature, running entirely on sample data (zero live API calls). Completion is remembered per visitor and per account, and the tour relaunches anytime from the "?" menu. |
 | Premium Teaser Panel | Previews Carfax/CarGurus-sourced accident history, ownership count, and market value behind a blurred, clearly-labeled "coming soon" panel — framed as Layer 2 of the dual-layer score (Layer 1, model-level intelligence, is live today). |
 | Light / Dark / System Theme | A Sun/Moon/Monitor toggle in the NavBar switches the whole app between the dark "midnight showroom" and a light "ivory showroom" palette, or follows the OS (`ThemeContext` + localStorage; default dark). The Mapbox basemap, toasts, and map popups follow along; Landing and Login stay intentionally dark (video/particle compositions). |
+| Cinematic Five-Car Hero | The landing hero uses the Car Advisor design handoff package: selectable left-column copy with evidence-first CTAs, Instrument Serif/Sans typography, atmospheric gold haze, and a self-contained `<hero-particles>` canvas loop that cycles Polestar 5 → Toyota 4Runner → Toyota Camry → Mazda CX-5 → Honda Accord from `client/public/hero/`. |
 
 ## How It Works
 
@@ -94,6 +95,8 @@ First-time visitors get a corner slide-in offer (landing page + `/lookup`) for a
 
 `/` is now the public brand home — a GSAP scroll story under a **Three.js particle hero**: ~14,000 champagne-gold particles assemble into a procedural fastback silhouette (no 3D model download), parallax with the pointer, and disperse as you scroll into the story (pinned score build → the RUN stamp demo → cinematic b-roll → product tour). Everything degrades to a fully static page under `prefers-reduced-motion`, falls back to poster art without WebGL, and ships in lazy chunks (`Landing` ~54KB gz, three.js ~128KB gz) so the main app bundle is untouched. The VIN lookup moved to **`/lookup`**.
 
+**Hero refresh (June 2026):** the current landing hero now mounts the design-handoff `<hero-particles>` web component from `client/public/hero/hero-particles.js` and its sibling `cars/` metadata/PNG assets. The copy column follows the final handoff spec ("Don't buy on hope. Buy on evidence."), the primary CTA routes to `/lookup`, and the secondary CTA starts the Quick guided tour. The engine keeps reduced-motion behavior, resize handling, car-index persistence (`carAdvisorHero.carIdx`), and the five-car loop order specified by the handoff.
+
 The **brand mark** is the wordless raster logo at `docs/images/caradvisor-logo-nowords.png`, resized into `client/public/brand/` (caradvisor-logo-nowords, favicon-32, apple-touch-icon, icon-512) and rendered by `client/src/components/Logo.tsx` with a rounded crop — wired into the favicon set, NavBar, footer, and login (the GOGETTER / CAR ADVISOR wordmark renders as text beside it). OG/Twitter card art still renders from SVG via `scripts/render-brand-pngs.mjs`. Browser QA is scripted in `scripts/qa-browser.mjs` (puppeteer-core + system Chrome): all routes × 4 breakpoints, console/overflow/FPS/reduced-motion checks.
 
 ## Login page (cinematic video background)
@@ -136,6 +139,7 @@ A licensed real-listings API (the provider boundary is ready — Marketcheck/Aut
 | `client/src/contexts/ThemeContext.tsx` | Light/dark/system theme state (localStorage-persisted, OS-following in system mode; default dark). |
 | `client/src/tour/` | Guided-tour engine (driver.js provider, steps, sample-data fixtures, prompt card, "?" help menu, completion tracking). |
 | `client/src/landing/` | GSAP scroll story + Three.js particle hero (lazy chunk). |
+| `client/public/hero/` | Public static assets for the landing hero: `hero-particles.js`, `cars/meta.json`, and five duotone car PNG cutouts used by the `<hero-particles>` custom element. |
 
 ## Testing
 

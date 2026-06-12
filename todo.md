@@ -281,6 +281,13 @@ Built from the June 9, 2026 strategy meeting + the real-world car-search researc
 - [x] Env + docs handoff cleanup per `docs/skills/`: `.env` ↔ `.env.local.example` audited and mirrored section-for-section (added the code-referenced `LLM_JSON_SCHEMA`; removed the unused `CLOUDINARY_API_KEY`/`CLOUDINARY_API_SECRET` — `CLOUDINARY_URL` embeds both); README refreshed
 - [x] Verified: `pnpm build:functions` + `pnpm check` clean · `pnpm test` 186/188 — the 2 failures are the pre-existing config-router timeout flake (see Known Issues)
 
+## June 12, 2026 — Handoff-driven landing hero (delivered)
+
+- [x] Replaced the first-screen landing hero shell with the Car Advisor hero design handoff: left-column evidence-first copy, Instrument Serif/Sans typography, gold haze/vignette/ground-glow layers, `/lookup` primary CTA, and Quick Tour secondary CTA
+- [x] Added the production static hero package under `client/public/hero/`: `<hero-particles>` web component plus the five duotone car cutouts and metadata for Polestar 5 → Toyota 4Runner → Toyota Camry → Mazda CX-5 → Honda Accord
+- [x] Preserved the handoff engine's reduced-motion static composition, resize handling, car-index persistence, and asset-relative metadata/PNG resolution via `data-assets-base="/hero/"`
+- [x] README refreshed with the new stable hero behavior and asset location
+
 ## v9 — Path to ZERO mock/demo data (planned roadmap)
 
 Everything below is what remains between today's build and an app with no mock, seeded,
