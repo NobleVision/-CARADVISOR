@@ -7,18 +7,17 @@
   if (customElements.get('hero-particles')) return;
 
   var VW = 1000, VH = 460, GROUND = 404;
-  var T_SWIRL = 1.6, T_COND = 2.0, T_IN = 0.8, T_HOLD = 1.4, T_OUT = 0.8, T_DISS = 2.1;
+  var T_SWIRL = 1.6, T_COND = 2.0, T_IN = 0.8, T_HOLD = 3.0, T_OUT = 0.8, T_DISS = 2.1;
   var B_COND = T_SWIRL;                 // 1.6
   var B_IN = B_COND + T_COND;           // 3.6
   var B_HOLD = B_IN + T_IN;             // 4.4
-  var B_OUT = B_HOLD + T_HOLD;          // 5.8
-  var B_DISS = B_OUT + T_OUT;           // 6.6
-  var T_TOTAL = B_DISS + T_DISS;        // 8.7
+  var B_OUT = B_HOLD + T_HOLD;          // 7.4
+  var B_DISS = B_OUT + T_OUT;           // 8.2
+  var T_TOTAL = B_DISS + T_DISS;        // 10.3
   var GOLD = '212,175,106';
   var LS_KEY = 'carAdvisorHero.carIdx';
 
   var CARS = [
-    { key: 'polestar5', name: 'Polestar 5', tag: '2026 · electric grand tourer', destW: 880 },
     { key: 'runner',    name: 'Toyota 4Runner', tag: '2026 · trail SUV',          destW: 800 },
     { key: 'camry',     name: 'Toyota Camry', tag: '2026 · hybrid sedan',          destW: 840 },
     { key: 'cx5',       name: 'Mazda CX-5', tag: '2026 · compact SUV',             destW: 740 },
@@ -62,6 +61,7 @@
 
   HeroParticles.prototype.connectedCallback = function () {
     if (this.__init) {
+      if (this.__attachParallax) this.__attachParallax();
       if (this.__startStop) this.__startStop();
       return;
     }
@@ -259,14 +259,114 @@
     }
     setLabel(carIdx);
 
-    function drawCar(g, car, alpha, beat, sheen) {
+    var parallax = { x: 0, y: 0, tx: 0, ty: 0, power: 0, targetPower: 0, selected: false, pointerId: null };
+
+    function currentCarScreenRect(pad) {
+      var car = CARS[carIdx];
+      if (!ready || !car || !car.rect) return null;
+      var R = car.rect;
+      var padX = pad == null ? Math.max(24, R.w * scl * 0.08) : pad;
+      var padY = pad == null ? Math.max(18, R.h * scl * 0.18) : pad * 0.7;
+      return {
+        x: ox + R.x * scl - padX,
+        y: oy + R.y * scl - padY,
+        w: R.w * scl + padX * 2,
+        h: R.h * scl + padY * 2
+      };
+    }
+
+    function pointerWithinCar(e) {
+      var hostRect = host.getBoundingClientRect();
+      var carRect = currentCarScreenRect();
+      if (!carRect || hostRect.width < 10 || hostRect.height < 10) return false;
+      var x = e.clientX - hostRect.left;
+      var y = e.clientY - hostRect.top;
+      return x >= carRect.x && x <= carRect.x + carRect.w && y >= carRect.y && y <= carRect.y + carRect.h;
+    }
+
+    function setParallaxTarget(e, selected) {
+      var hostRect = host.getBoundingClientRect();
+      var carRect = currentCarScreenRect(52);
+      if (!carRect || hostRect.width < 10 || hostRect.height < 10) return;
+      var x = e.clientX - hostRect.left;
+      var y = e.clientY - hostRect.top;
+      parallax.tx = clamp01((x - carRect.x) / carRect.w) * 2 - 1;
+      parallax.ty = clamp01((y - carRect.y) / carRect.h) * 2 - 1;
+      parallax.targetPower = selected ? 1 : 0.42;
+    }
+
+    function resetParallaxTarget() {
+      parallax.tx = 0;
+      parallax.ty = 0;
+      parallax.targetPower = 0;
+    }
+
+    function onPointerDown(e) {
+      if (e.button != null && e.button !== 0) return;
+      if (!pointerWithinCar(e)) return;
+      parallax.selected = true;
+      parallax.pointerId = e.pointerId == null ? null : e.pointerId;
+      setParallaxTarget(e, true);
+    }
+
+    function onPointerMove(e) {
+      if (parallax.selected && (parallax.pointerId == null || e.pointerId === parallax.pointerId)) {
+        setParallaxTarget(e, true);
+        return;
+      }
+      if (pointerWithinCar(e)) setParallaxTarget(e, false);
+      else resetParallaxTarget();
+    }
+
+    function onPointerUp(e) {
+      if (!parallax.selected) return;
+      if (e.type !== 'blur' && parallax.pointerId != null && e.pointerId !== parallax.pointerId) return;
+      parallax.selected = false;
+      parallax.pointerId = null;
+      resetParallaxTarget();
+    }
+
+    function attachParallaxListeners() {
+      if (host.__parallaxAttached) return;
+      host.__parallaxAttached = true;
+      window.addEventListener('pointerdown', onPointerDown, { passive: true });
+      window.addEventListener('pointermove', onPointerMove, { passive: true });
+      window.addEventListener('pointerup', onPointerUp, { passive: true });
+      window.addEventListener('pointercancel', onPointerUp, { passive: true });
+      window.addEventListener('blur', onPointerUp);
+    }
+
+    function detachParallaxListeners() {
+      if (!host.__parallaxAttached) return;
+      host.__parallaxAttached = false;
+      window.removeEventListener('pointerdown', onPointerDown);
+      window.removeEventListener('pointermove', onPointerMove);
+      window.removeEventListener('pointerup', onPointerUp);
+      window.removeEventListener('pointercancel', onPointerUp);
+      window.removeEventListener('blur', onPointerUp);
+    }
+
+    this.__attachParallax = attachParallaxListeners;
+    this.__detachParallax = detachParallaxListeners;
+    attachParallaxListeners();
+
+    function drawCar(g, car, alpha, beat, sheen, motion) {
       if (!car.img || !car.rect || alpha <= 0.004) return;
       var R = car.rect;
+      motion = motion || { x: 0, y: 0, rot: 0, scale: 1 };
+      var cx = R.x + R.w * 0.5;
+      var cy = R.y + R.h * 0.58;
       g.save();
       g.globalAlpha = alpha;
 
+      if (motion.x || motion.y || motion.rot || motion.scale !== 1) {
+        g.translate(cx + motion.x, cy + motion.y);
+        g.rotate(motion.rot || 0);
+        g.scale(motion.scale || 1, motion.scale || 1);
+        g.translate(-cx, -cy);
+      }
+
       // ground shadow + gold floor glow
-      var cx = R.x + R.w * 0.5;
       var grd = g.createRadialGradient(cx, GROUND + 6, 10, cx, GROUND + 6, R.w * 0.55);
       grd.addColorStop(0, 'rgba(0,0,0,0.65)');
       grd.addColorStop(0.55, 'rgba(' + GOLD + ',' + (0.05 + 0.10 * beat).toFixed(3) + ')');
@@ -387,14 +487,29 @@
       var k = 1 - Math.pow(0.0001, dt);
       var damp = Math.pow(0.082, dt);
       var amp = ph.noiseAmp;
+      var parallaxEase = 1 - Math.pow(0.002, dt);
+      parallax.x += (parallax.tx - parallax.x) * parallaxEase;
+      parallax.y += (parallax.ty - parallax.y) * parallaxEase;
+      parallax.power += (parallax.targetPower - parallax.power) * parallaxEase;
+      var motionPower = parallax.power * clamp01(ph.carAlpha * 1.4);
+      var motionX = parallax.x * motionPower;
+      var motionY = parallax.y * motionPower;
+      var carMotion = {
+        x: motionX * 26,
+        y: motionY * 14,
+        rot: motionX * 0.018,
+        scale: 1 + motionPower * 0.012
+      };
+      var particlePushX = motionX * 14;
+      var particlePushY = motionY * 8;
       for (var n = 0; n < COUNT; n++) {
         var q = parts[n];
         if (pendingIdx >= 0 && !q.switched && tc >= q.switchT) {
           pickTarget(pendingIdx, q);
           q.switched = true;
         }
-        var ttx = q.tx + (Math.sin(t * q.sp + q.ph) + 0.5 * Math.sin(q.ty * 0.021 + t * 0.8)) * amp;
-        var tty = q.ty + (Math.cos(t * q.sp * 0.83 + q.ph * 1.7) + 0.5 * Math.cos(q.tx * 0.017 - t * 0.6)) * amp * 0.8;
+        var ttx = q.tx + particlePushX + (Math.sin(t * q.sp + q.ph) + 0.5 * Math.sin(q.ty * 0.021 + t * 0.8)) * amp;
+        var tty = q.ty + particlePushY + (Math.cos(t * q.sp * 0.83 + q.ph * 1.7) + 0.5 * Math.cos(q.tx * 0.017 - t * 0.6)) * amp * 0.8;
         q.vx += (ttx - q.x) * k * 2.6;
         q.vy += (tty - q.y) * k * 2.6;
         q.vx *= damp; q.vy *= damp;
@@ -411,7 +526,7 @@
         dpr * (ox + camX * scl + pivX * scl * (1 - camS)),
         dpr * (oy + camY * scl + pivY * scl * (1 - camS)));
 
-      drawCar(ctx, car, ph.carAlpha, ph.beat, ph.sheen);
+      drawCar(ctx, car, ph.carAlpha, ph.beat, ph.sheen, carMotion);
 
       ctx.globalCompositeOperation = 'lighter';
       var dimmer = 1 - ph.carAlpha * 0.42;
@@ -457,6 +572,7 @@
 
   HeroParticles.prototype.disconnectedCallback = function () {
     if (this.__raf) { cancelAnimationFrame(this.__raf); this.__raf = 0; }
+    if (this.__detachParallax) this.__detachParallax();
   };
 
   customElements.define('hero-particles', HeroParticles);

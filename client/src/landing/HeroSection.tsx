@@ -24,7 +24,7 @@ function useHeroParticlesScript() {
 /**
  * Reference-package hero implementation. The copy layer is real DOM (selectable,
  * clickable, z-indexed above the canvas) while the vanilla <hero-particles>
- * engine owns the right-side five-car morph loop from /public/hero/.
+ * engine owns the right-side four-car morph loop from /public/hero/.
  */
 export function HeroSection() {
   const sectionRef = useRef<HTMLElement>(null);

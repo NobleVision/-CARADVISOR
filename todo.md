@@ -1,7 +1,7 @@
 # GOGETTER AI Used Car Advisor — Project TODO
 
-**Last Updated:** June 11, 2026
-**Status:** v1–v8 shipped, plus the June 11 enhancements (location input, Min Price, theming, wordless brand mark). Active work = the v9 "zero mock data" roadmap below; open items live in **🐛 Known Issues** at the bottom. Project overview + setup: [README.md](README.md).
+**Last Updated:** June 12, 2026
+**Status:** v1–v8 shipped, plus the June 11 enhancements (location input, Min Price, theming, wordless brand mark) and June 12 landing-hero refinement (four-car carousel, 3-second hold, selected-car parallax). Active work = the v9 "zero mock data" roadmap below; open items live in **🐛 Known Issues** at the bottom. Project overview + setup: [README.md](README.md).
 
 ## Foundation
 - [x] Establish elegant design system (typography, color palette, theming) in index.css + index.html
@@ -284,9 +284,11 @@ Built from the June 9, 2026 strategy meeting + the real-world car-search researc
 ## June 12, 2026 — Handoff-driven landing hero (delivered)
 
 - [x] Replaced the first-screen landing hero shell with the Car Advisor hero design handoff: left-column evidence-first copy, Instrument Serif/Sans typography, gold haze/vignette/ground-glow layers, `/lookup` primary CTA, and Quick Tour secondary CTA
-- [x] Added the production static hero package under `client/public/hero/`: `<hero-particles>` web component plus the five duotone car cutouts and metadata for Polestar 5 → Toyota 4Runner → Toyota Camry → Mazda CX-5 → Honda Accord
+- [x] Added the production static hero package under `client/public/hero/`: `<hero-particles>` web component plus duotone car cutouts and metadata; the public rotation now uses Toyota 4Runner → Toyota Camry → Mazda CX-5 → Honda Accord (Polestar 5 removed from the hero carousel)
 - [x] Preserved the handoff engine's reduced-motion static composition, resize handling, car-index persistence, and asset-relative metadata/PNG resolution via `data-assets-base="/hero/"`
+- [x] Refined the carousel timing and motion: each assembled car holds for 3 seconds before shifting, and pointer/press parallax lets users move the selected car without blocking CTA clicks
 - [x] README refreshed with the new stable hero behavior and asset location
+- [x] Verified: `pnpm check` clean · `pnpm test` 191 passing · `pnpm build` succeeds (large Vite chunk warning remains non-blocking)
 
 ## v9 — Path to ZERO mock/demo data (planned roadmap)
 
@@ -358,5 +360,4 @@ deliberately static sample data by design and stay.
 ## 🐛 Known Issues
 
 - [ ] **Flaky `config.public` tests on slow machines** — the 2 tests in `server/routers/config.router.test.ts` can exceed Vitest's default 5000ms timeout: `freshCaller` does `vi.resetModules()` + a dynamic re-import of the entire `appRouter` graph per test. Pre-existing (reproduced at commit `d066560`, before any June 11 work). Suggested fix: per-test `{ timeout: 20_000 }`.
-- [ ] **Uncommitted handoff-cleanup edits** — `.env.local.example`, `README.md`, and `todo.md` (this file) carry the June 11 env/docs cleanup and are not yet committed; everything else is on `origin/main` (`1899721`).
 - [ ] **README MD060 lint** — pre-existing table-style warnings on the compact `|---|` delimiter rows; cosmetic only.
