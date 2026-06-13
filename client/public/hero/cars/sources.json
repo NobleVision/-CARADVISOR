@@ -1,0 +1,842 @@
+{
+  "version": 1,
+  "updatedAt": "2026-06-13",
+  "approvalPolicy": "Candidates are research/staging records only. Do not download, import, replace, or activate a candidate unless source approval and visual approval are both recorded and the import/replace script is run with --approved <key>.",
+  "demandSources": [
+    {
+      "id": "kbb-best-selling-current",
+      "name": "Kelley Blue Book / Cox Automotive best-selling cars, trucks, and SUVs coverage",
+      "url": "https://www.kbb.com/car-news/best-selling-cars-trucks-suvs/",
+      "publisher": "Kelley Blue Book / Cox Automotive",
+      "accessedAt": "2026-06-13",
+      "notes": "Use as a current U.S. sales-demand cross-check before approving the final active hero list."
+    },
+    {
+      "id": "edmunds-best-selling-current",
+      "name": "Edmunds best-selling cars, trucks, and SUVs coverage",
+      "url": "https://www.edmunds.com/car-news/best-selling-cars-trucks-and-suvs.html",
+      "publisher": "Edmunds",
+      "accessedAt": "2026-06-13",
+      "notes": "Use as an independent model-demand check for mainstream shopper vehicles."
+    },
+    {
+      "id": "goodcarbadcar-model-sales-current",
+      "name": "GoodCarBadCar U.S. model sales tables",
+      "url": "https://www.goodcarbadcar.net/2025-u-s-auto-sales-figures-by-model/",
+      "publisher": "GoodCarBadCar",
+      "accessedAt": "2026-06-13",
+      "notes": "Use only for demand ranking; do not source imagery from this site."
+    }
+  ],
+  "candidates": [
+    {
+      "key": "toyota-rav4-hybrid",
+      "vehicleName": "Toyota RAV4 Hybrid",
+      "tag": "2026 · compact hybrid SUV",
+      "destW": 800,
+      "action": "add",
+      "priority": 1,
+      "status": "imported-active",
+      "demandRationale": [
+        "Compact SUVs and hybrid trims are core U.S. shopper segments for a general car-advice landing page.",
+        "RAV4 is consistently represented in mainstream best-seller lists, making it a high-recognition hero candidate."
+      ],
+      "sourceCandidates": [
+        {
+          "label": "Toyota Pressroom direct image — 2026 Toyota RAV4 PHEV GR Sport studio",
+          "url": "https://pressroom.toyota.com/wp-content/uploads/2025/05/2026-Toyota-RAV4-PHEV_GRSport_Studio_002.jpg",
+          "domain": "pressroom.toyota.com",
+          "sourceType": "official-oem-direct-image",
+          "licenseStatus": "user-approved-for-download-and-staging-only",
+          "approvedForDownload": true,
+          "sourcePage": "https://pressroom.toyota.com/three-two-one-toyota-debuts-amazing-all-new-rav4/",
+          "notes": "Verified by HEAD as image/jpeg. This is a Toyota official RAV4 PHEV/GR Sport studio image; approve only if PHEV/GR Sport is acceptable for the RAV4 Hybrid slot. Exact 2026 HEV images on Toyota S3 require referer-gated access, so this pressroom-hosted direct JPG is the automation-friendly source.",
+          "approvedBy": "user",
+          "approvedAt": "2026-06-13T14:45:56Z"
+        },
+        {
+          "label": "Toyota USA Newsroom / RAV4 media images",
+          "url": "https://pressroom.toyota.com/",
+          "domain": "pressroom.toyota.com",
+          "sourceType": "official-oem-media-page",
+          "licenseStatus": "needs-final-OEM-media-terms-review-before-download",
+          "approvedForDownload": false,
+          "notes": "Use only an official Toyota media/press image with clear reuse terms; avoid dealer inventory photos."
+        }
+      ],
+      "approval": {
+        "source": true,
+        "visual": true,
+        "import": true,
+        "approvedBy": "user",
+        "approvedAt": "2026-06-13T14:45:56Z"
+      }
+    },
+    {
+      "key": "honda-cr-v-hybrid",
+      "vehicleName": "Honda CR-V Hybrid",
+      "tag": "2026 · hybrid crossover",
+      "destW": 800,
+      "action": "add",
+      "priority": 2,
+      "status": "imported-active",
+      "demandRationale": [
+        "CR-V is a mainstream compact SUV that overlaps strongly with practical used/new-car shoppers.",
+        "Hybrid positioning complements CarAdvisor's evidence-over-hype buyer message."
+      ],
+      "sourceCandidates": [
+        {
+          "label": "Honda News direct image — 2026 Honda CR-V Sport Touring Hybrid exterior option 18",
+          "url": "https://wieck-honda-production.s3.amazonaws.com/photos/ae0ac1ebe2692c5709a9e2da0a1709e5370b229c/preview-928x522.jpg",
+          "domain": "wieck-honda-production.s3.amazonaws.com",
+          "sourceType": "official-oem-direct-image",
+          "licenseStatus": "user-approved-for-download-and-staging-only",
+          "approvedForDownload": true,
+          "approvedBy": "user",
+          "approvedAt": "2026-06-13T14:55:16Z",
+          "sourcePage": "https://hondanews.com/en-US/honda-automobiles/releases/release-0d29cf91ab5515b985a1c286910cc6fb-rugged-electrified-and-refreshed-best-selling-honda-cr-v-gains-new-trailsport-hybrid-trim-and-more-stand",
+          "notes": "Switched from cargo/interior option 27 to exterior option 18 after cutout QA; official Honda News/Wieck media asset, HEAD 200 image/jpeg."
+        },
+        {
+          "label": "Honda News direct image — 2026 Honda CR-V Sport Touring Hybrid",
+          "url": "https://wieck-honda-production.s3.amazonaws.com/photos/3d9583b4a74260c7694440126be9bc00c127ce66/preview-928x522.jpg",
+          "domain": "wieck-honda-production.s3.amazonaws.com",
+          "sourceType": "official-oem-direct-image",
+          "licenseStatus": "user-approved-for-download-and-staging-only",
+          "approvedForDownload": false,
+          "sourcePage": "https://hondanews.com/en-US/honda-automobiles/releases/release-0d29cf91ab5515b985a1c286910cc6fb-rugged-electrified-and-refreshed-best-selling-honda-cr-v-gains-new-trailsport-hybrid-trim-and-more-stand",
+          "notes": "Verified by HEAD as image/jpeg. Official Honda News/Wieck media asset, preview-sized 928x522; adequate for an ~800px hero source after cutout if visual quality passes.",
+          "approvedBy": "user",
+          "approvedAt": "2026-06-13T14:45:56Z"
+        },
+        {
+          "label": "Honda Newsroom CR-V images",
+          "url": "https://hondanews.com/en-US/honda-automobiles/channels/cr-v",
+          "domain": "hondanews.com",
+          "sourceType": "official-oem-media-page",
+          "licenseStatus": "needs-final-OEM-media-terms-review-before-download",
+          "approvedForDownload": false,
+          "notes": "Prefer clean side or front-three-quarter media cutouts from Honda Newsroom."
+        }
+      ],
+      "approval": {
+        "source": true,
+        "visual": true,
+        "import": true,
+        "approvedBy": "user",
+        "approvedAt": "2026-06-13T14:55:16Z"
+      }
+    },
+    {
+      "key": "honda-civic",
+      "vehicleName": "Honda Civic",
+      "tag": "2026 · compact sedan",
+      "destW": 820,
+      "action": "add",
+      "priority": 3,
+      "status": "imported-active",
+      "demandRationale": [
+        "Civic keeps the active rotation from skewing only SUV/truck and represents budget-conscious mainstream buyers.",
+        "The model has strong recognition in new and used shopping flows."
+      ],
+      "sourceCandidates": [
+        {
+          "label": "Honda News direct image — 2026 Honda Civic Hybrid",
+          "url": "https://wieck-honda-production.s3.amazonaws.com/photos/8167b82614b1d70815fbdd1456c228cdb91c03d0/preview-928x522.jpg",
+          "domain": "wieck-honda-production.s3.amazonaws.com",
+          "sourceType": "official-oem-direct-image",
+          "licenseStatus": "user-approved-for-download-and-staging-only",
+          "approvedForDownload": true,
+          "sourcePage": "https://hondanews.com/en-US/honda-automobiles/releases/release-0d0c9aa2f0868f6c47f73a03ac012abf-2026-honda-civic-hybrid-wins-edmunds-top-rated-2026-award",
+          "notes": "Verified by HEAD as image/jpeg. Official Honda News/Wieck media asset, preview-sized 928x522; adequate for an ~800px hero source after cutout if visual quality passes.",
+          "approvedBy": "user",
+          "approvedAt": "2026-06-13T14:45:56Z"
+        },
+        {
+          "label": "Honda Newsroom Civic images",
+          "url": "https://hondanews.com/en-US/honda-automobiles/channels/civic",
+          "domain": "hondanews.com",
+          "sourceType": "official-oem-media-page",
+          "licenseStatus": "needs-final-OEM-media-terms-review-before-download",
+          "approvedForDownload": false,
+          "notes": "Prefer an official media image with no watermark or dealer plate."
+        }
+      ],
+      "approval": {
+        "source": true,
+        "visual": true,
+        "import": true,
+        "approvedBy": "user",
+        "approvedAt": "2026-06-13T14:45:56Z"
+      }
+    },
+    {
+      "key": "subaru-forester",
+      "vehicleName": "Subaru Forester",
+      "tag": "2026 · all-weather SUV",
+      "destW": 780,
+      "action": "add",
+      "priority": 4,
+      "status": "imported-active",
+      "demandRationale": [
+        "Forester broadens the rotation to safety/all-weather shoppers and practical family buyers.",
+        "It visually complements compact SUV candidates while adding brand variety."
+      ],
+      "sourceCandidates": [
+        {
+          "label": "Subaru Media direct image — Subaru Forester Wilderness Hybrid exterior teaser",
+          "url": "https://s3.amazonaws.com/subarumedia.iconicweb.com/mediasite/teaserImages/TEASER2026_Subaru_Forester_Wilderness_Hybrid_01.jpg",
+          "domain": "s3.amazonaws.com",
+          "sourceType": "official-oem-direct-image",
+          "licenseStatus": "user-approved-for-download-and-staging-only",
+          "approvedForDownload": true,
+          "approvedBy": "user",
+          "approvedAt": "2026-06-13T14:55:16Z",
+          "sourcePage": "https://media.subaru.com/pressrelease/2439/1/subaru-debuts-new-2027-subaru-forester-wilderness-hybrid",
+          "notes": "Switched from motion road image to full exterior Wilderness Hybrid image after cutout QA; official Subaru U.S. Media Center asset."
+        },
+        {
+          "label": "Subaru Media direct image — 2026 Subaru Forester Hybrid teaser",
+          "url": "https://s3.amazonaws.com/subarumedia.iconicweb.com/mediasite/teaserImages/TEASER2026-Subaru-Forester-Hybrid.jpg",
+          "domain": "s3.amazonaws.com",
+          "sourceType": "official-oem-direct-image",
+          "licenseStatus": "user-approved-for-download-and-staging-only",
+          "approvedForDownload": false,
+          "sourcePage": "https://media.subaru.com/pressrelease/2421/1/subaru-focuses-consumer-affordability-excellent-value-updated-pricing",
+          "notes": "Verified by HEAD as image/jpeg. Official Subaru U.S. Media Center asset referenced by the 2026 Forester pricing/Hybrid media page.",
+          "approvedBy": "user",
+          "approvedAt": "2026-06-13T14:45:56Z"
+        },
+        {
+          "label": "Subaru U.S. Media Center Forester images",
+          "url": "https://media.subaru.com/",
+          "domain": "media.subaru.com",
+          "sourceType": "official-oem-media-page",
+          "licenseStatus": "needs-final-OEM-media-terms-review-before-download",
+          "approvedForDownload": false,
+          "notes": "Use only official Subaru media assets with reuse permission."
+        }
+      ],
+      "approval": {
+        "source": true,
+        "visual": true,
+        "import": true,
+        "approvedBy": "user",
+        "approvedAt": "2026-06-13T14:55:16Z"
+      }
+    },
+    {
+      "key": "tesla-model-y",
+      "vehicleName": "Tesla Model Y",
+      "tag": "2026 · electric crossover",
+      "destW": 800,
+      "action": "add",
+      "priority": 5,
+      "status": "imported-active",
+      "demandRationale": [
+        "Model Y covers the high-intent EV/crossover segment and is highly recognizable to current shoppers.",
+        "Including one EV candidate makes the hero rotation feel current without over-indexing on EVs."
+      ],
+      "sourceCandidates": [
+        {
+          "label": "Tesla official CDN direct image — Model Y homepage exterior",
+          "url": "https://digitalassets.tesla.com/tesla-contents/image/upload/f_auto,q_auto/Homepage-Model-Y-Desktop-US.png",
+          "domain": "digitalassets.tesla.com",
+          "sourceType": "official-oem-direct-image",
+          "licenseStatus": "user-approved-for-download-and-staging-only",
+          "approvedForDownload": true,
+          "approvedBy": "user",
+          "approvedAt": "2026-06-13T14:55:16Z",
+          "sourcePage": "https://www.tesla.com/modely",
+          "notes": "Switched from moving road side-profile to cleaner blue exterior homepage image after cutout QA; official Tesla digital asset, HEAD 200 image/jpeg."
+        },
+        {
+          "label": "Tesla official CDN direct image — Model Y main hero",
+          "url": "https://digitalassets.tesla.com/tesla-contents/image/upload/f_auto,q_auto/Model-Y-Main-Hero-Desktop-Global.jpg",
+          "domain": "digitalassets.tesla.com",
+          "sourceType": "official-oem-direct-image",
+          "licenseStatus": "user-approved-for-download-and-staging-only",
+          "approvedForDownload": false,
+          "sourcePage": "https://www.tesla.com/modely",
+          "notes": "Verified by HEAD as image/jpeg. Official Tesla digital asset URL; Tesla public pages/presskit may return 403 from WSL, but this direct asset is reachable.",
+          "approvedBy": "user",
+          "approvedAt": "2026-06-13T14:45:56Z"
+        },
+        {
+          "label": "Tesla official press/media resources",
+          "url": "https://www.tesla.com/presskit",
+          "domain": "tesla.com",
+          "sourceType": "official-oem-media-page",
+          "licenseStatus": "needs-final-OEM-media-terms-review-before-download",
+          "approvedForDownload": false,
+          "notes": "Verify media permissions and avoid owner/dealer photos."
+        }
+      ],
+      "approval": {
+        "source": true,
+        "visual": true,
+        "import": true,
+        "approvedBy": "user",
+        "approvedAt": "2026-06-13T14:55:16Z"
+      }
+    },
+    {
+      "key": "toyota-tacoma",
+      "vehicleName": "Toyota Tacoma",
+      "tag": "2026 · midsize truck",
+      "destW": 830,
+      "action": "add",
+      "priority": 6,
+      "status": "imported-active",
+      "demandRationale": [
+        "Tacoma adds a truck silhouette without dominating the rotation with full-size pickup scale.",
+        "It is a practical alternative to F-150 if visual consistency with compact SUVs is the top priority."
+      ],
+      "sourceCandidates": [
+        {
+          "label": "Toyota Pressroom direct image — 2026 Toyota Tacoma Limited exterior option 012",
+          "url": "https://pressroom.toyota.com/wp-content/uploads/2025/11/2026_Toyota_Tacoma_Limited_012.jpg",
+          "domain": "pressroom.toyota.com",
+          "sourceType": "official-oem-direct-image",
+          "licenseStatus": "user-approved-for-download-and-staging-only",
+          "approvedForDownload": true,
+          "approvedBy": "user",
+          "approvedAt": "2026-06-13T14:55:16Z",
+          "sourcePage": "https://pressroom.toyota.com/the-2026-toyota-tacoma-adventure-awaits/",
+          "notes": "Switched from option 001 with foreground obstruction to cleaner full exterior option 012 after cutout QA; official Toyota Pressroom source."
+        },
+        {
+          "label": "Toyota Pressroom direct image — 2026 Toyota Tacoma Limited",
+          "url": "https://pressroom.toyota.com/wp-content/uploads/2025/11/2026_Toyota_Tacoma_Limited_001.jpg",
+          "domain": "pressroom.toyota.com",
+          "sourceType": "official-oem-direct-image",
+          "licenseStatus": "user-approved-for-download-and-staging-only",
+          "approvedForDownload": false,
+          "sourcePage": "https://pressroom.toyota.com/the-2026-toyota-tacoma-adventure-awaits/",
+          "notes": "Verified by HEAD as image/jpeg. Large official Toyota Pressroom source; likely needs downscaling/background removal before staging.",
+          "approvedBy": "user",
+          "approvedAt": "2026-06-13T14:45:56Z"
+        },
+        {
+          "label": "Toyota USA Newsroom / Tacoma media images",
+          "url": "https://pressroom.toyota.com/",
+          "domain": "pressroom.toyota.com",
+          "sourceType": "official-oem-media-page",
+          "licenseStatus": "needs-final-OEM-media-terms-review-before-download",
+          "approvedForDownload": false,
+          "notes": "Use a side or clean front-three-quarter studio/press image."
+        }
+      ],
+      "approval": {
+        "source": true,
+        "visual": true,
+        "import": true,
+        "approvedBy": "user",
+        "approvedAt": "2026-06-13T14:55:16Z"
+      }
+    },
+    {
+      "key": "ford-f-150",
+      "vehicleName": "Ford F-150",
+      "tag": "2026 · full-size truck",
+      "destW": 860,
+      "action": "add",
+      "priority": 7,
+      "status": "imported-active",
+      "demandRationale": [
+        "F-Series demand is large, but the full-size truck silhouette may be harder to scale consistently with the current hero family.",
+        "Use as the truck candidate if demand recognition is valued more than visual compactness."
+      ],
+      "sourceCandidates": [
+        {
+          "label": "Ford official asset — 2026 Ford F-150 XLT Chrome Package Argon Blue",
+          "url": "https://www.assets.ford.com/adobe/assets/urn:aaid:aem:ca9583b3-6c04-4511-baf9-59f75e87b3dc/as/2026_F-150_XLT_ChromePackage_ArgonBlue.webp?max-quality=75&crop-names=1_16x9&width=3840",
+          "domain": "www.assets.ford.com",
+          "sourceType": "official-oem-direct-image",
+          "licenseStatus": "user-approved-for-download-and-staging-only",
+          "approvedForDownload": true,
+          "approvedBy": "user",
+          "approvedAt": "2026-06-13T14:55:16Z",
+          "sourcePage": "https://www.ford.com/trucks/f150/",
+          "notes": "Switched from low-contrast silver Lariat source to higher-contrast blue XLT source after cutout QA; official Ford assets CDN, HEAD 200 image/jpeg."
+        },
+        {
+          "label": "Ford official asset — 2026 Ford F-150 Lariat Black Appearance Package",
+          "url": "https://www.assets.ford.com/adobe/assets/urn:aaid:aem:48f4c65c-706f-4966-b488-fdf51ff139fb/as/2026_F-150_Lariat_BlackAppearancePackage_IconicSilver.webp?max-quality=75&crop-names=1_16x9&width=3840",
+          "domain": "www.assets.ford.com",
+          "sourceType": "official-oem-direct-image",
+          "licenseStatus": "user-approved-for-download-and-staging-only",
+          "approvedForDownload": false,
+          "sourcePage": "https://www.ford.com/trucks/f150/",
+          "notes": "Verified by HEAD as image/jpeg from Ford official assets CDN. URL path ends .webp while response is image/jpeg, so it will need conversion/background removal before process-cutout can use a PNG.",
+          "approvedBy": "user",
+          "approvedAt": "2026-06-13T14:45:56Z"
+        },
+        {
+          "label": "Ford Media Center F-150 images",
+          "url": "https://media.ford.com/",
+          "domain": "media.ford.com",
+          "sourceType": "official-oem-media-page",
+          "licenseStatus": "needs-final-OEM-media-terms-review-before-download",
+          "approvedForDownload": false,
+          "notes": "Avoid dealer/marketplace truck photos; verify official media terms."
+        }
+      ],
+      "approval": {
+        "source": true,
+        "visual": true,
+        "import": true,
+        "approvedBy": "user",
+        "approvedAt": "2026-06-13T14:55:16Z"
+      }
+    },
+    {
+      "key": "runner-v2",
+      "vehicleName": "Toyota 4Runner",
+      "tag": "2026 · trail SUV",
+      "destW": 800,
+      "action": "replacement",
+      "replacesKey": "runner",
+      "currentAsset": "cars/toyota-4runner.png",
+      "priority": 8,
+      "status": "replacement-active",
+      "demandRationale": [
+        "Refresh the current 4Runner in the same pipeline so the active set does not mix old and new styles."
+      ],
+      "sourceCandidates": [
+        {
+          "label": "Toyota Pressroom direct image — 2026 Toyota 4Runner TRD Sport exterior",
+          "url": "https://toyota-cms-media.s3.amazonaws.com/wp-content/uploads/2025/10/2026_Toyota_4Runner_TRDSport_1.jpg",
+          "domain": "toyota-cms-media.s3.amazonaws.com",
+          "sourceType": "official-oem-direct-image",
+          "licenseStatus": "user-approved-for-download-and-staging-only",
+          "approvedForDownload": true,
+          "sourcePage": "https://pressroom.toyota.com/vehicle/2026-toyota-4runner/",
+          "notes": "HEAD verified 200 image/jpeg, content-length 1,026,017 bytes. Cleaner mainstream 4Runner trim candidate; likely the best first replacement source if visual consistency beats rugged accessory detail. Selected for first-pass v2 staging after user source approval; live replacement still requires separate visual/replacement approval.",
+          "verification": {
+            "method": "HEAD",
+            "status": 200,
+            "contentType": "image/jpeg",
+            "contentLength": "1026017",
+            "verifiedAt": "2026-06-13T15:43:48Z"
+          },
+          "approvedBy": "user",
+          "approvedAt": "2026-06-13T16:00:52Z",
+          "selectedForStaging": true
+        },
+        {
+          "label": "Toyota Pressroom direct image — 2026 Toyota 4Runner TRD Off-Road exterior",
+          "url": "https://toyota-cms-media.s3.amazonaws.com/wp-content/uploads/2025/10/2026_Toyota_4Runner_TRDOffRoad_1-1.jpg",
+          "domain": "toyota-cms-media.s3.amazonaws.com",
+          "sourceType": "official-oem-direct-image",
+          "licenseStatus": "needs-user-source-approval-before-download",
+          "approvedForDownload": false,
+          "sourcePage": "https://pressroom.toyota.com/vehicle/2026-toyota-4runner/",
+          "notes": "HEAD verified 200 image/jpeg, content-length 1,584,454 bytes. Strong trail-SUV replacement candidate that matches the current runner slot/tag.",
+          "verification": {
+            "method": "HEAD",
+            "status": 200,
+            "contentType": "image/jpeg",
+            "contentLength": "1584454",
+            "verifiedAt": "2026-06-13T15:43:48Z"
+          },
+          "selectedForStaging": false
+        },
+        {
+          "label": "Toyota Pressroom direct image — 2026 Toyota 4Runner Trailhunter exterior",
+          "url": "https://toyota-cms-media.s3.amazonaws.com/wp-content/uploads/2025/10/2026_Toyota_4Runner_TrailHunter_1-1.jpg",
+          "domain": "toyota-cms-media.s3.amazonaws.com",
+          "sourceType": "official-oem-direct-image",
+          "licenseStatus": "needs-user-source-approval-before-download",
+          "approvedForDownload": false,
+          "sourcePage": "https://pressroom.toyota.com/vehicle/2026-toyota-4runner/",
+          "notes": "HEAD verified 200 image/jpeg, content-length 1,739,952 bytes. More rugged/overlanding variant; visually useful backup but roof/accessory detail may be harder to normalize into a clean studio-like family.",
+          "verification": {
+            "method": "HEAD",
+            "status": 200,
+            "contentType": "image/jpeg",
+            "contentLength": "1739952",
+            "verifiedAt": "2026-06-13T15:43:48Z"
+          },
+          "selectedForStaging": false
+        },
+        {
+          "label": "Toyota USA Newsroom / 4Runner vehicle media page",
+          "url": "https://pressroom.toyota.com/vehicle/2026-toyota-4runner/",
+          "domain": "pressroom.toyota.com",
+          "sourceType": "official-oem-media-page",
+          "licenseStatus": "needs-final-OEM-media-terms-review-before-download",
+          "approvedForDownload": false,
+          "notes": "Official Toyota 4Runner media page containing additional 2026 source options; direct URLs above are preferred first-pass candidates.",
+          "selectedForStaging": false
+        }
+      ],
+      "approval": {
+        "source": true,
+        "visual": true,
+        "import": true,
+        "approvedBy": "user",
+        "approvedAt": "2026-06-13T16:17:29.092Z"
+      },
+      "selectedSourceIndex": 0,
+      "selectedSourceApprovedAt": "2026-06-13T16:00:52Z",
+      "stagedAt": "2026-06-13T16:08:35Z",
+      "stagedArtifacts": {
+        "source": "client/public/hero/cars/staged/runner-v2/source.jpg",
+        "cutout": "client/public/hero/cars/staged/runner-v2/cutout.png",
+        "meta": "client/public/hero/cars/staged/runner-v2/meta.json",
+        "preview": "client/public/hero/cars/staged/runner-v2/preview.png"
+      },
+      "liveReplacement": {
+        "replacedKey": "runner",
+        "liveKey": "runner-v2",
+        "asset": "client/public/hero/cars/runner-v2.png",
+        "backup": "client/public/hero/cars/backups/runner-2026-06-13T16-17-29-092Z.png",
+        "replacedAt": "2026-06-13T16:17:29.092Z",
+        "mode": "new-key"
+      }
+    },
+    {
+      "key": "camry-v2",
+      "vehicleName": "Toyota Camry",
+      "tag": "2026 · hybrid sedan",
+      "destW": 840,
+      "action": "replacement",
+      "replacesKey": "camry",
+      "currentAsset": "cars/toyota-camry.png",
+      "priority": 9,
+      "status": "replacement-active",
+      "demandRationale": [
+        "Refresh the current Camry with a photo-real cutout that matches any newly added candidates."
+      ],
+      "sourceCandidates": [
+        {
+          "label": "Toyota Pressroom direct image — 2026 Toyota Camry exterior hero",
+          "url": "https://toyota-cms-media.s3.amazonaws.com/wp-content/uploads/2025/04/2026_Toyota-Camry_001.jpg",
+          "domain": "toyota-cms-media.s3.amazonaws.com",
+          "sourceType": "official-oem-direct-image",
+          "licenseStatus": "user-approved-for-download-and-staging-only",
+          "approvedForDownload": true,
+          "sourcePage": "https://pressroom.toyota.com/vehicle/2026-toyota-camry/",
+          "notes": "HEAD verified 200 image/jpeg, content-length 3,517,308 bytes. Best first-pass Camry replacement candidate because it is a high-resolution official 2026 Camry exterior from the vehicle media page. Selected for first-pass v2 staging after user source approval; live replacement still requires separate visual/replacement approval.",
+          "verification": {
+            "method": "HEAD",
+            "status": 200,
+            "contentType": "image/jpeg",
+            "contentLength": "3517308",
+            "verifiedAt": "2026-06-13T15:43:48Z"
+          },
+          "approvedBy": "user",
+          "approvedAt": "2026-06-13T16:00:52Z",
+          "selectedForStaging": true
+        },
+        {
+          "label": "Toyota Pressroom direct image — 2026 Toyota Camry XSE AWD Heavy Metal / Black Roof",
+          "url": "https://toyota-cms-media.s3.amazonaws.com/wp-content/uploads/2025/04/2026_Camry_XSE_AWD_HeavyMetalBlackRoof_001.jpg",
+          "domain": "toyota-cms-media.s3.amazonaws.com",
+          "sourceType": "official-oem-direct-image",
+          "licenseStatus": "needs-user-source-approval-before-download",
+          "approvedForDownload": false,
+          "sourcePage": "https://pressroom.toyota.com/vehicle/2026-toyota-camry/",
+          "notes": "HEAD verified 200 image/jpeg, content-length 1,092,743 bytes. Sportier trim/color option; good alternate if the primary angle/background does not cut out cleanly.",
+          "verification": {
+            "method": "HEAD",
+            "status": 200,
+            "contentType": "image/jpeg",
+            "contentLength": "1092743",
+            "verifiedAt": "2026-06-13T15:43:48Z"
+          },
+          "selectedForStaging": false
+        },
+        {
+          "label": "Toyota Pressroom direct image — 2026 Toyota Camry SE AWD Supersonic Red",
+          "url": "https://toyota-cms-media.s3.amazonaws.com/wp-content/uploads/2025/04/2026_Camry_SE_AWD_SupersonicRed_001.jpg",
+          "domain": "toyota-cms-media.s3.amazonaws.com",
+          "sourceType": "official-oem-direct-image",
+          "licenseStatus": "needs-user-source-approval-before-download",
+          "approvedForDownload": false,
+          "sourcePage": "https://pressroom.toyota.com/vehicle/2026-toyota-camry/",
+          "notes": "HEAD verified 200 image/jpeg, content-length 1,090,227 bytes. Higher-saturation alternate that may read well on the dark/gold hero background if cutout edges are clean.",
+          "verification": {
+            "method": "HEAD",
+            "status": 200,
+            "contentType": "image/jpeg",
+            "contentLength": "1090227",
+            "verifiedAt": "2026-06-13T15:43:48Z"
+          },
+          "selectedForStaging": false
+        },
+        {
+          "label": "Toyota USA Newsroom / Camry vehicle media page",
+          "url": "https://pressroom.toyota.com/vehicle/2026-toyota-camry/",
+          "domain": "pressroom.toyota.com",
+          "sourceType": "official-oem-media-page",
+          "licenseStatus": "needs-final-OEM-media-terms-review-before-download",
+          "approvedForDownload": false,
+          "notes": "Official Toyota Camry media page containing additional 2026 source options; direct URLs above are preferred first-pass candidates.",
+          "selectedForStaging": false
+        }
+      ],
+      "approval": {
+        "source": true,
+        "visual": true,
+        "import": true,
+        "approvedBy": "user",
+        "approvedAt": "2026-06-13T16:17:29.131Z"
+      },
+      "selectedSourceIndex": 0,
+      "selectedSourceApprovedAt": "2026-06-13T16:00:52Z",
+      "stagedAt": "2026-06-13T16:08:35Z",
+      "stagedArtifacts": {
+        "source": "client/public/hero/cars/staged/camry-v2/source.jpg",
+        "cutout": "client/public/hero/cars/staged/camry-v2/cutout.png",
+        "meta": "client/public/hero/cars/staged/camry-v2/meta.json",
+        "preview": "client/public/hero/cars/staged/camry-v2/preview.png"
+      },
+      "liveReplacement": {
+        "replacedKey": "camry",
+        "liveKey": "camry-v2",
+        "asset": "client/public/hero/cars/camry-v2.png",
+        "backup": "client/public/hero/cars/backups/camry-2026-06-13T16-17-29-131Z.png",
+        "replacedAt": "2026-06-13T16:17:29.131Z",
+        "mode": "new-key"
+      }
+    },
+    {
+      "key": "cx5-v2",
+      "vehicleName": "Mazda CX-5",
+      "tag": "2026 · compact SUV",
+      "destW": 740,
+      "action": "replacement",
+      "replacesKey": "cx5",
+      "currentAsset": "cars/mazda-cx5.png",
+      "priority": 10,
+      "status": "replacement-active",
+      "demandRationale": [
+        "Refresh the current CX-5 to keep scale, contrast, and ground alignment consistent with the proposed SUV additions."
+      ],
+      "sourceCandidates": [
+        {
+          "label": "Mazda USA Newsroom direct image — 2026 Mazda CX-5 Navy Blue Mica",
+          "url": "https://mma.prnewswire.com/media/2860295/2026_CX_5_Navy_Blue_Mica_1.jpg?p=original",
+          "domain": "mma.prnewswire.com",
+          "sourceType": "official-oem-newswire-direct-image",
+          "licenseStatus": "user-approved-for-download-and-staging-only",
+          "approvedForDownload": true,
+          "sourcePage": "https://news.mazdausa.com/2026-01-13-Mazda-Announces-Pricing-and-Packaging-for-All-New-2026-Mazda-CX-5",
+          "notes": "HEAD verified 200 image/jpeg, content-length 110,026 bytes. Official Mazda newsroom/PRNewswire-hosted 2026 CX-5 pricing image; likely smaller than Toyota sources but may be clean enough for an 800px hero cutout. Selected for second-pass v2 staging after the higher-resolution reveal source produced background-removal artifacts. Second-pass staged cutout was held because the source included a visible person/open door, inconsistent with vehicle-only hero assets.",
+          "verification": {
+            "method": "HEAD",
+            "status": 200,
+            "contentType": "image/jpeg",
+            "contentLength": "110026",
+            "verifiedAt": "2026-06-13T15:43:48Z"
+          },
+          "selectedForStaging": false,
+          "approvedBy": "user",
+          "approvedAt": "2026-06-13T16:05:59Z"
+        },
+        {
+          "label": "Mazda USA Newsroom direct image — all-new 2026 Mazda CX-5 reveal",
+          "url": "https://mma.prnewswire.com/media/2728441/Mazda_North_America_Operations_2026_All_New_CX_5.jpg?p=original",
+          "domain": "mma.prnewswire.com",
+          "sourceType": "official-oem-newswire-direct-image",
+          "licenseStatus": "user-approved-for-download-and-staging-only",
+          "approvedForDownload": true,
+          "sourcePage": "https://news.mazdausa.com/2025-07-10-Mazda-Reveals-All-New-2026-CX-5",
+          "notes": "HEAD verified 200 image/jpeg, content-length 2,672,866 bytes. Strong high-resolution 2026 CX-5 source; recommended as the first fallback or primary if the Navy Blue image is too small for clean processing. Selected for first-pass v2 staging after user source approval; live replacement still requires separate visual/replacement approval. First-pass staged cutout was held due to visible background-removal artifacts in the review sheet.",
+          "verification": {
+            "method": "HEAD",
+            "status": 200,
+            "contentType": "image/jpeg",
+            "contentLength": "2672866",
+            "verifiedAt": "2026-06-13T15:43:48Z"
+          },
+          "approvedBy": "user",
+          "approvedAt": "2026-06-13T16:00:52Z",
+          "selectedForStaging": false
+        },
+        {
+          "label": "Mazda USA Newsroom direct image — 2025 Mazda CX-5 pricing fallback",
+          "url": "https://mma.prnewswire.com/media/2461978/Mazda_North_American_Operations_2025_CX_5.jpg?p=original",
+          "domain": "mma.prnewswire.com",
+          "sourceType": "official-oem-newswire-direct-image",
+          "licenseStatus": "user-approved-for-download-and-staging-only",
+          "approvedForDownload": true,
+          "sourcePage": "https://news.mazdausa.com/2024-07-16-2025-Mazda-CX-5-Pricing-and-Packaging",
+          "notes": "HEAD verified 200 image/jpeg, content-length 447,141 bytes. Official 2025 fallback if 2026 all-new shots do not match the desired hero angle/crop. Selected for third-pass v2 staging after prior 2026 options produced background artifacts or included a person/open-door scene.",
+          "verification": {
+            "method": "HEAD",
+            "status": 200,
+            "contentType": "image/jpeg",
+            "contentLength": "447141",
+            "verifiedAt": "2026-06-13T15:43:48Z"
+          },
+          "selectedForStaging": true,
+          "approvedBy": "user",
+          "approvedAt": "2026-06-13T16:07:17Z"
+        },
+        {
+          "label": "Mazda USA Newsroom / CX-5 news releases search",
+          "url": "https://news.mazdausa.com/news-releases?keywords=CX-5",
+          "domain": "news.mazdausa.com",
+          "sourceType": "official-oem-media-page",
+          "licenseStatus": "needs-final-OEM-media-terms-review-before-download",
+          "approvedForDownload": false,
+          "notes": "Official Mazda newsroom search page with CX-5 releases and media assets; direct URLs above are preferred first-pass candidates.",
+          "selectedForStaging": false
+        }
+      ],
+      "approval": {
+        "source": true,
+        "visual": true,
+        "import": true,
+        "approvedBy": "user",
+        "approvedAt": "2026-06-13T16:17:29.167Z"
+      },
+      "selectedSourceIndex": 2,
+      "selectedSourceApprovedAt": "2026-06-13T16:07:17Z",
+      "stagedAt": "2026-06-13T16:08:35Z",
+      "stagedArtifacts": {
+        "source": "client/public/hero/cars/staged/cx5-v2/source.jpg",
+        "cutout": "client/public/hero/cars/staged/cx5-v2/cutout.png",
+        "meta": "client/public/hero/cars/staged/cx5-v2/meta.json",
+        "preview": "client/public/hero/cars/staged/cx5-v2/preview.png"
+      },
+      "liveReplacement": {
+        "replacedKey": "cx5",
+        "liveKey": "cx5-v2",
+        "asset": "client/public/hero/cars/cx5-v2.png",
+        "backup": "client/public/hero/cars/backups/cx5-2026-06-13T16-17-29-167Z.png",
+        "replacedAt": "2026-06-13T16:17:29.167Z",
+        "mode": "new-key"
+      }
+    },
+    {
+      "key": "accord-v2",
+      "vehicleName": "Honda Accord",
+      "tag": "2026 · midsize sedan",
+      "destW": 840,
+      "action": "replacement",
+      "replacesKey": "accord",
+      "currentAsset": "cars/honda-accord.png",
+      "priority": 11,
+      "status": "source-approved-staged-awaiting-visual-review",
+      "demandRationale": [
+        "Refresh the current Accord with the same cutout treatment as any approved new Civic/CR-V candidates."
+      ],
+      "sourceCandidates": [
+        {
+          "label": "Honda News direct image — 2026 Honda Accord Sport-L Hybrid exterior",
+          "url": "https://wieck-honda-production.s3.amazonaws.com/photos/c230399c555d9a312d8d851917cfeb454b63ebb7/preview-928x522.jpg",
+          "domain": "wieck-honda-production.s3.amazonaws.com",
+          "sourceType": "official-oem-direct-image",
+          "licenseStatus": "user-approved-for-download-and-staging-only",
+          "approvedForDownload": true,
+          "sourcePage": "https://hondanews.com/en-US/honda-automobiles/releases/release-c26685400737027f7d053958c30909ed-2026-honda-accord-adds-more-standard-tech-and-sportier-styling-now-arriving-at-dealers",
+          "notes": "HEAD verified 200 image/jpeg, content-length 74,090 bytes. Official Honda News/Wieck 2026 Accord Sport-L Hybrid preview; good first-pass Accord replacement source if preview resolution is sufficient. Selected for first-pass v2 staging after user source approval; live replacement still requires separate visual/replacement approval. First-pass staged cutout needs cleanup around lower wheel/ground contact before visual approval.",
+          "verification": {
+            "method": "HEAD",
+            "status": 200,
+            "contentType": "image/jpeg",
+            "contentLength": "74090",
+            "verifiedAt": "2026-06-13T15:43:48Z"
+          },
+          "approvedBy": "user",
+          "approvedAt": "2026-06-13T16:00:52Z",
+          "selectedForStaging": false
+        },
+        {
+          "label": "Honda News direct image — 2026 Honda Accord SE exterior",
+          "url": "https://wieck-honda-production.s3.amazonaws.com/photos/96711768a25abac8f6ef6333ff81d7c8dc83a32d/preview-928x522.jpg",
+          "domain": "wieck-honda-production.s3.amazonaws.com",
+          "sourceType": "official-oem-direct-image",
+          "licenseStatus": "user-approved-for-download-and-staging-only",
+          "approvedForDownload": true,
+          "sourcePage": "https://hondanews.com/en-US/honda-automobiles/releases/release-c26685400737027f7d053958c30909ed-2026-honda-accord-adds-more-standard-tech-and-sportier-styling-now-arriving-at-dealers",
+          "notes": "HEAD verified 200 image/jpeg, content-length 86,784 bytes. Official Honda News/Wieck 2026 Accord SE preview; useful alternate if it has cleaner silhouette/edge separation. Selected for second-pass v2 staging after Sport-L Hybrid cutout showed lower-edge/wheel cleanup concerns.",
+          "verification": {
+            "method": "HEAD",
+            "status": 200,
+            "contentType": "image/jpeg",
+            "contentLength": "86784",
+            "verifiedAt": "2026-06-13T15:43:48Z"
+          },
+          "selectedForStaging": true,
+          "approvedBy": "user",
+          "approvedAt": "2026-06-13T16:08:19Z"
+        },
+        {
+          "label": "Honda News direct image — 2026 Honda Accord SE wheel/exterior detail fallback",
+          "url": "https://wieck-honda-production.s3.amazonaws.com/photos/1ec2ad95e619266f4c9c2cb7b7759c963cc42b08/preview-928x522.jpg",
+          "domain": "wieck-honda-production.s3.amazonaws.com",
+          "sourceType": "official-oem-direct-image",
+          "licenseStatus": "needs-user-source-approval-before-download",
+          "approvedForDownload": false,
+          "sourcePage": "https://hondanews.com/en-US/honda-automobiles/releases/release-c26685400737027f7d053958c30909ed-2026-honda-accord-adds-more-standard-tech-and-sportier-styling-now-arriving-at-dealers",
+          "notes": "HEAD verified 200 image/jpeg, content-length 46,470 bytes. Official Honda News/Wieck fallback; likely less ideal for full-vehicle hero use if it is primarily a wheel/detail angle.",
+          "verification": {
+            "method": "HEAD",
+            "status": 200,
+            "contentType": "image/jpeg",
+            "contentLength": "46470",
+            "verifiedAt": "2026-06-13T15:43:48Z"
+          },
+          "selectedForStaging": false
+        },
+        {
+          "label": "Honda Newsroom / Accord channel",
+          "url": "https://hondanews.com/en-US/honda-automobiles/channels/accord",
+          "domain": "hondanews.com",
+          "sourceType": "official-oem-media-page",
+          "licenseStatus": "needs-final-OEM-media-terms-review-before-download",
+          "approvedForDownload": false,
+          "notes": "Official Honda Accord channel; Honda pages may return 403 to direct WSL user agents, but direct Wieck preview images above were HEAD verified.",
+          "selectedForStaging": false
+        }
+      ],
+      "approval": {
+        "source": true,
+        "visual": false,
+        "import": false,
+        "approvedBy": "user",
+        "approvedAt": "2026-06-13T16:00:52Z"
+      },
+      "selectedSourceIndex": 1,
+      "selectedSourceApprovedAt": "2026-06-13T16:08:19Z",
+      "stagedAt": "2026-06-13T16:08:35Z",
+      "stagedArtifacts": {
+        "source": "client/public/hero/cars/staged/accord-v2/source.jpg",
+        "cutout": "client/public/hero/cars/staged/accord-v2/cutout.png",
+        "meta": "client/public/hero/cars/staged/accord-v2/meta.json",
+        "preview": "client/public/hero/cars/staged/accord-v2/preview.png"
+      }
+    }
+  ],
+  "approvedCandidates": [
+    "toyota-rav4-hybrid",
+    "honda-cr-v-hybrid",
+    "honda-civic",
+    "subaru-forester",
+    "tesla-model-y",
+    "toyota-tacoma",
+    "ford-f-150",
+    "runner-v2",
+    "camry-v2",
+    "cx5-v2"
+  ],
+  "rejectedCandidates": [],
+  "sourceApprovedCandidates": [
+    "toyota-rav4-hybrid",
+    "honda-cr-v-hybrid",
+    "honda-civic",
+    "subaru-forester",
+    "tesla-model-y",
+    "toyota-tacoma",
+    "ford-f-150",
+    "runner-v2",
+    "camry-v2",
+    "cx5-v2",
+    "accord-v2"
+  ]
+}

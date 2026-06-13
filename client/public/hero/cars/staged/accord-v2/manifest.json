@@ -1,0 +1,80 @@
+{
+  "key": "accord-v2",
+  "vehicleName": "Honda Accord",
+  "action": "replacement",
+  "replacesKey": "accord",
+  "sourceUrl": "https://wieck-honda-production.s3.amazonaws.com/photos/96711768a25abac8f6ef6333ff81d7c8dc83a32d/preview-928x522.jpg",
+  "sourceContentType": "image/jpeg",
+  "sourceFile": "client/public/hero/cars/staged/accord-v2/source.jpg",
+  "sourceSha256": "a46f85a25d4a6b9d3daab9428c15f100a037b50bdf70d3d7aa74d934860770df",
+  "sourceApproved": true,
+  "visualApproved": false,
+  "imported": false,
+  "notes": [
+    "Downloaded from an explicitly approved source URL; process/preview before import.",
+    "Source approved by user and processed with rembg/u2net into a normalized transparent PNG for visual review only."
+  ],
+  "updatedAt": "2026-06-13T16:08:35Z",
+  "processedCutout": "client/public/hero/cars/staged/accord-v2/cutout.png",
+  "cutoutSha256": "bf24b4d67fd62a7de78e57bef504009ff80128a62f7ab374de80c447db2daa0e",
+  "cutoutDimensions": {
+    "w": 1000,
+    "h": 536
+  },
+  "generatedMeta": "client/public/hero/cars/staged/accord-v2/meta.json",
+  "meta": {
+    "src": "cars/accord-v2.png",
+    "w": 1000,
+    "h": 536,
+    "poly": [
+      [
+        0.1016,
+        0.8125
+      ],
+      [
+        0.1513,
+        0.4935
+      ],
+      [
+        0.2923,
+        0.2542
+      ],
+      [
+        0.4995,
+        0.0858
+      ],
+      [
+        0.715,
+        0.2453
+      ],
+      [
+        0.856,
+        0.5112
+      ],
+      [
+        0.8974,
+        0.8302
+      ],
+      [
+        0.7316,
+        0.9366
+      ],
+      [
+        0.2674,
+        0.9366
+      ]
+    ],
+    "headlights": [
+      [
+        0.3669,
+        0.5112
+      ]
+    ],
+    "ground": 0.9366
+  },
+  "processingMode": "rembg-u2net-auto-cutout-normalized",
+  "validationNotes": [
+    "Transparent PNG staged for preview only; not imported into rotation.json.",
+    "Review visual quality, scale, ground line, and background removal before replacement approval."
+  ]
+}

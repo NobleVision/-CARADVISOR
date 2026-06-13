@@ -1,0 +1,79 @@
+{
+  "key": "subaru-forester",
+  "vehicleName": "Subaru Forester",
+  "action": "add",
+  "replacesKey": null,
+  "sourceUrl": "https://s3.amazonaws.com/subarumedia.iconicweb.com/mediasite/teaserImages/TEASER2026_Subaru_Forester_Wilderness_Hybrid_01.jpg",
+  "sourceContentType": "image/jpeg",
+  "sourceFile": "client/public/hero/cars/staged/subaru-forester/source.jpg",
+  "sourceSha256": "8da23153f1c40b5b7f11eacc8d8d5c61d4c17c8714dc1026e1383ca0cf752895",
+  "sourceApproved": true,
+  "visualApproved": false,
+  "imported": false,
+  "notes": [
+    "Downloaded from an explicitly approved source URL; process/preview before import.",
+    "Processed/reprocessed with rembg/u2net into a normalized transparent PNG for visual review only."
+  ],
+  "updatedAt": "2026-06-13T14:56:47Z",
+  "processedCutout": "client/public/hero/cars/staged/subaru-forester/cutout.png",
+  "cutoutDimensions": {
+    "w": 1000,
+    "h": 465
+  },
+  "generatedMeta": "client/public/hero/cars/staged/subaru-forester/meta.json",
+  "meta": {
+    "src": "cars/subaru-forester.png",
+    "w": 1000,
+    "h": 465,
+    "poly": [
+      [
+        0.068,
+        0.8358
+      ],
+      [
+        0.122,
+        0.4836
+      ],
+      [
+        0.266,
+        0.2612
+      ],
+      [
+        0.5,
+        0.0943
+      ],
+      [
+        0.752,
+        0.2612
+      ],
+      [
+        0.905,
+        0.5022
+      ],
+      [
+        0.932,
+        0.8544
+      ],
+      [
+        0.752,
+        0.9656
+      ],
+      [
+        0.248,
+        0.9656
+      ]
+    ],
+    "headlights": [
+      [
+        0.365,
+        0.4836
+      ]
+    ],
+    "ground": 0.9656
+  },
+  "processingMode": "rembg-u2net-auto-cutout-normalized",
+  "validationNotes": [
+    "Transparent PNG staged for preview only; not imported into rotation.json.",
+    "Review visual quality, scale, ground line, and background removal before import approval."
+  ]
+}

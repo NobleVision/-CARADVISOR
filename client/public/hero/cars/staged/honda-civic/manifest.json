@@ -1,0 +1,80 @@
+{
+  "key": "honda-civic",
+  "vehicleName": "Honda Civic",
+  "action": "add",
+  "replacesKey": null,
+  "sourceUrl": "https://wieck-honda-production.s3.amazonaws.com/photos/8167b82614b1d70815fbdd1456c228cdb91c03d0/preview-928x522.jpg",
+  "sourceContentType": "image/jpeg",
+  "sourceFile": "client/public/hero/cars/staged/honda-civic/source.jpg",
+  "sourceSha256": "6b1f062fabc89ead0c0fca40d5b08740266f9ff7608da6eb88c57645d5867aec",
+  "sourceApproved": true,
+  "visualApproved": false,
+  "imported": false,
+  "notes": [
+    "Downloaded from an explicitly approved source URL; process/preview before import.",
+    "Source approved by user and processed with rembg/u2net into a normalized transparent PNG for visual review only.",
+    "Processed/reprocessed with rembg/u2net into a normalized transparent PNG for visual review only."
+  ],
+  "updatedAt": "2026-06-13T14:56:45Z",
+  "processedCutout": "client/public/hero/cars/staged/honda-civic/cutout.png",
+  "cutoutDimensions": {
+    "w": 1000,
+    "h": 445
+  },
+  "generatedMeta": "client/public/hero/cars/staged/honda-civic/meta.json",
+  "meta": {
+    "src": "cars/honda-civic.png",
+    "w": 1000,
+    "h": 445,
+    "poly": [
+      [
+        0.068,
+        0.8347
+      ],
+      [
+        0.122,
+        0.4838
+      ],
+      [
+        0.266,
+        0.2621
+      ],
+      [
+        0.5,
+        0.0959
+      ],
+      [
+        0.752,
+        0.2621
+      ],
+      [
+        0.905,
+        0.5022
+      ],
+      [
+        0.932,
+        0.8532
+      ],
+      [
+        0.752,
+        0.964
+      ],
+      [
+        0.248,
+        0.964
+      ]
+    ],
+    "headlights": [
+      [
+        0.365,
+        0.4838
+      ]
+    ],
+    "ground": 0.964
+  },
+  "processingMode": "rembg-u2net-auto-cutout-normalized",
+  "validationNotes": [
+    "Transparent PNG staged for preview only; not imported into rotation.json.",
+    "Review visual quality, scale, ground line, and background removal before import approval."
+  ]
+}

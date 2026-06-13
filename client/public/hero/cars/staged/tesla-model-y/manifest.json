@@ -1,0 +1,79 @@
+{
+  "key": "tesla-model-y",
+  "vehicleName": "Tesla Model Y",
+  "action": "add",
+  "replacesKey": null,
+  "sourceUrl": "https://digitalassets.tesla.com/tesla-contents/image/upload/f_auto,q_auto/Homepage-Model-Y-Desktop-US.png",
+  "sourceContentType": "image/jpeg",
+  "sourceFile": "client/public/hero/cars/staged/tesla-model-y/source.png",
+  "sourceSha256": "529318a87e402350ea5d4d817452ab67cf9ef571f5f964f02e53427dcc8a70c8",
+  "sourceApproved": true,
+  "visualApproved": false,
+  "imported": false,
+  "notes": [
+    "Downloaded from an explicitly approved source URL; process/preview before import.",
+    "Processed/reprocessed with rembg/u2net into a normalized transparent PNG for visual review only."
+  ],
+  "updatedAt": "2026-06-13T14:56:48Z",
+  "processedCutout": "client/public/hero/cars/staged/tesla-model-y/cutout.png",
+  "cutoutDimensions": {
+    "w": 1000,
+    "h": 463
+  },
+  "generatedMeta": "client/public/hero/cars/staged/tesla-model-y/meta.json",
+  "meta": {
+    "src": "cars/tesla-model-y.png",
+    "w": 1000,
+    "h": 463,
+    "poly": [
+      [
+        0.068,
+        0.8357
+      ],
+      [
+        0.122,
+        0.4836
+      ],
+      [
+        0.266,
+        0.2613
+      ],
+      [
+        0.5,
+        0.0945
+      ],
+      [
+        0.752,
+        0.2613
+      ],
+      [
+        0.905,
+        0.5022
+      ],
+      [
+        0.932,
+        0.8543
+      ],
+      [
+        0.752,
+        0.9654
+      ],
+      [
+        0.248,
+        0.9654
+      ]
+    ],
+    "headlights": [
+      [
+        0.365,
+        0.4836
+      ]
+    ],
+    "ground": 0.9654
+  },
+  "processingMode": "rembg-u2net-auto-cutout-normalized",
+  "validationNotes": [
+    "Transparent PNG staged for preview only; not imported into rotation.json.",
+    "Review visual quality, scale, ground line, and background removal before import approval."
+  ]
+}

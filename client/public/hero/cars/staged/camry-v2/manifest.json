@@ -1,0 +1,80 @@
+{
+  "key": "camry-v2",
+  "vehicleName": "Toyota Camry",
+  "action": "replacement",
+  "replacesKey": "camry",
+  "sourceUrl": "https://toyota-cms-media.s3.amazonaws.com/wp-content/uploads/2025/04/2026_Toyota-Camry_001.jpg",
+  "sourceContentType": "image/jpeg",
+  "sourceFile": "client/public/hero/cars/staged/camry-v2/source.jpg",
+  "sourceSha256": "2a3e5be62e0ab63bdc46b173b2499351edb29361457dfeb3d4448d08d082f915",
+  "sourceApproved": true,
+  "visualApproved": false,
+  "imported": false,
+  "notes": [
+    "Downloaded from an explicitly approved source URL; process/preview before import.",
+    "Source approved by user and processed with rembg/u2net into a normalized transparent PNG for visual review only."
+  ],
+  "updatedAt": "2026-06-13T16:08:35Z",
+  "processedCutout": "client/public/hero/cars/staged/camry-v2/cutout.png",
+  "cutoutSha256": "85dc4a6c099156d4562762f66d8b7c30207a481aace0b45d8d449c74501a60ed",
+  "cutoutDimensions": {
+    "w": 1000,
+    "h": 461
+  },
+  "generatedMeta": "client/public/hero/cars/staged/camry-v2/meta.json",
+  "meta": {
+    "src": "cars/camry-v2.png",
+    "w": 1000,
+    "h": 461,
+    "poly": [
+      [
+        0.091,
+        0.822
+      ],
+      [
+        0.1421,
+        0.4924
+      ],
+      [
+        0.2868,
+        0.2452
+      ],
+      [
+        0.4995,
+        0.0713
+      ],
+      [
+        0.7208,
+        0.2361
+      ],
+      [
+        0.8654,
+        0.5107
+      ],
+      [
+        0.908,
+        0.8403
+      ],
+      [
+        0.7378,
+        0.9501
+      ],
+      [
+        0.2612,
+        0.9501
+      ]
+    ],
+    "headlights": [
+      [
+        0.3633,
+        0.5107
+      ]
+    ],
+    "ground": 0.9501
+  },
+  "processingMode": "rembg-u2net-auto-cutout-normalized",
+  "validationNotes": [
+    "Transparent PNG staged for preview only; not imported into rotation.json.",
+    "Review visual quality, scale, ground line, and background removal before replacement approval."
+  ]
+}

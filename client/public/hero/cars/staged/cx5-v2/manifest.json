@@ -1,0 +1,80 @@
+{
+  "key": "cx5-v2",
+  "vehicleName": "Mazda CX-5",
+  "action": "replacement",
+  "replacesKey": "cx5",
+  "sourceUrl": "https://mma.prnewswire.com/media/2461978/Mazda_North_American_Operations_2025_CX_5.jpg?p=original",
+  "sourceContentType": "image/jpeg",
+  "sourceFile": "client/public/hero/cars/staged/cx5-v2/source.jpg",
+  "sourceSha256": "26b76a9170c6da442099c5f37287d69e5947f3bceba11680e07e75759340f44f",
+  "sourceApproved": true,
+  "visualApproved": false,
+  "imported": false,
+  "notes": [
+    "Downloaded from an explicitly approved source URL; process/preview before import.",
+    "Source approved by user and processed with rembg/u2net into a normalized transparent PNG for visual review only."
+  ],
+  "updatedAt": "2026-06-13T16:08:35Z",
+  "processedCutout": "client/public/hero/cars/staged/cx5-v2/cutout.png",
+  "cutoutSha256": "0ba61bb451bf370d80b8c18340f5caf4c74535d707ce9c7ed44d9e275bde3e81",
+  "cutoutDimensions": {
+    "w": 1000,
+    "h": 435
+  },
+  "generatedMeta": "client/public/hero/cars/staged/cx5-v2/meta.json",
+  "meta": {
+    "src": "cars/cx5-v2.png",
+    "w": 1000,
+    "h": 435,
+    "poly": [
+      [
+        0.1073,
+        0.8114
+      ],
+      [
+        0.1563,
+        0.492
+      ],
+      [
+        0.295,
+        0.2524
+      ],
+      [
+        0.499,
+        0.0838
+      ],
+      [
+        0.7112,
+        0.2435
+      ],
+      [
+        0.8499,
+        0.5097
+      ],
+      [
+        0.8907,
+        0.8291
+      ],
+      [
+        0.7275,
+        0.9356
+      ],
+      [
+        0.2705,
+        0.9356
+      ]
+    ],
+    "headlights": [
+      [
+        0.3684,
+        0.5097
+      ]
+    ],
+    "ground": 0.9356
+  },
+  "processingMode": "rembg-u2net-auto-cutout-normalized",
+  "validationNotes": [
+    "Transparent PNG staged for preview only; not imported into rotation.json.",
+    "Review visual quality, scale, ground line, and background removal before replacement approval."
+  ]
+}

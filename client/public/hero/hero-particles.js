@@ -17,12 +17,41 @@
   var GOLD = '212,175,106';
   var LS_KEY = 'carAdvisorHero.carIdx';
 
-  var CARS = [
-    { key: 'runner',    name: 'Toyota 4Runner', tag: '2026 · trail SUV',          destW: 800 },
-    { key: 'camry',     name: 'Toyota Camry', tag: '2026 · hybrid sedan',          destW: 840 },
-    { key: 'cx5',       name: 'Mazda CX-5', tag: '2026 · compact SUV',             destW: 740 },
-    { key: 'accord',    name: 'Honda Accord', tag: '2026 · midsize sedan',         destW: 840 }
+  var DEFAULT_ROTATION = [
+    { key: 'runner', name: 'Toyota 4Runner', tag: '2026 · trail SUV', destW: 800 },
+    { key: 'camry', name: 'Toyota Camry', tag: '2026 · hybrid sedan', destW: 840 },
+    { key: 'cx5', name: 'Mazda CX-5', tag: '2026 · compact SUV', destW: 740 },
+    { key: 'accord', name: 'Honda Accord', tag: '2026 · midsize sedan', destW: 840 }
   ];
+  var CARS = cloneCars(DEFAULT_ROTATION);
+
+  function cloneCarConfig(car) {
+    return { key: car.key, name: car.name, tag: car.tag, destW: car.destW };
+  }
+
+  function cloneCars(cars) {
+    return (cars || []).map(cloneCarConfig);
+  }
+
+  function normalizeCarIndex(idx, length) {
+    if (!length) return 0;
+    idx = parseInt(idx, 10);
+    if (!isFinite(idx) || idx < 0) return 0;
+    return idx % length;
+  }
+
+  function normalizeRotation(rotation, meta) {
+    var metaHasKeys = meta && Object.keys(meta).length > 0;
+    var source = Array.isArray(rotation) ? rotation : DEFAULT_ROTATION;
+    var normalized = [];
+    source.forEach(function (car) {
+      if (!car || car.status === 'inactive') return;
+      if (!car.key || !car.name || !car.tag || !car.destW) return;
+      if (metaHasKeys && !meta[car.key]) return;
+      normalized.push(cloneCarConfig(car));
+    });
+    return normalized.length ? normalized : cloneCars(DEFAULT_ROTATION);
+  }
 
   function clamp01(v) { return v < 0 ? 0 : v > 1 ? 1 : v; }
   function smooth(v) { v = clamp01(v); return v * v * (3 - 2 * v); }
@@ -114,48 +143,85 @@
     })();
     function resolve(p) { try { return baseURL ? new URL(p, baseURL).href : p; } catch (e) { return p; } }
 
-    CARS.forEach(function (car) {
-      // dest rect in car space (front faces right, right-aligned block)
-      car.img = null; car.pools = null; car.poly = null; car.lights = [];
-    });
-
-    fetch(resolve('cars/meta.json')).then(function (r) { return r.json(); }).then(function (meta) {
-      var loads = CARS.map(function (car) {
-        return new Promise(function (res) {
-          var m = meta[car.key];
-          var tries = 0;
-          function attempt() {
-            var img = new Image();
-            img.onload = function () { car.img = img; car.meta = m; res(); };
-            img.onerror = function () {
-              tries++;
-              if (tries < 4) setTimeout(attempt, 350 * tries);
-              else res();
-            };
-            img.src = resolve(m.src) + (tries ? ('?r=' + tries) : '');
-          }
-          attempt();
-        });
+    function primeCars(cars) {
+      cars.forEach(function (car) {
+        // dest rect in car space (front faces right, right-aligned block)
+        car.img = null; car.pools = null; car.poly = null; car.lights = [];
       });
-      return Promise.all(loads);
-    }).then(function () {
+    }
+
+    function fetchJson(path, fallback) {
+      return fetch(resolve(path)).then(function (r) {
+        if (!r.ok) throw new Error(path + ' ' + r.status);
+        return r.json();
+      }).catch(function (e) {
+        host.__assetWarnings = (host.__assetWarnings || []).concat(path + ': ' + e);
+        return fallback;
+      });
+    }
+
+    function loadCarImage(car, meta) {
+      return new Promise(function (res) {
+        var m = meta && meta[car.key];
+        if (!m || !m.src) { res(); return; }
+        var tries = 0;
+        function attempt() {
+          var img = new Image();
+          img.onload = function () { car.img = img; car.meta = m; res(); };
+          img.onerror = function () {
+            tries++;
+            if (tries < 4) setTimeout(attempt, 350 * tries);
+            else res();
+          };
+          img.src = resolve(m.src) + (tries ? ('?r=' + tries) : '');
+        }
+        attempt();
+      });
+    }
+
+    function layoutLoadedCars() {
       CARS.forEach(function (car) {
-        if (!car.img) return;
+        if (!car.img || !car.meta) return;
         var m = car.meta;
         var dw = car.destW, dh = dw * m.h / m.w;
         var dx = 952 - dw, dy = GROUND - dh * (m.ground || 1);
         car.rect = { x: dx, y: dy, w: dw, h: dh };
         var toCar = function (p) { return [dx + p[0] * dw, dy + p[1] * dh]; };
-        car.poly = m.poly.map(toCar);
-        car.lights = m.headlights.map(toCar);
+        car.poly = (m.poly || []).map(toCar);
+        car.lights = (m.headlights || []).map(toCar);
         car.pools = buildPools(car);
       });
+    }
+
+    function loadHeroAssets() {
+      primeCars(CARS);
+      return Promise.all([
+        fetchJson('cars/meta.json', {}),
+        fetchJson('cars/rotation.json', DEFAULT_ROTATION)
+      ]).then(function (results) {
+        var meta = results[0] || {};
+        var rotation = results[1];
+        CARS = normalizeRotation(rotation, meta);
+        primeCars(CARS);
+        carIdx = normalizeCarIndex(carIdx, CARS.length);
+        return Promise.all(CARS.map(function (car) { return loadCarImage(car, meta); }));
+      }).then(function () {
+        layoutLoadedCars();
+      });
+    }
+
+    loadHeroAssets().then(function () {
       ready = true;
+      carIdx = normalizeCarIndex(carIdx, CARS.length);
       for (var i = 0; i < COUNT; i++) pickTarget(carIdx, parts[i]);
+      labelIdx = -1;
       setLabel(carIdx);
       start = performance.now() / 1000;  // restart the cycle cleanly
       lastTc = 0;
-    }).catch(function (e) { host.__err = 'asset load: ' + e; });
+    }).catch(function (e) {
+      host.__err = 'asset load: ' + e;
+      ready = true;
+    });
 
     function buildPools(car) {
       var iw = car.img.naturalWidth, ih = car.img.naturalHeight;
@@ -190,7 +256,7 @@
     }
 
     var carIdx = 0;
-    try { var st = parseInt(localStorage.getItem(LS_KEY), 10); if (st >= 0 && st < CARS.length) carIdx = st; } catch (e) {}
+    try { var st = parseInt(localStorage.getItem(LS_KEY), 10); carIdx = normalizeCarIndex(st, CARS.length); } catch (e) {}
     var pendingIdx = -1;
 
     function pickTarget(idx, p) {
@@ -206,9 +272,14 @@
       if (roll < 0.30 && pool.inner.length) {
         pt = pool.inner[(Math.random() * pool.inner.length) | 0];
         p.baseA = 0.22 + Math.random() * 0.26;
-      } else {
+      } else if (pool.edges.length) {
         pt = pool.edges[(Math.random() * pool.edges.length) | 0];
         p.baseA = 0.6 + Math.random() * 0.4;
+      } else {
+        var aa = Math.random() * Math.PI * 2, rr = 120 + Math.random() * 260;
+        p.tx = 620 + Math.cos(aa) * rr; p.ty = 250 + Math.sin(aa) * rr * 0.55;
+        p.baseA = 0.3 + Math.random() * 0.4;
+        return;
       }
       p.tx = pt[0]; p.ty = pt[1];
     }
@@ -254,7 +325,7 @@
     function setLabel(idx) {
       if (idx === labelIdx) return;
       labelIdx = idx;
-      labelTop.textContent = '0' + (idx + 1) + ' — ' + CARS[idx].name;
+      labelTop.textContent = String(idx + 1).padStart(2, '0') + ' — ' + CARS[idx].name;
       labelSub.textContent = CARS[idx].tag;
     }
     setLabel(carIdx);
@@ -438,7 +509,7 @@
     // debug/preview hooks
     host.__seek = function (sec) { start = performance.now() / 1000 - sec; lastTc = sec % T_TOTAL; };
     host.__setCar = function (i) {
-      carIdx = i % CARS.length; pendingIdx = -1; setLabel(carIdx);
+      carIdx = normalizeCarIndex(i, CARS.length); pendingIdx = -1; setLabel(carIdx);
       for (var z = 0; z < COUNT; z++) { pickTarget(carIdx, parts[z]); parts[z].switched = true; }
     };
     host.__renderAt = function (sec, steps) {
@@ -470,7 +541,7 @@
           setLabel(carIdx);
         }
         if (lastTc < B_DISS && tc >= B_DISS && pendingIdx < 0) {
-          pendingIdx = (carIdx + 1) % CARS.length;
+          pendingIdx = normalizeCarIndex(carIdx + 1, CARS.length);
           for (var j = 0; j < COUNT; j++) {
             parts[j].switched = false;
             parts[j].switchT = tc + Math.random() * 1.7;

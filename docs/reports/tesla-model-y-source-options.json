@@ -1,0 +1,17 @@
+[
+  {
+    "idx": 0,
+    "name": "main-hero-global",
+    "url": "https://digitalassets.tesla.com/tesla-contents/image/upload/f_auto,q_auto/Model-Y-Main-Hero-Desktop-Global.jpg"
+  },
+  {
+    "idx": 1,
+    "name": "model-y-2-hero",
+    "url": "https://digitalassets.tesla.com/tesla-contents/image/upload/f_auto,q_auto/Model-Y-2-Hero-Desktop.jpg"
+  },
+  {
+    "idx": 2,
+    "name": "homepage-us",
+    "url": "https://digitalassets.tesla.com/tesla-contents/image/upload/f_auto,q_auto/Homepage-Model-Y-Desktop-US.png"
+  }
+]

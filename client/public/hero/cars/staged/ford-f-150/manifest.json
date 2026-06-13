@@ -1,0 +1,79 @@
+{
+  "key": "ford-f-150",
+  "vehicleName": "Ford F-150",
+  "action": "add",
+  "replacesKey": null,
+  "sourceUrl": "https://www.assets.ford.com/adobe/assets/urn:aaid:aem:ca9583b3-6c04-4511-baf9-59f75e87b3dc/as/2026_F-150_XLT_ChromePackage_ArgonBlue.webp?max-quality=75&crop-names=1_16x9&width=3840",
+  "sourceContentType": "image/jpeg",
+  "sourceFile": "client/public/hero/cars/staged/ford-f-150/source.webp",
+  "sourceSha256": "42206199f0177c077faf6d8ad186af8273eac90115ec8295d38febf0967a3100",
+  "sourceApproved": true,
+  "visualApproved": false,
+  "imported": false,
+  "notes": [
+    "Downloaded from an explicitly approved source URL; process/preview before import.",
+    "Processed/reprocessed with rembg/u2net into a normalized transparent PNG for visual review only."
+  ],
+  "updatedAt": "2026-06-13T14:56:52Z",
+  "processedCutout": "client/public/hero/cars/staged/ford-f-150/cutout.png",
+  "cutoutDimensions": {
+    "w": 1000,
+    "h": 460
+  },
+  "generatedMeta": "client/public/hero/cars/staged/ford-f-150/meta.json",
+  "meta": {
+    "src": "cars/ford-f-150.png",
+    "w": 1000,
+    "h": 460,
+    "poly": [
+      [
+        0.068,
+        0.8356
+      ],
+      [
+        0.122,
+        0.4837
+      ],
+      [
+        0.266,
+        0.2614
+      ],
+      [
+        0.5,
+        0.0947
+      ],
+      [
+        0.752,
+        0.2614
+      ],
+      [
+        0.905,
+        0.5022
+      ],
+      [
+        0.932,
+        0.8541
+      ],
+      [
+        0.752,
+        0.9652
+      ],
+      [
+        0.248,
+        0.9652
+      ]
+    ],
+    "headlights": [
+      [
+        0.365,
+        0.4837
+      ]
+    ],
+    "ground": 0.9652
+  },
+  "processingMode": "rembg-u2net-auto-cutout-normalized",
+  "validationNotes": [
+    "Transparent PNG staged for preview only; not imported into rotation.json.",
+    "Review visual quality, scale, ground line, and background removal before import approval."
+  ]
+}

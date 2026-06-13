@@ -1,0 +1,22 @@
+[
+  {
+    "idx": 0,
+    "name": "teaser",
+    "url": "https://s3.amazonaws.com/subarumedia.iconicweb.com/mediasite/teaserImages/TEASER2026-Subaru-Forester-Hybrid.jpg"
+  },
+  {
+    "idx": 1,
+    "name": "library-mid",
+    "url": "https://s3.amazonaws.com/subarumedia.iconicweb.com/mediasite/libraryImages/2026-Subaru-Forester-Hybrid__mid.jpg"
+  },
+  {
+    "idx": 2,
+    "name": "wilderness-mid",
+    "url": "https://s3.amazonaws.com/subarumedia.iconicweb.com/mediasite/libraryImages/2026_Subaru_Forester_Wilderness_Hybrid_01__mid.jpg"
+  },
+  {
+    "idx": 3,
+    "name": "wilderness-teaser",
+    "url": "https://s3.amazonaws.com/subarumedia.iconicweb.com/mediasite/teaserImages/TEASER2026_Subaru_Forester_Wilderness_Hybrid_01.jpg"
+  }
+]

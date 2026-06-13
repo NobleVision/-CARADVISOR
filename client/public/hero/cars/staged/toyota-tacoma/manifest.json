@@ -1,0 +1,79 @@
+{
+  "key": "toyota-tacoma",
+  "vehicleName": "Toyota Tacoma",
+  "action": "add",
+  "replacesKey": null,
+  "sourceUrl": "https://pressroom.toyota.com/wp-content/uploads/2025/11/2026_Toyota_Tacoma_Limited_012.jpg",
+  "sourceContentType": "image/jpeg",
+  "sourceFile": "client/public/hero/cars/staged/toyota-tacoma/source.jpg",
+  "sourceSha256": "2621a86162f6a875e6bd664e8f455a8a4f70797e8c7647644b4ab8517fe05ddf",
+  "sourceApproved": true,
+  "visualApproved": false,
+  "imported": false,
+  "notes": [
+    "Downloaded from an explicitly approved source URL; process/preview before import.",
+    "Processed/reprocessed with rembg/u2net into a normalized transparent PNG for visual review only."
+  ],
+  "updatedAt": "2026-06-13T14:56:51Z",
+  "processedCutout": "client/public/hero/cars/staged/toyota-tacoma/cutout.png",
+  "cutoutDimensions": {
+    "w": 1000,
+    "h": 489
+  },
+  "generatedMeta": "client/public/hero/cars/staged/toyota-tacoma/meta.json",
+  "meta": {
+    "src": "cars/toyota-tacoma.png",
+    "w": 1000,
+    "h": 489,
+    "poly": [
+      [
+        0.139,
+        0.837
+      ],
+      [
+        0.1841,
+        0.4834
+      ],
+      [
+        0.3042,
+        0.2601
+      ],
+      [
+        0.4995,
+        0.0926
+      ],
+      [
+        0.7098,
+        0.2601
+      ],
+      [
+        0.8374,
+        0.502
+      ],
+      [
+        0.86,
+        0.8556
+      ],
+      [
+        0.7098,
+        0.9673
+      ],
+      [
+        0.2892,
+        0.9673
+      ]
+    ],
+    "headlights": [
+      [
+        0.3868,
+        0.4834
+      ]
+    ],
+    "ground": 0.9673
+  },
+  "processingMode": "rembg-u2net-auto-cutout-normalized",
+  "validationNotes": [
+    "Transparent PNG staged for preview only; not imported into rotation.json.",
+    "Review visual quality, scale, ground line, and background removal before import approval."
+  ]
+}

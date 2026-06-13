@@ -1,0 +1,363 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>CarAdvisor Hero Car Rotation Preview</title>
+  <style>
+    :root { color-scheme: dark; font-family: Inter, ui-sans-serif, system-ui, sans-serif; background: #0b0b0d; color: #f2ede3; }
+    body { margin: 0; padding: 32px; }
+    a { color: #e0bd7c; }
+    code { color: #e0bd7c; }
+    .hero { max-width: 1180px; margin: 0 auto 28px; }
+    .summary, .card { border: 1px solid rgba(224,189,124,.22); background: rgba(255,255,255,.035); border-radius: 22px; padding: 22px; box-shadow: 0 18px 70px rgba(0,0,0,.28); }
+    .summary { margin-bottom: 22px; }
+    .strip { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 16px; }
+    figure { margin: 0; min-height: 130px; display: grid; align-content: center; gap: 8px; }
+    figcaption, .eyebrow, dt { color: rgba(242,237,227,.55); font-size: 12px; letter-spacing: .08em; text-transform: uppercase; }
+    img { max-width: 100%; max-height: 190px; object-fit: contain; filter: drop-shadow(0 18px 28px rgba(0,0,0,.45)); }
+    .cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(430px, 1fr)); gap: 18px; }
+    .card header { display: flex; justify-content: space-between; gap: 16px; align-items: start; }
+    .card h2 { margin: 2px 0; font-size: 23px; }
+    .status { border: 1px solid rgba(224,189,124,.3); border-radius: 999px; padding: 7px 10px; color: #e0bd7c; font-size: 12px; white-space: nowrap; }
+    .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin: 18px 0; }
+    section { border: 1px solid rgba(255,255,255,.08); border-radius: 16px; padding: 14px; min-height: 210px; }
+    section h3 { margin: 0 0 10px; font-size: 13px; color: rgba(242,237,227,.72); }
+    .placeholder { min-height: 150px; display: grid; place-items: center; border: 1px dashed rgba(224,189,124,.35); border-radius: 14px; color: rgba(242,237,227,.45); text-align: center; padding: 12px; }
+    dl { display: grid; gap: 9px; }
+    dl div { display: grid; grid-template-columns: 115px 1fr; gap: 12px; }
+    dd { margin: 0; color: rgba(242,237,227,.74); }
+    dd span { display: inline-block; border-radius: 999px; background: rgba(224,189,124,.09); padding: 4px 8px; margin: 0 5px 5px 0; }
+  </style>
+</head>
+<body>
+  <main class="hero">
+    <h1>CarAdvisor Hero Car Rotation Preview</h1>
+    <p>This is a review sheet only. No candidate is imported into <code>rotation.json</code> until exact keys are approved and the approval-gated import/replace scripts are run.</p>
+    <section class="summary">
+      <h2>Old/current active rotation</h2>
+      <div class="strip"><figure><img src="../../client/public/hero/cars/runner-v2.png" alt="Toyota 4Runner" /><figcaption>Toyota 4Runner</figcaption></figure>
+<figure><img src="../../client/public/hero/cars/camry-v2.png" alt="Toyota Camry" /><figcaption>Toyota Camry</figcaption></figure>
+<figure><img src="../../client/public/hero/cars/cx5-v2.png" alt="Mazda CX-5" /><figcaption>Mazda CX-5</figcaption></figure>
+<figure><img src="../../client/public/hero/cars/honda-accord.png" alt="Honda Accord" /><figcaption>Honda Accord</figcaption></figure>
+<figure><img src="../../client/public/hero/cars/toyota-rav4-hybrid.png" alt="Toyota RAV4 Hybrid" /><figcaption>Toyota RAV4 Hybrid</figcaption></figure>
+<figure><img src="../../client/public/hero/cars/honda-cr-v-hybrid.png" alt="Honda CR-V Hybrid" /><figcaption>Honda CR-V Hybrid</figcaption></figure>
+<figure><img src="../../client/public/hero/cars/honda-civic.png" alt="Honda Civic" /><figcaption>Honda Civic</figcaption></figure>
+<figure><img src="../../client/public/hero/cars/subaru-forester.png" alt="Subaru Forester" /><figcaption>Subaru Forester</figcaption></figure>
+<figure><img src="../../client/public/hero/cars/tesla-model-y.png" alt="Tesla Model Y" /><figcaption>Tesla Model Y</figcaption></figure>
+<figure><img src="../../client/public/hero/cars/toyota-tacoma.png" alt="Toyota Tacoma" /><figcaption>Toyota Tacoma</figcaption></figure>
+<figure><img src="../../client/public/hero/cars/ford-f-150.png" alt="Ford F-150" /><figcaption>Ford F-150</figcaption></figure></div>
+      <h2>Proposed additions for visual review</h2>
+      <ul><li>Toyota RAV4 Hybrid <code>toyota-rav4-hybrid</code></li>
+<li>Honda CR-V Hybrid <code>honda-cr-v-hybrid</code></li>
+<li>Honda Civic <code>honda-civic</code></li>
+<li>Subaru Forester <code>subaru-forester</code></li>
+<li>Tesla Model Y <code>tesla-model-y</code></li>
+<li>Toyota Tacoma <code>toyota-tacoma</code></li>
+<li>Ford F-150 <code>ford-f-150</code></li></ul>
+      <h2>Proposed replacements for visual review</h2>
+      <ul><li>Toyota 4Runner <code>runner-v2</code> replaces <code>runner</code></li>
+<li>Toyota Camry <code>camry-v2</code> replaces <code>camry</code></li>
+<li>Mazda CX-5 <code>cx5-v2</code> replaces <code>cx5</code></li>
+<li>Honda Accord <code>accord-v2</code> replaces <code>accord</code></li></ul>
+    </section>
+    <section class="cards">
+      <article class="card add">
+        <header>
+          <div>
+            <p class="eyebrow">add</p>
+            <h2>toyota-rav4-hybrid</h2>
+            <p>Toyota RAV4 Hybrid · 2026 · compact hybrid SUV</p>
+          </div>
+          <span class="status">imported-active</span>
+        </header>
+        <div class="grid">
+          <section>
+            <h3>Current cutout</h3>
+            <div class="placeholder">No staged cutout yet</div>
+          </section>
+          <section>
+            <h3>Processed replacement/addition</h3>
+            <img src="../../client/public/hero/cars/staged/toyota-rav4-hybrid/cutout.png" alt="Toyota RAV4 Hybrid staged cutout" />
+          </section>
+        </div>
+        <dl>
+          <div><dt>Source</dt><dd><a href="https://pressroom.toyota.com/wp-content/uploads/2025/05/2026-Toyota-RAV4-PHEV_GRSport_Studio_002.jpg">pressroom.toyota.com</a></dd></div>
+          <div><dt>Ground line</dt><dd>0.9673</dd></div>
+          <div><dt>Headlight point</dt><dd>[[0.3695,0.4834]]</dd></div>
+          <div><dt>Validation notes</dt><dd><span>source approved</span> <span>visual approved</span> <span>processed cutout staged</span> <span>staged metadata present</span></dd></div>
+        </dl>
+      </article>
+
+      <article class="card add">
+        <header>
+          <div>
+            <p class="eyebrow">add</p>
+            <h2>honda-cr-v-hybrid</h2>
+            <p>Honda CR-V Hybrid · 2026 · hybrid crossover</p>
+          </div>
+          <span class="status">imported-active</span>
+        </header>
+        <div class="grid">
+          <section>
+            <h3>Current cutout</h3>
+            <div class="placeholder">No staged cutout yet</div>
+          </section>
+          <section>
+            <h3>Processed replacement/addition</h3>
+            <img src="../../client/public/hero/cars/staged/honda-cr-v-hybrid/cutout.png" alt="Honda CR-V Hybrid staged cutout" />
+          </section>
+        </div>
+        <dl>
+          <div><dt>Source</dt><dd><a href="https://wieck-honda-production.s3.amazonaws.com/photos/ae0ac1ebe2692c5709a9e2da0a1709e5370b229c/preview-928x522.jpg">wieck-honda-production.s3.amazonaws.com</a></dd></div>
+          <div><dt>Ground line</dt><dd>0.9673</dd></div>
+          <div><dt>Headlight point</dt><dd>[[0.3728,0.4834]]</dd></div>
+          <div><dt>Validation notes</dt><dd><span>source approved</span> <span>visual approved</span> <span>processed cutout staged</span> <span>staged metadata present</span></dd></div>
+        </dl>
+      </article>
+
+      <article class="card add">
+        <header>
+          <div>
+            <p class="eyebrow">add</p>
+            <h2>honda-civic</h2>
+            <p>Honda Civic · 2026 · compact sedan</p>
+          </div>
+          <span class="status">imported-active</span>
+        </header>
+        <div class="grid">
+          <section>
+            <h3>Current cutout</h3>
+            <div class="placeholder">No staged cutout yet</div>
+          </section>
+          <section>
+            <h3>Processed replacement/addition</h3>
+            <img src="../../client/public/hero/cars/staged/honda-civic/cutout.png" alt="Honda Civic staged cutout" />
+          </section>
+        </div>
+        <dl>
+          <div><dt>Source</dt><dd><a href="https://wieck-honda-production.s3.amazonaws.com/photos/8167b82614b1d70815fbdd1456c228cdb91c03d0/preview-928x522.jpg">wieck-honda-production.s3.amazonaws.com</a></dd></div>
+          <div><dt>Ground line</dt><dd>0.964</dd></div>
+          <div><dt>Headlight point</dt><dd>[[0.365,0.4838]]</dd></div>
+          <div><dt>Validation notes</dt><dd><span>source approved</span> <span>visual approved</span> <span>processed cutout staged</span> <span>staged metadata present</span></dd></div>
+        </dl>
+      </article>
+
+      <article class="card add">
+        <header>
+          <div>
+            <p class="eyebrow">add</p>
+            <h2>subaru-forester</h2>
+            <p>Subaru Forester · 2026 · all-weather SUV</p>
+          </div>
+          <span class="status">imported-active</span>
+        </header>
+        <div class="grid">
+          <section>
+            <h3>Current cutout</h3>
+            <div class="placeholder">No staged cutout yet</div>
+          </section>
+          <section>
+            <h3>Processed replacement/addition</h3>
+            <img src="../../client/public/hero/cars/staged/subaru-forester/cutout.png" alt="Subaru Forester staged cutout" />
+          </section>
+        </div>
+        <dl>
+          <div><dt>Source</dt><dd><a href="https://s3.amazonaws.com/subarumedia.iconicweb.com/mediasite/teaserImages/TEASER2026_Subaru_Forester_Wilderness_Hybrid_01.jpg">s3.amazonaws.com</a></dd></div>
+          <div><dt>Ground line</dt><dd>0.9656</dd></div>
+          <div><dt>Headlight point</dt><dd>[[0.365,0.4836]]</dd></div>
+          <div><dt>Validation notes</dt><dd><span>source approved</span> <span>visual approved</span> <span>processed cutout staged</span> <span>staged metadata present</span></dd></div>
+        </dl>
+      </article>
+
+      <article class="card add">
+        <header>
+          <div>
+            <p class="eyebrow">add</p>
+            <h2>tesla-model-y</h2>
+            <p>Tesla Model Y · 2026 · electric crossover</p>
+          </div>
+          <span class="status">imported-active</span>
+        </header>
+        <div class="grid">
+          <section>
+            <h3>Current cutout</h3>
+            <div class="placeholder">No staged cutout yet</div>
+          </section>
+          <section>
+            <h3>Processed replacement/addition</h3>
+            <img src="../../client/public/hero/cars/staged/tesla-model-y/cutout.png" alt="Tesla Model Y staged cutout" />
+          </section>
+        </div>
+        <dl>
+          <div><dt>Source</dt><dd><a href="https://digitalassets.tesla.com/tesla-contents/image/upload/f_auto,q_auto/Homepage-Model-Y-Desktop-US.png">digitalassets.tesla.com</a></dd></div>
+          <div><dt>Ground line</dt><dd>0.9654</dd></div>
+          <div><dt>Headlight point</dt><dd>[[0.365,0.4836]]</dd></div>
+          <div><dt>Validation notes</dt><dd><span>source approved</span> <span>visual approved</span> <span>processed cutout staged</span> <span>staged metadata present</span></dd></div>
+        </dl>
+      </article>
+
+      <article class="card add">
+        <header>
+          <div>
+            <p class="eyebrow">add</p>
+            <h2>toyota-tacoma</h2>
+            <p>Toyota Tacoma · 2026 · midsize truck</p>
+          </div>
+          <span class="status">imported-active</span>
+        </header>
+        <div class="grid">
+          <section>
+            <h3>Current cutout</h3>
+            <div class="placeholder">No staged cutout yet</div>
+          </section>
+          <section>
+            <h3>Processed replacement/addition</h3>
+            <img src="../../client/public/hero/cars/staged/toyota-tacoma/cutout.png" alt="Toyota Tacoma staged cutout" />
+          </section>
+        </div>
+        <dl>
+          <div><dt>Source</dt><dd><a href="https://pressroom.toyota.com/wp-content/uploads/2025/11/2026_Toyota_Tacoma_Limited_012.jpg">pressroom.toyota.com</a></dd></div>
+          <div><dt>Ground line</dt><dd>0.9673</dd></div>
+          <div><dt>Headlight point</dt><dd>[[0.3868,0.4834]]</dd></div>
+          <div><dt>Validation notes</dt><dd><span>source approved</span> <span>visual approved</span> <span>processed cutout staged</span> <span>staged metadata present</span></dd></div>
+        </dl>
+      </article>
+
+      <article class="card add">
+        <header>
+          <div>
+            <p class="eyebrow">add</p>
+            <h2>ford-f-150</h2>
+            <p>Ford F-150 · 2026 · full-size truck</p>
+          </div>
+          <span class="status">imported-active</span>
+        </header>
+        <div class="grid">
+          <section>
+            <h3>Current cutout</h3>
+            <div class="placeholder">No staged cutout yet</div>
+          </section>
+          <section>
+            <h3>Processed replacement/addition</h3>
+            <img src="../../client/public/hero/cars/staged/ford-f-150/cutout.png" alt="Ford F-150 staged cutout" />
+          </section>
+        </div>
+        <dl>
+          <div><dt>Source</dt><dd><a href="https://www.assets.ford.com/adobe/assets/urn:aaid:aem:ca9583b3-6c04-4511-baf9-59f75e87b3dc/as/2026_F-150_XLT_ChromePackage_ArgonBlue.webp?max-quality=75&amp;crop-names=1_16x9&amp;width=3840">www.assets.ford.com</a></dd></div>
+          <div><dt>Ground line</dt><dd>0.9652</dd></div>
+          <div><dt>Headlight point</dt><dd>[[0.365,0.4837]]</dd></div>
+          <div><dt>Validation notes</dt><dd><span>source approved</span> <span>visual approved</span> <span>processed cutout staged</span> <span>staged metadata present</span></dd></div>
+        </dl>
+      </article>
+
+      <article class="card replacement">
+        <header>
+          <div>
+            <p class="eyebrow">replacement for runner</p>
+            <h2>runner-v2</h2>
+            <p>Toyota 4Runner · 2026 · trail SUV</p>
+          </div>
+          <span class="status">replacement-active</span>
+        </header>
+        <div class="grid">
+          <section>
+            <h3>Current cutout</h3>
+            <img src="../../client/public/hero/cars/toyota-4runner.png" alt="Toyota 4Runner current cutout" />
+          </section>
+          <section>
+            <h3>Processed replacement/addition</h3>
+            <img src="../../client/public/hero/cars/staged/runner-v2/cutout.png" alt="Toyota 4Runner staged cutout" />
+          </section>
+        </div>
+        <dl>
+          <div><dt>Source</dt><dd><a href="https://toyota-cms-media.s3.amazonaws.com/wp-content/uploads/2025/10/2026_Toyota_4Runner_TRDSport_1.jpg">toyota-cms-media.s3.amazonaws.com</a></dd></div>
+          <div><dt>Ground line</dt><dd>0.9577</dd></div>
+          <div><dt>Headlight point</dt><dd>[[0.3652,0.5121]]</dd></div>
+          <div><dt>Validation notes</dt><dd><span>source approved</span> <span>visual approved</span> <span>processed cutout staged</span> <span>staged metadata present</span></dd></div>
+        </dl>
+      </article>
+
+      <article class="card replacement">
+        <header>
+          <div>
+            <p class="eyebrow">replacement for camry</p>
+            <h2>camry-v2</h2>
+            <p>Toyota Camry · 2026 · hybrid sedan</p>
+          </div>
+          <span class="status">replacement-active</span>
+        </header>
+        <div class="grid">
+          <section>
+            <h3>Current cutout</h3>
+            <img src="../../client/public/hero/cars/toyota-camry.png" alt="Toyota Camry current cutout" />
+          </section>
+          <section>
+            <h3>Processed replacement/addition</h3>
+            <img src="../../client/public/hero/cars/staged/camry-v2/cutout.png" alt="Toyota Camry staged cutout" />
+          </section>
+        </div>
+        <dl>
+          <div><dt>Source</dt><dd><a href="https://toyota-cms-media.s3.amazonaws.com/wp-content/uploads/2025/04/2026_Toyota-Camry_001.jpg">toyota-cms-media.s3.amazonaws.com</a></dd></div>
+          <div><dt>Ground line</dt><dd>0.9501</dd></div>
+          <div><dt>Headlight point</dt><dd>[[0.3633,0.5107]]</dd></div>
+          <div><dt>Validation notes</dt><dd><span>source approved</span> <span>visual approved</span> <span>processed cutout staged</span> <span>staged metadata present</span></dd></div>
+        </dl>
+      </article>
+
+      <article class="card replacement">
+        <header>
+          <div>
+            <p class="eyebrow">replacement for cx5</p>
+            <h2>cx5-v2</h2>
+            <p>Mazda CX-5 · 2026 · compact SUV</p>
+          </div>
+          <span class="status">replacement-active</span>
+        </header>
+        <div class="grid">
+          <section>
+            <h3>Current cutout</h3>
+            <img src="../../client/public/hero/cars/mazda-cx5.png" alt="Mazda CX-5 current cutout" />
+          </section>
+          <section>
+            <h3>Processed replacement/addition</h3>
+            <img src="../../client/public/hero/cars/staged/cx5-v2/cutout.png" alt="Mazda CX-5 staged cutout" />
+          </section>
+        </div>
+        <dl>
+          <div><dt>Source</dt><dd><a href="https://mma.prnewswire.com/media/2860295/2026_CX_5_Navy_Blue_Mica_1.jpg?p=original">mma.prnewswire.com</a></dd></div>
+          <div><dt>Ground line</dt><dd>0.9356</dd></div>
+          <div><dt>Headlight point</dt><dd>[[0.3684,0.5097]]</dd></div>
+          <div><dt>Validation notes</dt><dd><span>source approved</span> <span>visual approved</span> <span>processed cutout staged</span> <span>staged metadata present</span></dd></div>
+        </dl>
+      </article>
+
+      <article class="card replacement">
+        <header>
+          <div>
+            <p class="eyebrow">replacement for accord</p>
+            <h2>accord-v2</h2>
+            <p>Honda Accord · 2026 · midsize sedan</p>
+          </div>
+          <span class="status">source-approved-staged-awaiting-visual-review</span>
+        </header>
+        <div class="grid">
+          <section>
+            <h3>Current cutout</h3>
+            <img src="../../client/public/hero/cars/honda-accord.png" alt="Honda Accord current cutout" />
+          </section>
+          <section>
+            <h3>Processed replacement/addition</h3>
+            <img src="../../client/public/hero/cars/staged/accord-v2/cutout.png" alt="Honda Accord staged cutout" />
+          </section>
+        </div>
+        <dl>
+          <div><dt>Source</dt><dd><a href="https://wieck-honda-production.s3.amazonaws.com/photos/c230399c555d9a312d8d851917cfeb454b63ebb7/preview-928x522.jpg">wieck-honda-production.s3.amazonaws.com</a></dd></div>
+          <div><dt>Ground line</dt><dd>0.9366</dd></div>
+          <div><dt>Headlight point</dt><dd>[[0.3669,0.5112]]</dd></div>
+          <div><dt>Validation notes</dt><dd><span>source approved</span> <span>visual approval pending</span> <span>processed cutout staged</span> <span>staged metadata present</span></dd></div>
+        </dl>
+      </article></section>
+  </main>
+</body>
+</html>

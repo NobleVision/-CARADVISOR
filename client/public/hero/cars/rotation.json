@@ -1,0 +1,79 @@
+[
+  {
+    "key": "runner-v2",
+    "name": "Toyota 4Runner",
+    "tag": "2026 · trail SUV",
+    "destW": 800,
+    "status": "active"
+  },
+  {
+    "key": "camry-v2",
+    "name": "Toyota Camry",
+    "tag": "2026 · hybrid sedan",
+    "destW": 840,
+    "status": "active"
+  },
+  {
+    "key": "cx5-v2",
+    "name": "Mazda CX-5",
+    "tag": "2026 · compact SUV",
+    "destW": 740,
+    "status": "active"
+  },
+  {
+    "key": "accord",
+    "name": "Honda Accord",
+    "tag": "2026 · midsize sedan",
+    "destW": 840,
+    "status": "active"
+  },
+  {
+    "key": "toyota-rav4-hybrid",
+    "name": "Toyota RAV4 Hybrid",
+    "tag": "2026 · compact hybrid SUV",
+    "destW": 800,
+    "status": "active"
+  },
+  {
+    "key": "honda-cr-v-hybrid",
+    "name": "Honda CR-V Hybrid",
+    "tag": "2026 · hybrid crossover",
+    "destW": 800,
+    "status": "active"
+  },
+  {
+    "key": "honda-civic",
+    "name": "Honda Civic",
+    "tag": "2026 · compact sedan",
+    "destW": 820,
+    "status": "active"
+  },
+  {
+    "key": "subaru-forester",
+    "name": "Subaru Forester",
+    "tag": "2026 · all-weather SUV",
+    "destW": 780,
+    "status": "active"
+  },
+  {
+    "key": "tesla-model-y",
+    "name": "Tesla Model Y",
+    "tag": "2026 · electric crossover",
+    "destW": 800,
+    "status": "active"
+  },
+  {
+    "key": "toyota-tacoma",
+    "name": "Toyota Tacoma",
+    "tag": "2026 · midsize truck",
+    "destW": 830,
+    "status": "active"
+  },
+  {
+    "key": "ford-f-150",
+    "name": "Ford F-150",
+    "tag": "2026 · full-size truck",
+    "destW": 860,
+    "status": "active"
+  }
+]

@@ -16,7 +16,8 @@
     "sync:pinecone": "tsx scripts/sync-pinecone.mts",
     "sync:cloudinary": "tsx scripts/sync-cloudinary.mts",
     "db:push": "drizzle-kit generate && drizzle-kit migrate",
-    "db:studio": "drizzle-kit studio"
+    "db:studio": "drizzle-kit studio",
+    "hero:qa:visual": "cross-env PLAYWRIGHT_HOST_PLATFORM_OVERRIDE=ubuntu24.04-x64 tsx scripts/hero-cars/visual-qa.mts"
   },
   "dependencies": {
     "@gsap/react": "~2.1.2",
@@ -106,6 +107,7 @@
     "cross-env": "^7.0.3",
     "drizzle-kit": "^0.31.4",
     "esbuild": "^0.25.0",
+    "playwright": "^1.60.0",
     "pnpm": "^10.15.1",
     "postcss": "^8.4.47",
     "prettier": "^3.6.2",

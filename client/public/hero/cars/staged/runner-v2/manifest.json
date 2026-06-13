@@ -1,0 +1,80 @@
+{
+  "key": "runner-v2",
+  "vehicleName": "Toyota 4Runner",
+  "action": "replacement",
+  "replacesKey": "runner",
+  "sourceUrl": "https://toyota-cms-media.s3.amazonaws.com/wp-content/uploads/2025/10/2026_Toyota_4Runner_TRDSport_1.jpg",
+  "sourceContentType": "image/jpeg",
+  "sourceFile": "client/public/hero/cars/staged/runner-v2/source.jpg",
+  "sourceSha256": "4f3a1daba976475015ca3c5b726fb99aaaa2709d7e04f42a83a36602e78fd204",
+  "sourceApproved": true,
+  "visualApproved": false,
+  "imported": false,
+  "notes": [
+    "Downloaded from an explicitly approved source URL; process/preview before import.",
+    "Source approved by user and processed with rembg/u2net into a normalized transparent PNG for visual review only."
+  ],
+  "updatedAt": "2026-06-13T16:08:35Z",
+  "processedCutout": "client/public/hero/cars/staged/runner-v2/cutout.png",
+  "cutoutSha256": "d3139b02335d42def5e053a621024ffc0071add2eb09113ceffb86cd2941ba6e",
+  "cutoutDimensions": {
+    "w": 1000,
+    "h": 544
+  },
+  "generatedMeta": "client/public/hero/cars/staged/runner-v2/meta.json",
+  "meta": {
+    "src": "cars/runner-v2.png",
+    "w": 1000,
+    "h": 544,
+    "poly": [
+      [
+        0.0977,
+        0.8278
+      ],
+      [
+        0.1479,
+        0.4936
+      ],
+      [
+        0.29,
+        0.2429
+      ],
+      [
+        0.499,
+        0.0665
+      ],
+      [
+        0.7164,
+        0.2336
+      ],
+      [
+        0.8585,
+        0.5121
+      ],
+      [
+        0.9003,
+        0.8463
+      ],
+      [
+        0.7331,
+        0.9577
+      ],
+      [
+        0.2649,
+        0.9577
+      ]
+    ],
+    "headlights": [
+      [
+        0.3652,
+        0.5121
+      ]
+    ],
+    "ground": 0.9577
+  },
+  "processingMode": "rembg-u2net-auto-cutout-normalized",
+  "validationNotes": [
+    "Transparent PNG staged for preview only; not imported into rotation.json.",
+    "Review visual quality, scale, ground line, and background removal before replacement approval."
+  ]
+}

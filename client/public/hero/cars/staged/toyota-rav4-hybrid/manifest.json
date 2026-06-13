@@ -1,0 +1,80 @@
+{
+  "key": "toyota-rav4-hybrid",
+  "vehicleName": "Toyota RAV4 Hybrid",
+  "action": "add",
+  "replacesKey": null,
+  "sourceUrl": "https://pressroom.toyota.com/wp-content/uploads/2025/05/2026-Toyota-RAV4-PHEV_GRSport_Studio_002.jpg",
+  "sourceContentType": "image/jpeg",
+  "sourceFile": "client/public/hero/cars/staged/toyota-rav4-hybrid/source.jpg",
+  "sourceSha256": "d58978703191b18110d02e4557da959ada8b40982c3d2fb606009cb07e182d2f",
+  "sourceApproved": true,
+  "visualApproved": false,
+  "imported": false,
+  "notes": [
+    "Downloaded from an explicitly approved source URL; process/preview before import.",
+    "Source approved by user and processed with rembg/u2net into a normalized transparent PNG for visual review only.",
+    "Processed/reprocessed with rembg/u2net into a normalized transparent PNG for visual review only."
+  ],
+  "updatedAt": "2026-06-13T14:56:42Z",
+  "processedCutout": "client/public/hero/cars/staged/toyota-rav4-hybrid/cutout.png",
+  "cutoutDimensions": {
+    "w": 1000,
+    "h": 489
+  },
+  "generatedMeta": "client/public/hero/cars/staged/toyota-rav4-hybrid/meta.json",
+  "meta": {
+    "src": "cars/toyota-rav4-hybrid.png",
+    "w": 1000,
+    "h": 489,
+    "poly": [
+      [
+        0.0824,
+        0.837
+      ],
+      [
+        0.1346,
+        0.4834
+      ],
+      [
+        0.2738,
+        0.2601
+      ],
+      [
+        0.5,
+        0.0926
+      ],
+      [
+        0.7436,
+        0.2601
+      ],
+      [
+        0.8915,
+        0.502
+      ],
+      [
+        0.9176,
+        0.8556
+      ],
+      [
+        0.7436,
+        0.9673
+      ],
+      [
+        0.2564,
+        0.9673
+      ]
+    ],
+    "headlights": [
+      [
+        0.3695,
+        0.4834
+      ]
+    ],
+    "ground": 0.9673
+  },
+  "processingMode": "rembg-u2net-auto-cutout-normalized",
+  "validationNotes": [
+    "Transparent PNG staged for preview only; not imported into rotation.json.",
+    "Review visual quality, scale, ground line, and background removal before import approval."
+  ]
+}
