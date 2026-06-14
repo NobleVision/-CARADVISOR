@@ -4,6 +4,15 @@ import { spawnSync } from "node:child_process";
 import { describe, expect, it } from "vitest";
 
 const repoRoot = path.resolve(import.meta.dirname, "..");
+const validateRotationCommand = process.platform === "win32"
+  ? {
+      command: "cmd.exe",
+      args: ["/d", "/s", "/c", "pnpm exec tsx scripts/hero-cars/validate-rotation.mts --json"],
+    }
+  : {
+      command: "pnpm",
+      args: ["exec", "tsx", "scripts/hero-cars/validate-rotation.mts", "--json"],
+    };
 const heroRoot = path.join(repoRoot, "client", "public", "hero");
 const carsRoot = path.join(heroRoot, "cars");
 const heroParticlesPath = path.join(heroRoot, "hero-particles.js");
@@ -67,6 +76,10 @@ type MetaEntry = {
   poly: number[][];
   headlights: number[][];
   ground: number;
+  lampFlash?: {
+    intro?: boolean;
+    color?: string;
+  };
 };
 
 describe("hero particle carousel asset", () => {
@@ -100,6 +113,29 @@ describe("hero particle carousel asset", () => {
     expect(heroParticlesSource).toMatch(/T_HOLD\s*=\s*3(?:\.0)?\b/);
   });
 
+  it("keeps the three-second hold clean by drawing particles behind the full car photo", () => {
+    expect(heroParticlesSource).toContain("function cleanHoldAlpha");
+    expect(heroParticlesSource).toContain("cleanPhotoA");
+    expect(heroParticlesSource).toContain("particleA");
+    expect(heroParticlesSource).toMatch(/drawParticles\(ctx, ph\.particleA\);\s*\n\s*drawCar\(ctx, car, ph\.carAlpha, ph\.beat, carMotion\);/);
+    expect(heroParticlesSource).not.toContain("trace(g, car.poly, true); g.stroke();");
+    expect(heroParticlesSource).not.toContain("sheen sweep clipped to silhouette");
+  });
+
+  it("keeps lamp flashes restrained so they read as natural lamp glints instead of oversized blobs", () => {
+    expect(heroParticlesSource).toMatch(/T_FLASH_HOLD\s*=\s*0\.5\b/);
+    expect(heroParticlesSource).toContain("function lampFlashBeat");
+    expect(heroParticlesSource).toMatch(/FLASH_CORE_ALPHA\s*=\s*0\.66\b/);
+    expect(heroParticlesSource).toMatch(/FLASH_GOLD_ALPHA\s*=\s*0\.28\b/);
+    expect(heroParticlesSource).toMatch(/FLASH_RADIUS\s*=\s*26\b/);
+  });
+
+  it("does not draw gold body overlays that can make simplified polygons look like oblong car outlines", () => {
+    expect(heroParticlesSource).not.toContain("gold rim light along the traced silhouette");
+    expect(heroParticlesSource).not.toContain("g.strokeStyle = rim");
+    expect(heroParticlesSource).not.toContain("g.clip();\n        var sg = g.createLinearGradient");
+  });
+
   it("supports selected-car parallax motion without making the hero overlay block CTA clicks", () => {
     expect(heroParticlesSource).toContain("function setParallaxTarget");
     expect(heroParticlesSource).toContain("function pointerWithinCar");
@@ -120,10 +156,69 @@ describe("hero particle carousel asset", () => {
       expect(metadata, `${car.key} should exist in meta.json`).toBeTruthy();
       if (!metadata) continue;
       expect(metadata.poly.length, `${car.key} should have non-empty polygon metadata`).toBeGreaterThan(2);
-      expect(metadata.headlights.length, `${car.key} should have a headlight point`).toBeGreaterThan(0);
+      expect(metadata.headlights.length, `${car.key} should have a visible lamp anchor`).toBeGreaterThan(0);
       expect(metadata.ground, `${car.key} ground line should be sane`).toBeGreaterThan(0.7);
       expect(metadata.ground, `${car.key} ground line should be sane`).toBeLessThanOrEqual(1.05);
       expect(existsSync(path.join(heroRoot, metadata.src)), `${car.key} cutout should exist`).toBe(true);
+    }
+  });
+
+  it("places the ignition flash on a visible lamp for every active car", () => {
+    const meta = readJson<Record<string, MetaEntry>>(metaPath);
+    expect(meta, "meta.json should parse").not.toBeNull();
+    if (!meta) return;
+
+    const expectedLampAnchors: Record<string, [number, number]> = {
+      "runner-v2": [0.485, 0.382],
+      "camry-v2": [0.74, 0.61],
+      "cx5-v2": [0.642, 0.476],
+      accord: [0.35, 0.525],
+      "toyota-rav4-hybrid": [0.398, 0.365],
+      "honda-cr-v-hybrid": [0.397, 0.456],
+      "honda-civic": [0.448, 0.463],
+      "subaru-forester": [0.314, 0.466],
+      "tesla-model-y": [0.31, 0.344],
+      "toyota-tacoma": [0.462, 0.365],
+      "ford-f-150": [0.368, 0.456],
+    };
+
+    for (const key of activeRotationKeys) {
+      const [x, y] = meta[key].headlights[0] ?? [];
+      const [expectedX, expectedY] = expectedLampAnchors[key];
+      expect(x, `${key} lamp anchor x`).toBeCloseTo(expectedX, 3);
+      expect(y, `${key} lamp anchor y`).toBeCloseTo(expectedY, 3);
+    }
+  });
+
+  it("uses per-car lamp-flash metadata for Civic intro suppression and the rear-facing Tesla tail-light flash", () => {
+    const meta = readJson<Record<string, MetaEntry>>(metaPath);
+    expect(meta, "meta.json should parse").not.toBeNull();
+    if (!meta) return;
+
+    expect(meta["honda-civic"].lampFlash?.intro, "Civic should not show the first assembly flash").toBe(false);
+    expect(meta["tesla-model-y"].lampFlash?.color, "rear-facing Tesla should use a red tail-light flash").toBe("red");
+    expect(heroParticlesSource).toContain("car.lampFlash");
+    expect(heroParticlesSource).toContain("lampFlashBeat(tc, car)");
+    expect(heroParticlesSource).toContain("intro !== false");
+    expect(heroParticlesSource).toContain("tailColor");
+  });
+
+  it("keeps staged metadata lamp anchors synchronized with active imported cars", () => {
+    const meta = readJson<Record<string, MetaEntry>>(metaPath);
+    expect(meta, "meta.json should parse").not.toBeNull();
+    if (!meta) return;
+
+    for (const key of activeRotationKeys) {
+      const stagedMetaPath = path.join(carsRoot, "staged", key, "meta.json");
+      if (!existsSync(stagedMetaPath)) continue;
+
+      const stagedMeta = readJson<MetaEntry>(stagedMetaPath);
+      expect(stagedMeta, `${key} staged meta should parse`).not.toBeNull();
+      if (!stagedMeta) continue;
+
+      expect(stagedMeta.headlights, `${key} staged lamp anchors should match live metadata`).toEqual(
+        meta[key].headlights,
+      );
     }
   });
 
@@ -177,6 +272,12 @@ describe("hero particle carousel asset", () => {
     expect(visualQaSource).not.toMatch(/i\s*<\s*4/);
   });
 
+  it("browser QA filters benign connection-aborted resource noise", () => {
+    expect(visualQaSource).toContain("function isBenignConsoleError");
+    expect(visualQaSource).toContain("ERR_CONNECTION_ABORTED");
+    expect(visualQaSource).toContain("!isBenignConsoleError(message.text())");
+  });
+
   it("validation reporting consumes browser QA results when they have been generated", () => {
     expect(validateRotationSource).toContain("hero-car-visual-qa");
     expect(validateRotationSource).toContain("loadBrowserQaResults");
@@ -184,7 +285,7 @@ describe("hero particle carousel asset", () => {
   });
 
   it("validates the rotation via the CLI validator and reports orphaned assets without deleting them", () => {
-    const result = spawnSync("pnpm", ["exec", "tsx", "scripts/hero-cars/validate-rotation.mts", "--json"], {
+    const result = spawnSync(validateRotationCommand.command, validateRotationCommand.args, {
       cwd: repoRoot,
       encoding: "utf8",
       env: { ...process.env, NODE_ENV: "test" },

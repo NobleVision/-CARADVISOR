@@ -1,6 +1,6 @@
 /* Car Advisor — hero particle morph engine (photo edition).
-   One particle pool reshapes itself through real car photographs (graded dark + gold):
-   swirl -> condense (photo fades in) -> ignition beat (headlights flare + sheen) -> dissolve -> next car.
+   One particle pool reshapes itself behind real car photographs:
+   swirl -> condense (photo fades in) -> clean three-second photo hold -> dissolve -> next car.
    Registers <hero-particles> as a custom element. Cutouts + metadata live in cars/. */
 (function () {
   'use strict';
@@ -8,6 +8,8 @@
 
   var VW = 1000, VH = 460, GROUND = 404;
   var T_SWIRL = 1.6, T_COND = 2.0, T_IN = 0.8, T_HOLD = 3.0, T_OUT = 0.8, T_DISS = 2.1;
+  var T_FLASH_HOLD = 0.5, T_FLASH_FADE = 0.1;
+  var FLASH_CORE_ALPHA = 0.66, FLASH_GOLD_ALPHA = 0.28, FLASH_RADIUS = 26;
   var B_COND = T_SWIRL;                 // 1.6
   var B_IN = B_COND + T_COND;           // 3.6
   var B_HOLD = B_IN + T_IN;             // 4.4
@@ -57,29 +59,34 @@
   function smooth(v) { v = clamp01(v); return v * v * (3 - 2 * v); }
   function lerp(a, b, t) { return a + (b - a) * t; }
 
-  function trace(ctx, pts, closed) {
-    var n = pts.length, i, p, q;
-    ctx.moveTo((pts[n - 1][0] + pts[0][0]) / 2, (pts[n - 1][1] + pts[0][1]) / 2);
-    for (i = 0; i < n; i++) {
-      p = pts[i]; q = pts[(i + 1) % n];
-      ctx.quadraticCurveTo(p[0], p[1], (p[0] + q[0]) / 2, (p[1] + q[1]) / 2);
-    }
-    if (closed !== false) ctx.closePath();
+  function cleanHoldAlpha(tc) {
+    var fade = 0.34;
+    return smooth((tc - B_HOLD) / fade) * (1 - smooth((tc - (B_OUT - fade)) / fade));
   }
 
-  function phaseAt(tc) {
+  function lampFlashBeat(tc, car) {
+    var allowIntro = !car || !car.lampFlash || car.lampFlash.intro !== false;
+    if (allowIntro) {
+      var flashStart = B_HOLD - T_FLASH_HOLD - 2 * T_FLASH_FADE;
+      var assembleBeat = smooth((tc - flashStart) / T_FLASH_FADE) *
+        (1 - smooth((tc - (B_HOLD - T_FLASH_FADE)) / T_FLASH_FADE));
+      if (assembleBeat > 0.01) return assembleBeat;
+    }
+    if (tc >= B_OUT && tc < B_DISS) return 0.45 * (1 - smooth((tc - B_OUT) / T_OUT));
+    return 0;
+  }
+
+  function phaseAt(tc, car) {
     var carAlpha = smooth((tc - B_COND) / (T_COND - 0.2)) * (1 - smooth((tc - B_DISS) / 1.3));
-    var beat = 0;
-    if (tc >= B_IN && tc < B_HOLD) beat = smooth((tc - B_IN) / T_IN);
-    else if (tc >= B_HOLD && tc < B_OUT) beat = 1;
-    else if (tc >= B_OUT && tc < B_DISS) beat = 1 - smooth((tc - B_OUT) / T_OUT);
+    var cleanPhotoA = cleanHoldAlpha(tc);
+    var beat = lampFlashBeat(tc, car);
     var noiseAmp;
     if (tc < B_COND) noiseAmp = lerp(30, 13, smooth(tc / T_SWIRL));
     else if (tc < B_DISS) noiseAmp = lerp(13, 2.2, smooth((tc - B_COND) / 1.4));
     else noiseAmp = lerp(2.2, 34, smooth((tc - B_DISS) / 1.1));
-    var sheen = clamp01((tc - (B_COND + 1.0)) / 1.1);
+    var particleA = (1 - carAlpha * 0.42) * (1 - cleanPhotoA * 0.78);
     var labelA = smooth((tc - (B_COND + 0.7)) / 0.7) * (1 - smooth((tc - B_DISS) / 0.6));
-    return { carAlpha: carAlpha * 0.97, beat: beat, noiseAmp: noiseAmp, sheen: sheen, labelA: labelA };
+    return { carAlpha: carAlpha, beat: beat, noiseAmp: noiseAmp, cleanPhotoA: cleanPhotoA, particleA: particleA, labelA: labelA };
   }
 
   function HeroParticles() {
@@ -146,7 +153,7 @@
     function primeCars(cars) {
       cars.forEach(function (car) {
         // dest rect in car space (front faces right, right-aligned block)
-        car.img = null; car.pools = null; car.poly = null; car.lights = [];
+        car.img = null; car.pools = null; car.poly = null; car.lights = []; car.lampFlash = {};
       });
     }
 
@@ -189,6 +196,7 @@
         var toCar = function (p) { return [dx + p[0] * dw, dy + p[1] * dh]; };
         car.poly = (m.poly || []).map(toCar);
         car.lights = (m.headlights || []).map(toCar);
+        car.lampFlash = m.lampFlash || {};
         car.pools = buildPools(car);
       });
     }
@@ -421,7 +429,7 @@
     this.__detachParallax = detachParallaxListeners;
     attachParallaxListeners();
 
-    function drawCar(g, car, alpha, beat, sheen, motion) {
+    function drawCar(g, car, alpha, beat, motion) {
       if (!car.img || !car.rect || alpha <= 0.004) return;
       var R = car.rect;
       motion = motion || { x: 0, y: 0, rot: 0, scale: 1 };
@@ -437,74 +445,57 @@
         g.translate(-cx, -cy);
       }
 
-      // ground shadow + gold floor glow
+      // Ground shadow stays under the transparent PNG; no body outline is drawn over the car.
       var grd = g.createRadialGradient(cx, GROUND + 6, 10, cx, GROUND + 6, R.w * 0.55);
       grd.addColorStop(0, 'rgba(0,0,0,0.65)');
-      grd.addColorStop(0.55, 'rgba(' + GOLD + ',' + (0.05 + 0.10 * beat).toFixed(3) + ')');
+      grd.addColorStop(0.55, 'rgba(' + GOLD + ',' + (0.025 + 0.055 * beat).toFixed(3) + ')');
       grd.addColorStop(1, 'rgba(0,0,0,0)');
       g.save(); g.translate(cx, GROUND + 8); g.scale(1, 0.12); g.translate(-cx, -(GROUND + 8));
       g.fillStyle = grd; g.beginPath(); g.arc(cx, GROUND + 8, R.w * 0.55, 0, Math.PI * 2); g.fill(); g.restore();
 
-      // the photograph
+      // The photo is the top layer, so particles remain behind the opaque car pixels.
       g.drawImage(car.img, R.x, R.y, R.w, R.h);
 
-      // gold rim light along the traced silhouette (brighter on top)
-      if (car.poly) {
-        var rim = g.createLinearGradient(0, R.y - 10, 0, GROUND);
-        rim.addColorStop(0, 'rgba(' + GOLD + ',' + (0.75 + 0.2 * beat).toFixed(3) + ')');
-        rim.addColorStop(0.5, 'rgba(' + GOLD + ',0.22)');
-        rim.addColorStop(1, 'rgba(' + GOLD + ',0.06)');
-        g.strokeStyle = rim; g.lineWidth = 1.6;
-        g.beginPath(); trace(g, car.poly, true); g.stroke();
-      }
-
-      // ignition beat: headlights flare + light cones (car faces right)
+      // Bright 0.5s lamp accent during assembly/dissolve only; it is off during the clean hold.
       if (beat > 0.01 && car.lights.length) {
         g.globalCompositeOperation = 'lighter';
         car.lights.forEach(function (pt) {
-          var fr = (14 + 30 * beat);
+          var isTail = car.lampFlash && car.lampFlash.color === 'red';
+          var tailColor = '218,72,72';
+          var coreColor = isTail ? '255,126,116' : '255,255,244';
+          var warmColor = isTail ? '255,98,88' : '255,244,214';
+          var glowColor = isTail ? tailColor : GOLD;
+          var fr = FLASH_RADIUS * (0.72 + 0.28 * beat);
           var fg = g.createRadialGradient(pt[0], pt[1], 0, pt[0], pt[1], fr);
-          fg.addColorStop(0, 'rgba(255,244,214,' + (0.85 * beat).toFixed(3) + ')');
-          fg.addColorStop(0.35, 'rgba(' + GOLD + ',' + (0.35 * beat).toFixed(3) + ')');
-          fg.addColorStop(1, 'rgba(' + GOLD + ',0)');
+          fg.addColorStop(0, 'rgba(' + coreColor + ',' + (FLASH_CORE_ALPHA * beat).toFixed(3) + ')');
+          fg.addColorStop(0.18, 'rgba(' + warmColor + ',' + (0.50 * beat).toFixed(3) + ')');
+          fg.addColorStop(0.46, 'rgba(' + glowColor + ',' + (FLASH_GOLD_ALPHA * beat).toFixed(3) + ')');
+          fg.addColorStop(1, 'rgba(' + glowColor + ',0)');
           g.fillStyle = fg;
           g.beginPath(); g.arc(pt[0], pt[1], fr, 0, Math.PI * 2); g.fill();
-          // forward cone (cars face left)
-          g.save();
-          g.translate(pt[0], pt[1]); g.scale(-3.4, 1);
-          var cg = g.createRadialGradient(0, 0, 0, 0, 0, 26 * beat + 6);
-          cg.addColorStop(0, 'rgba(255,238,200,' + (0.16 * beat).toFixed(3) + ')');
-          cg.addColorStop(1, 'rgba(255,238,200,0)');
-          g.fillStyle = cg;
-          g.beginPath(); g.arc(0, 0, 26 * beat + 6, -Math.PI / 2, Math.PI / 2); g.fill();
-          g.restore();
         });
-        // faint overall lift of the body
-        g.globalAlpha = alpha * 0.10 * beat;
-        g.drawImage(car.img, R.x, R.y, R.w, R.h);
-        g.globalAlpha = alpha;
         g.globalCompositeOperation = 'source-over';
-      }
-
-      // sheen sweep clipped to silhouette
-      if (car.poly && sheen > 0.001 && sheen < 0.999) {
-        var sx = lerp(R.x - 180, R.x + R.w + 180, sheen);
-        g.save();
-        g.beginPath(); trace(g, car.poly, true); g.clip();
-        var sg = g.createLinearGradient(sx - 120, 0, sx + 120, 0);
-        sg.addColorStop(0, 'rgba(' + GOLD + ',0)');
-        sg.addColorStop(0.5, 'rgba(' + GOLD + ',0.14)');
-        sg.addColorStop(1, 'rgba(' + GOLD + ',0)');
-        g.fillStyle = sg;
-        g.fillRect(sx - 130, R.y - 20, 260, R.h + 40);
-        g.restore();
       }
 
       g.restore();
     }
 
     var start = performance.now() / 1000;
-    var lastTc = 0, lastFrame = performance.now() / 1000;
+    var lastTc = 0, lastFrame = performance.now() / 1000, frameT = 0;
+
+    function drawParticles(g, particleA) {
+      if (particleA <= 0.004) return;
+      g.globalCompositeOperation = 'lighter';
+      for (var m = 0; m < COUNT; m++) {
+        var r2 = parts[m];
+        var tws = 0.62 + 0.38 * Math.sin(frameT * r2.tw + r2.ph);
+        g.globalAlpha = r2.baseA * tws * particleA;
+        var sz = r2.size * (1 + 0.25 * tws);
+        g.drawImage(sprite, r2.x - sz, r2.y - sz, sz * 2, sz * 2);
+      }
+      g.globalAlpha = 1;
+      g.globalCompositeOperation = 'source-over';
+    }
 
     // debug/preview hooks
     host.__seek = function (sec) { start = performance.now() / 1000 - sec; lastTc = sec % T_TOTAL; };
@@ -532,6 +523,7 @@
       var dt = Math.max(0.001, Math.min(now - lastFrame, 0.05));
       lastFrame = now;
       var t = now - start;
+      frameT = t;
       var tc = ready ? (t % T_TOTAL) : (T_SWIRL * 0.5);
 
       if (ready) {
@@ -550,8 +542,8 @@
         lastTc = tc;
       }
 
-      var ph = ready ? phaseAt(tc) : { carAlpha: 0, beat: 0, noiseAmp: 24, sheen: 0, labelA: 0 };
       var car = CARS[carIdx];
+      var ph = ready ? phaseAt(tc, car) : { carAlpha: 0, beat: 0, noiseAmp: 24, cleanPhotoA: 0, particleA: 1, labelA: 0 };
 
       label.style.opacity = ph.labelA.toFixed(3);
 
@@ -597,19 +589,8 @@
         dpr * (ox + camX * scl + pivX * scl * (1 - camS)),
         dpr * (oy + camY * scl + pivY * scl * (1 - camS)));
 
-      drawCar(ctx, car, ph.carAlpha, ph.beat, ph.sheen, carMotion);
-
-      ctx.globalCompositeOperation = 'lighter';
-      var dimmer = 1 - ph.carAlpha * 0.42;
-      for (var m = 0; m < COUNT; m++) {
-        var r2 = parts[m];
-        var tws = 0.62 + 0.38 * Math.sin(t * r2.tw + r2.ph);
-        ctx.globalAlpha = r2.baseA * tws * dimmer;
-        var sz = r2.size * (1 + 0.25 * tws);
-        ctx.drawImage(sprite, r2.x - sz, r2.y - sz, sz * 2, sz * 2);
-      }
-      ctx.globalAlpha = 1;
-      ctx.globalCompositeOperation = 'source-over';
+      drawParticles(ctx, ph.particleA);
+      drawCar(ctx, car, ph.carAlpha, ph.beat, carMotion);
     }
 
     function staticFrame() {
@@ -619,16 +600,9 @@
       ctx.setTransform(1, 0, 0, 1, 0, 0);
       ctx.clearRect(0, 0, canvas.width, canvas.height);
       ctx.setTransform(dpr * scl, 0, 0, dpr * scl, dpr * ox, dpr * oy);
-      drawCar(ctx, CARS[carIdx], 0.5, 0, 0);
-      ctx.globalCompositeOperation = 'lighter';
-      for (var m = 0; m < COUNT; m++) {
-        var q = parts[m];
-        var jx = (Math.random() - 0.5) * 5, jy = (Math.random() - 0.5) * 4;
-        ctx.globalAlpha = q.baseA * (0.4 + Math.random() * 0.45);
-        ctx.drawImage(sprite, q.tx + jx - q.size, q.ty + jy - q.size, q.size * 2, q.size * 2);
-      }
-      ctx.globalAlpha = 1;
-      ctx.globalCompositeOperation = 'source-over';
+      frameT = 0;
+      drawParticles(ctx, 0.18);
+      drawCar(ctx, CARS[carIdx], 1, 0);
       label.style.opacity = '1';
     }
 

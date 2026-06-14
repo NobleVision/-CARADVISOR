@@ -1,0 +1,151 @@
+{
+  "ok": true,
+  "url": "http://localhost:3137/?v=lamp-natural-check-2",
+  "generatedAt": "2026-06-14T03:20:06.905Z",
+  "frames": [
+    {
+      "key": "intro",
+      "label": "intro flash @ 4.05s",
+      "t": 4.05
+    },
+    {
+      "key": "exit",
+      "label": "exit flash @ 7.48s",
+      "t": 7.48
+    }
+  ],
+  "shots": [
+    {
+      "car": "Toyota 4Runner",
+      "key": "runner-v2",
+      "frame": "intro flash @ 4.05s",
+      "fileName": "01-runner-v2-intro.png"
+    },
+    {
+      "car": "Toyota 4Runner",
+      "key": "runner-v2",
+      "frame": "exit flash @ 7.48s",
+      "fileName": "01-runner-v2-exit.png"
+    },
+    {
+      "car": "Toyota Camry",
+      "key": "camry-v2",
+      "frame": "intro flash @ 4.05s",
+      "fileName": "02-camry-v2-intro.png"
+    },
+    {
+      "car": "Toyota Camry",
+      "key": "camry-v2",
+      "frame": "exit flash @ 7.48s",
+      "fileName": "02-camry-v2-exit.png"
+    },
+    {
+      "car": "Mazda CX-5",
+      "key": "cx5-v2",
+      "frame": "intro flash @ 4.05s",
+      "fileName": "03-cx5-v2-intro.png"
+    },
+    {
+      "car": "Mazda CX-5",
+      "key": "cx5-v2",
+      "frame": "exit flash @ 7.48s",
+      "fileName": "03-cx5-v2-exit.png"
+    },
+    {
+      "car": "Honda Accord",
+      "key": "accord",
+      "frame": "intro flash @ 4.05s",
+      "fileName": "04-accord-intro.png"
+    },
+    {
+      "car": "Honda Accord",
+      "key": "accord",
+      "frame": "exit flash @ 7.48s",
+      "fileName": "04-accord-exit.png"
+    },
+    {
+      "car": "Toyota RAV4 Hybrid",
+      "key": "toyota-rav4-hybrid",
+      "frame": "intro flash @ 4.05s",
+      "fileName": "05-toyota-rav4-hybrid-intro.png"
+    },
+    {
+      "car": "Toyota RAV4 Hybrid",
+      "key": "toyota-rav4-hybrid",
+      "frame": "exit flash @ 7.48s",
+      "fileName": "05-toyota-rav4-hybrid-exit.png"
+    },
+    {
+      "car": "Honda CR-V Hybrid",
+      "key": "honda-cr-v-hybrid",
+      "frame": "intro flash @ 4.05s",
+      "fileName": "06-honda-cr-v-hybrid-intro.png"
+    },
+    {
+      "car": "Honda CR-V Hybrid",
+      "key": "honda-cr-v-hybrid",
+      "frame": "exit flash @ 7.48s",
+      "fileName": "06-honda-cr-v-hybrid-exit.png"
+    },
+    {
+      "car": "Honda Civic",
+      "key": "honda-civic",
+      "frame": "intro flash @ 4.05s",
+      "fileName": "07-honda-civic-intro.png"
+    },
+    {
+      "car": "Honda Civic",
+      "key": "honda-civic",
+      "frame": "exit flash @ 7.48s",
+      "fileName": "07-honda-civic-exit.png"
+    },
+    {
+      "car": "Subaru Forester",
+      "key": "subaru-forester",
+      "frame": "intro flash @ 4.05s",
+      "fileName": "08-subaru-forester-intro.png"
+    },
+    {
+      "car": "Subaru Forester",
+      "key": "subaru-forester",
+      "frame": "exit flash @ 7.48s",
+      "fileName": "08-subaru-forester-exit.png"
+    },
+    {
+      "car": "Tesla Model Y",
+      "key": "tesla-model-y",
+      "frame": "intro flash @ 4.05s",
+      "fileName": "09-tesla-model-y-intro.png"
+    },
+    {
+      "car": "Tesla Model Y",
+      "key": "tesla-model-y",
+      "frame": "exit flash @ 7.48s",
+      "fileName": "09-tesla-model-y-exit.png"
+    },
+    {
+      "car": "Toyota Tacoma",
+      "key": "toyota-tacoma",
+      "frame": "intro flash @ 4.05s",
+      "fileName": "10-toyota-tacoma-intro.png"
+    },
+    {
+      "car": "Toyota Tacoma",
+      "key": "toyota-tacoma",
+      "frame": "exit flash @ 7.48s",
+      "fileName": "10-toyota-tacoma-exit.png"
+    },
+    {
+      "car": "Ford F-150",
+      "key": "ford-f-150",
+      "frame": "intro flash @ 4.05s",
+      "fileName": "11-ford-f-150-intro.png"
+    },
+    {
+      "car": "Ford F-150",
+      "key": "ford-f-150",
+      "frame": "exit flash @ 7.48s",
+      "fileName": "11-ford-f-150-exit.png"
+    }
+  ]
+}

@@ -66,8 +66,8 @@
     ],
     "headlights": [
       [
-        0.3633,
-        0.5107
+        0.74,
+        0.61
       ]
     ],
     "ground": 0.9501
@@ -75,6 +75,9 @@
   "processingMode": "rembg-u2net-auto-cutout-normalized",
   "validationNotes": [
     "Transparent PNG staged for preview only; not imported into rotation.json.",
-    "Review visual quality, scale, ground line, and background removal before replacement approval."
+    "Review visual quality, scale, ground line, and background removal before replacement approval.",
+    "Lamp anchor refined against active hero flash QA so staged metadata matches live imported metadata.",
+    "Camry lamp anchor moved off the hood and onto the visible headlight/DRL section after user visual QA.",
+    "Lamp flash metadata refined against natural Tacoma/Civic/F-150 reference behavior."
   ]
 }

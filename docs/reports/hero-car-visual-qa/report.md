@@ -1,22 +1,22 @@
 # Hero Car Rotation Visual QA Report
 
-Generated: 2026-06-13T16:21:39.208Z
+Generated: 2026-06-14T03:23:52.907Z
 
 | Result | Scenario | Hero label | Canvas pixels | Overflow px | JS errors | Screenshot |
 | --- | --- | --- | ---: | ---: | ---: | --- |
-| PASS | desktop | 01 — Toyota 4Runner | 28331 | 0 | 0 | docs/reports/hero-car-visual-qa/desktop.png |
-| PASS | mobile | 01 — Toyota 4Runner | 3769 | 0 | 0 | docs/reports/hero-car-visual-qa/mobile.png |
-| PASS | reduced-motion | 01 — Toyota 4Runner | 27373 | 0 | 0 | docs/reports/hero-car-visual-qa/reduced-motion.png |
-| PASS | stale-local-storage | 04 — Honda Accord | 29727 | 0 | 0 | docs/reports/hero-car-visual-qa/stale-local-storage.png |
+| PASS | desktop | 01 — Toyota 4Runner | 28554 | 0 | 0 | docs/reports/hero-car-visual-qa/desktop.png |
+| PASS | mobile | 01 — Toyota 4Runner | 3703 | 0 | 0 | docs/reports/hero-car-visual-qa/mobile.png |
+| PASS | reduced-motion | 01 — Toyota 4Runner | 26938 | 0 | 0 | docs/reports/hero-car-visual-qa/reduced-motion.png |
+| PASS | stale-local-storage | 04 — Honda Accord | 28906 | 0 | 0 | docs/reports/hero-car-visual-qa/stale-local-storage.png |
 
 
 ## desktop
 
-- URL: http://localhost:3000/
+- URL: http://localhost:3137/?v=lamp-natural-check-2
 - Screenshot: docs/reports/hero-car-visual-qa/desktop.png
 - Ready: true
 - Label: 01 — Toyota 4Runner / 2026 · trail SUV
-- Canvas non-transparent sampled pixels: 28331
+- Canvas non-transparent sampled pixels: 28554
 - Horizontal overflow px: 0
 - Hero error: none
 - Asset warnings: none
@@ -28,11 +28,11 @@ Generated: 2026-06-13T16:21:39.208Z
 
 ## mobile
 
-- URL: http://localhost:3000/
+- URL: http://localhost:3137/?v=lamp-natural-check-2
 - Screenshot: docs/reports/hero-car-visual-qa/mobile.png
 - Ready: true
 - Label: 01 — Toyota 4Runner / 2026 · trail SUV
-- Canvas non-transparent sampled pixels: 3769
+- Canvas non-transparent sampled pixels: 3703
 - Horizontal overflow px: 0
 - Hero error: none
 - Asset warnings: none
@@ -44,11 +44,11 @@ Generated: 2026-06-13T16:21:39.208Z
 
 ## reduced-motion
 
-- URL: http://localhost:3000/
+- URL: http://localhost:3137/?v=lamp-natural-check-2
 - Screenshot: docs/reports/hero-car-visual-qa/reduced-motion.png
 - Ready: true
 - Label: 01 — Toyota 4Runner / 2026 · trail SUV
-- Canvas non-transparent sampled pixels: 27373
+- Canvas non-transparent sampled pixels: 26938
 - Horizontal overflow px: 0
 - Hero error: none
 - Asset warnings: none
@@ -60,11 +60,11 @@ Generated: 2026-06-13T16:21:39.208Z
 
 ## stale-local-storage
 
-- URL: http://localhost:3000/
+- URL: http://localhost:3137/?v=lamp-natural-check-2
 - Screenshot: docs/reports/hero-car-visual-qa/stale-local-storage.png
 - Ready: true
 - Label: 04 — Honda Accord / 2026 · midsize sedan
-- Canvas non-transparent sampled pixels: 29727
+- Canvas non-transparent sampled pixels: 28906
 - Horizontal overflow px: 0
 - Hero error: none
 - Asset warnings: none

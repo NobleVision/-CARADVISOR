@@ -42,9 +42,12 @@
   ],
   "headlights": [
     [
-      0.365,
-      0.4838
+      0.448,
+      0.463
     ]
   ],
-  "ground": 0.964
+  "ground": 0.964,
+  "lampFlash": {
+    "intro": false
+  }
 }

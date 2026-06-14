@@ -66,15 +66,20 @@
     ],
     "headlights": [
       [
-        0.365,
-        0.4838
+        0.448,
+        0.463
       ]
     ],
-    "ground": 0.964
+    "ground": 0.964,
+    "lampFlash": {
+      "intro": false
+    }
   },
   "processingMode": "rembg-u2net-auto-cutout-normalized",
   "validationNotes": [
     "Transparent PNG staged for preview only; not imported into rotation.json.",
-    "Review visual quality, scale, ground line, and background removal before import approval."
+    "Review visual quality, scale, ground line, and background removal before import approval.",
+    "Lamp anchor refined against active hero flash QA so staged metadata matches live imported metadata.",
+    "Lamp flash metadata refined against natural Tacoma/Civic/F-150 reference behavior."
   ]
 }

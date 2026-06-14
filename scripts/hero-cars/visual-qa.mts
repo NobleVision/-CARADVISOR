@@ -79,6 +79,12 @@ function markdown(results: ScenarioResult[]): string {
   return `# Hero Car Rotation Visual QA Report\n\nGenerated: ${new Date().toISOString()}\n\n| Result | Scenario | Hero label | Canvas pixels | Overflow px | JS errors | Screenshot |\n| --- | --- | --- | ---: | ---: | ---: | --- |\n${rows}\n\n${details}\n`;
 }
 
+function isBenignConsoleError(text: string): boolean {
+  // Chromium can log this for a request aborted while Playwright closes a fresh QA context.
+  // It does not indicate a hero runtime error, missing asset, or failed app state.
+  return text.includes("ERR_CONNECTION_ABORTED");
+}
+
 async function waitForHero(page: Page): Promise<void> {
   await page.waitForSelector("hero-particles", { timeout: 30000 });
   await page.waitForFunction(
@@ -158,7 +164,7 @@ async function runScenario(
   const consoleErrors: string[] = [];
   const pageErrors: string[] = [];
   page.on("console", (message) => {
-    if (message.type() === "error") consoleErrors.push(message.text());
+    if (message.type() === "error" && !isBenignConsoleError(message.text())) consoleErrors.push(message.text());
   });
   page.on("pageerror", (error) => pageErrors.push(error.message));
 

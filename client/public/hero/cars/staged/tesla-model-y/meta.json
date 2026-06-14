@@ -42,9 +42,12 @@
   ],
   "headlights": [
     [
-      0.365,
-      0.4836
+      0.31,
+      0.344
     ]
   ],
-  "ground": 0.9654
+  "ground": 0.9654,
+  "lampFlash": {
+    "color": "red"
+  }
 }
